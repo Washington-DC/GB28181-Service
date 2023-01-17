@@ -70,11 +70,13 @@ bool HttpClient::StopSendRtp(std::shared_ptr<ChannelInfo> channel_info) {
 		uri_builder builder(L"/index/api/stopSendRtp");
 		builder.append_query(L"secret", nbase::win32::MBCSToUnicode(_server_info->Secret));
 		builder.append_query(L"vhost", L"__defaultVhost__");
-		builder.append_query(L"app", L"h265");
-		builder.append_query(L"stream", L"ch2/sub/av_stream");
+		builder.append_query(L"app", nbase::win32::MBCSToUnicode(channel_info->App));
+		builder.append_query(L"stream", nbase::win32::MBCSToUnicode(channel_info->Stream));
 
 		stringstreambuf buffer;
 		http_response response = client.request(methods::GET, builder.to_string()).get();
+
+		return true;
 	}
 	catch (const std::exception&) {
 	}
