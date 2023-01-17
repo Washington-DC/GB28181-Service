@@ -9,9 +9,11 @@
 
 // 添加要在此处预编译的标头
 
-#include <string>
 #include <iostream>
+#include <string>
 #include <thread>
+#include <filesystem>
+
 #include <WinSock2.h>
 
 #define GLOG_NO_ABBREVIATED_SEVERITIES
@@ -22,6 +24,10 @@
 #include <base/base.h>
 #include <magic_enum.hpp>
 #include <cpprest/http_client.h>
+#include <eXosip2/eXosip.h>
+#include <boost/algorithm/string.hpp>
+
+namespace algo = boost::algorithm;
 
 using namespace std::string_literals;
 using namespace std::chrono_literals;
@@ -40,11 +46,11 @@ using namespace std::chrono_literals;
 
 #pragma comment(lib,"osipparser2.lib")
 #pragma comment(lib,"osip2.lib")
-#pragma comment(lib,"libcares.lib")
 #pragma comment(lib,"eXosip.lib")
+#pragma comment(lib,"libcares.lib")
+
 #pragma comment(lib,"libssl.lib")
 #pragma comment(lib,"libcrypto.lib")
-
 
 #ifdef _DEBUG
 #pragma comment(lib,"pugixmld.lib")
@@ -61,15 +67,6 @@ using namespace std::chrono_literals;
 #else
 #pragma comment(lib,"cpprest142_2_10.lib")
 #endif
-
-
-struct  ServerInfo
-{
-	std::string IP;
-	int Port;
-
-};
-
 
 
 #endif //PCH_H
