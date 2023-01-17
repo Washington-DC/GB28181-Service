@@ -9,23 +9,23 @@
 
 // 添加要在此处预编译的标头
 
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <thread>
-#include <filesystem>
 
 #include <WinSock2.h>
 
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #define GOOGLE_GLOG_DLL_DECL
-#include <glog/logging.h>
-#include <fmt/format.h>
-#include <pugixml.hpp>
 #include <base/base.h>
-#include <magic_enum.hpp>
 #include <cpprest/http_client.h>
 #include <eXosip2/eXosip.h>
+#include <fmt/format.h>
+#include <glog/logging.h>
+#include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
+#include <pugixml.hpp>
 
 using namespace std::string_literals;
 using namespace std::chrono_literals;
@@ -37,34 +37,32 @@ using namespace web::http::client;
 using namespace concurrency::streams;
 using namespace std::chrono_literals;
 
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "Crypt32.lib")
+#pragma comment(lib, "Dnsapi.lib")
 
-#pragma comment(lib,"Ws2_32.lib")
-#pragma comment(lib,"Crypt32.lib")
-#pragma comment(lib,"Dnsapi.lib")
+#pragma comment(lib, "osipparser2.lib")
+#pragma comment(lib, "osip2.lib")
+#pragma comment(lib, "eXosip.lib")
+#pragma comment(lib, "libcares.lib")
 
-#pragma comment(lib,"osipparser2.lib")
-#pragma comment(lib,"osip2.lib")
-#pragma comment(lib,"eXosip.lib")
-#pragma comment(lib,"libcares.lib")
-
-#pragma comment(lib,"libssl.lib")
-#pragma comment(lib,"libcrypto.lib")
+#pragma comment(lib, "libssl.lib")
+#pragma comment(lib, "libcrypto.lib")
 
 #ifdef _DEBUG
-#pragma comment(lib,"pugixmld.lib")
-#pragma comment(lib,"glogd.lib")
-#pragma comment(lib,"fmtd.lib")
+#pragma comment(lib, "pugixmld.lib")
+#pragma comment(lib, "glogd.lib")
+#pragma comment(lib, "fmtd.lib")
 #else
-#pragma comment(lib,"pugixml.lib")
-#pragma comment(lib,"glog.lib")
-#pragma comment(lib,"fmt.lib")
+#pragma comment(lib, "pugixml.lib")
+#pragma comment(lib, "glog.lib")
+#pragma comment(lib, "fmt.lib")
 #endif
 
 #ifdef _DEBUG
-#pragma comment(lib,"cpprest142_2_10d.lib")
+#pragma comment(lib, "cpprest142_2_10d.lib")
 #else
-#pragma comment(lib,"cpprest142_2_10.lib")
+#pragma comment(lib, "cpprest142_2_10.lib")
 #endif
 
-
-#endif //PCH_H
+#endif // PCH_H
