@@ -3,6 +3,7 @@
 
 #include "pch.h"
 #include "ConfigManager.h"
+#include "HttpClient.h"
 #include "Device.h"
 
 int main()
@@ -22,27 +23,23 @@ int main()
 	auto sip_server_info = ConfigManager::GetInstance()->GetSipServerInfo();
 	auto media_server_info = ConfigManager::GetInstance()->GetMediaServerInfo();
 	auto device_infos = ConfigManager::GetInstance()->GetAllDeviceInfo();
-
+	HttpClient::GetInstance()->Init(media_server_info);
 	std::vector<std::shared_ptr<SipDevice>> devices;
-
 	for (auto&& info : device_infos)
 	{
-		auto device = std::make_shared<SipDevice>(info, sip_server_info, media_server_info);
+		auto device = std::make_shared<SipDevice>(info, sip_server_info);
 		device->init();
 		device->start_sip_client();
 		devices.push_back(device);
 	}
 
-
 	getchar();
-
 
 	for (auto&& device : devices)
 	{
 		device->log_out();
 		device->stop_sip_client();
 	}
-
 
 	return 0;
 }

@@ -25,9 +25,7 @@
 #include <magic_enum.hpp>
 #include <cpprest/http_client.h>
 #include <eXosip2/eXosip.h>
-#include <boost/algorithm/string.hpp>
-
-namespace algo = boost::algorithm;
+#include <nlohmann/json.hpp>
 
 using namespace std::string_literals;
 using namespace std::chrono_literals;

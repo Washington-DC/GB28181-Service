@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Device.h"
 #include "NetUtils.h"
+#include "HttpClient.h"
 
 static int start_port = 40000;
 static int SN_MAX = 99999999;
@@ -20,8 +21,7 @@ static int get_sn() {
 
 
 SipDevice::SipDevice(const std::shared_ptr<DeviceInfo> info,
-					 std::shared_ptr<SipServerInfo> sip_server_info,
-					 std::shared_ptr<MediaServerInfo> media_server_info)
+					 std::shared_ptr<SipServerInfo> sip_server_info)
 {
 	this->ID = info->ID;
 	this->IP = info->IP;
@@ -33,7 +33,6 @@ SipDevice::SipDevice(const std::shared_ptr<DeviceInfo> info,
 	this->Channels = info->Channels;
 
 	this->_sip_server_info = sip_server_info;
-	this->_media_server_info = media_server_info;
 }
 
 
@@ -49,8 +48,6 @@ bool SipDevice::init()
 	_from_uri = fmt::format("sip:{}@{}:{}", this->ID, this->IP, this->Port);
 	_contact_url = fmt::format("sip:{}@{}:{}", this->ID, this->IP, this->Port);
 	_proxy_uri = fmt::format("sip:{}@{}:{}", _sip_server_info->ID, _sip_server_info->IP, _sip_server_info->Port);
-
-	_baseurl = fmt::format(L"http://{}:{}", nbase::win32::MBCSToUnicode(_media_server_info->IP), _media_server_info->Port);
 
 	return true;
 }
@@ -441,100 +438,41 @@ void SipDevice::on_call_ack(eXosip_event_t* event)
 {
 	LOG(INFO) << "接收到 ACK，开始推流";
 
-	_call_id = event->cid;
-	_dialog_id = event->did;
+	std::shared_ptr<SessinInfo> session = nullptr;
+	if (event->request && event->request->req_uri && event->request->req_uri->username)
+	{
+		auto invite_video_channel_id = event->request->req_uri->username;
+		if (_session_map.find(invite_video_channel_id) != _session_map.end())
+		{
+			session = _session_map[invite_video_channel_id];
 
-	//TODO  向流媒体服务器发送请求，开始向指定地址发送RTP数据
-	stringstreambuf buffer;
-	pplx::task<void> request_task = buffer.sync()
-		.then([this]()
-			  {
-				  http_client_config config;
-				  config.set_timeout(1000ms);
-				  http_client client(_baseurl, config);
-				  uri_builder builder(L"/index/api/startSendRtp");
-
-				  builder.append_query(L"secret", nbase::win32::MBCSToUnicode(_media_server_info->Secret));
-				  builder.append_query(L"vhost", L"__defaultVhost__");
-				  builder.append_query(L"app", L"h265");
-				  builder.append_query(L"stream", L"ch2/sub/av_stream");
-				  builder.append_query(L"ssrc", nbase::win32::MBCSToUnicode(_ssrc));
-				  builder.append_query(L"dst_url", nbase::win32::MBCSToUnicode(_target_ip));
-				  builder.append_query(L"dst_port", std::to_wstring(_target_port));
-				  builder.append_query(L"is_udp", _use_tcp ? L"0" : L"1");
-				  builder.append_query(L"src_port", std::to_wstring(_listen_port));
-
-				  LOG(INFO) << "向流媒体服务器发送请求: \n" << nbase::win32::UnicodeToMBCS(builder.to_string());
-
-				  return client.request(methods::GET, builder.to_string());
-			  })
-		.then([this, buffer](http_response response)
-			  {
-				  return response.body().read_to_end(buffer);
-			  })
-				  .then([this, buffer](size_t size)
-						{
-							LOG(INFO) << "流媒体服务器返回: " << buffer.collection();
-
-							_is_pushing_stream = true;
-						});
-
-			  try
-			  {
-				  request_task.wait();
-			  }
-			  catch (const std::exception& e)
-			  {
-				  auto text = e.what();
-				  LOG(ERROR) << e.what();
-			  }
+			//TODO  向流媒体服务器发送请求，开始向指定地址发送RTP数据
+			auto ret = HttpClient::GetInstance()->StartSendRtp(session->Channel, session->SSRC, session->TargetIP,
+															   session->TargetPort, session->LocalPort, session->UseTcp);
+		}
+	}
 }
 
 void SipDevice::on_call_closed(eXosip_event_t* event)
 {
 	LOG(INFO) << "接收到 BYE，结束推流";
 
-	_call_id = -1;
-	_dialog_id = -1;
+	std::shared_ptr<SessinInfo> session = nullptr;
+	if (event->request && event->request->req_uri && event->request->req_uri->username)
+	{
+		auto invite_video_channel_id = event->request->req_uri->username;
+		auto iter = _session_map.find(invite_video_channel_id);
+		if (iter != _session_map.end())
+		{
+			session = _session_map[invite_video_channel_id];
 
-	//TODO  向流媒体服务器发送请求，停止发送RTP数据
-	stringstreambuf buffer;
-	pplx::task<void> request_task = buffer
-		.sync()
-		.then([this]()
-			  {
-				  http_client_config config;
-				  config.set_timeout(500ms);
-				  http_client client(_baseurl, config);
-				  uri_builder builder(L"/index/api/stopSendRtp");
-				  builder.append_query(L"secret", nbase::win32::MBCSToUnicode(_media_server_info->Secret));
-				  builder.append_query(L"vhost", L"__defaultVhost__");
-				  builder.append_query(L"app", L"h265");
-				  builder.append_query(L"stream", L"ch2/sub/av_stream");
+			//TODO  向流媒体服务器发送请求，停止发送RTP数据
+			auto ret = HttpClient::GetInstance()->StopSendRtp(session->Channel);
 
-				  return client.request(methods::GET, builder.to_string());
-			  })
-		.then([this, buffer](http_response response)
-			  {
-				  return response.body().read_to_end(buffer);
-			  })
-				  .then([this, buffer](size_t size)
-						{
-							LOG(INFO) << "流媒体服务器返回: " << buffer.collection();
-							_is_pushing_stream = false;
-						});
-
-			  try
-			  {
-				  request_task.wait();
-			  }
-			  catch (const std::exception& e)
-			  {
-				  LOG(ERROR) << e.what();
-			  }
+			_session_map.erase(iter);
+		}
+	}
 }
-
-
 
 void SipDevice::on_call_invite(eXosip_event_t* event)
 {
@@ -559,60 +497,44 @@ void SipDevice::on_call_invite(eXosip_event_t* event)
 		return;
 	}
 
+	std::string invite_video_channel_id = "";
+	std::shared_ptr<ChannelInfo> channel_info = nullptr;
 	if (event->request && event->request->req_uri && event->request->req_uri->username)
 	{
-		_invite_video_channel_id = event->request->req_uri->username;
+		invite_video_channel_id = event->request->req_uri->username;
+		LOG(INFO) << "INVITE: " << invite_video_channel_id;
+		channel_info = find_channel(invite_video_channel_id);
+	}
+	else
+		return;
 
-		LOG(INFO) << "INVITE: " << _invite_video_channel_id;
-
-		_invite_channel_info = nullptr;
-		for (auto&& channel : this->Channels)
-		{
-			if (channel->ID.compare(_invite_video_channel_id) == 0)
-			{
-				_invite_channel_info = channel;
-				break;
-			}
-		}
-
-		if (_invite_channel_info == nullptr)
-		{
-			LOG(ERROR) << "未找到对应Channel: " << _invite_video_channel_id;
-			return;
-		}
+	if (channel_info == nullptr)
+	{
+		LOG(ERROR) << "未找到对应Channel: " << invite_video_channel_id;
+		return;
 	}
 
 	auto ret = sdp_message_parse(sdp, sdp_body->body);
-	/*if (OSIP_SUCCESS != ret)
-	{
-		LOG(ERROR) << "sdp_message_parse failed";
-		return;
-	}*/
-
+	std::string ssrc = "";
 	{
 		std::string text = sdp_body->body;
-		text = nbase::StringTrim(text);
-		auto pos = text.find_last_of('\n');
-		if (pos != std::string::npos)
-		{
-			text = text.substr(pos + 1);
-			if (strstr(text.c_str(), "y=0"))
-			{
-				text = text.substr(2);
-				LOG(INFO) << "---Y: " << text;
-				_ssrc = text;
-			}
-		}
+		ssrc = parse_ssrc(text);
+		if (ssrc.empty())
+			return;
 	}
 	sdp_connection_t* connect = eXosip_get_video_connection(sdp);
 	sdp_media_t* media = eXosip_get_video_media(sdp);
 
-	_target_ip = connect->c_addr;
-	_target_port = std::stoi(media->m_port);
+	auto session = std::make_shared<SessinInfo>();
+	session->TargetIP = connect->c_addr;
+	session->TargetPort = std::stoi(media->m_port);
 	auto protocol = media->m_proto;
-	_use_tcp = strstr(protocol, "TCP");
-
-	_listen_port = get_port();
+	session->UseTcp = strstr(protocol, "TCP");
+	session->LocalPort = NetHelper::FindAvailablePort();
+	session->SSRC = ssrc;
+	session->ID = invite_video_channel_id;
+	session->Channel = channel_info;
+	_session_map.insert({ invite_video_channel_id ,session });
 
 	std::stringstream ss;
 	ss << "v=0\r\n";
@@ -625,7 +547,7 @@ void SipDevice::on_call_invite(eXosip_event_t* event)
 	ss << "a=rtpmap:96 PS/90000\r\n";
 	ss << "y={}\r\n";
 
-	auto info = fmt::format(ss.str(), _invite_video_channel_id, this->IP, _local_port, _listen_port, _use_tcp ? "TCP/RTP/AVP" : "RTP/AVP", _ssrc);
+	auto info = fmt::format(ss.str(), invite_video_channel_id, this->IP, this->IP, session->LocalPort, session->UseTcp ? "TCP/RTP/AVP" : "RTP/AVP", ssrc);
 
 	osip_message_t* message = event->request;
 	ret = eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
@@ -725,4 +647,38 @@ std::string SipDevice::generate_catalog_xml(const std::string& sn)
 	LOG(INFO) << "Catalog:----------------------------- \n" << ss.str();
 
 	return ss.str();
+}
+
+
+std::string SipDevice::parse_ssrc(std::string text)
+{
+	text = nbase::StringTrim(text);
+	auto pos = text.find_last_of('\n');
+	if (pos != std::string::npos)
+	{
+		text = text.substr(pos + 1);
+		if (strstr(text.c_str(), "y=0"))
+		{
+			text = text.substr(2);
+			LOG(INFO) << "---Y: " << text;
+			return text;
+		}
+	}
+	return std::string();
+}
+
+
+std::shared_ptr<ChannelInfo> SipDevice::find_channel(std::string id)
+{
+	std::shared_ptr<ChannelInfo> channel_info = nullptr;
+	for (auto&& channel : this->Channels)
+	{
+		if (channel->ID.compare(id) == 0)
+		{
+			channel_info = channel;
+			break;
+		}
+	}
+
+	return channel_info;
 }

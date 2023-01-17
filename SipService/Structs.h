@@ -38,3 +38,15 @@ struct DeviceInfo
 };
 
 
+struct SessinInfo
+{
+	std::string ID;
+	std::string SSRC;
+	std::string TargetIP;
+	int TargetPort;
+	int LocalPort;
+	bool UseTcp = false;
+	std::shared_ptr<ChannelInfo> Channel = nullptr;
+};
+
+
