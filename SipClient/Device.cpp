@@ -38,6 +38,7 @@ bool SipDevice::init() {
 		LOG(ERROR) << "eXosip_init failed";
 		return false;
 	}
+	eXosip_set_option(_sip_context, EXOSIP_OPT_SET_HEADER_USER_AGENT, this->Manufacturer.c_str());
 
 	_from_uri = fmt::format("sip:{}@{}:{}", this->ID, this->IP, this->Port);
 	_contact_url = fmt::format("sip:{}@{}:{}", this->ID, this->IP, this->Port);
@@ -60,6 +61,9 @@ bool SipDevice::start_sip_client() {
 		return false;
 	}
 
+	_is_running = true;
+	_sip_thread = std::make_shared<std::thread>(&SipDevice::on_response, this);
+
 	eXosip_clear_authentication_info(_sip_context);
 
 	osip_message_t* register_msg = nullptr;
@@ -69,8 +73,6 @@ bool SipDevice::start_sip_client() {
 		LOG(ERROR) << "eXosip_register_build_initial_register failed";
 	}
 
-	_is_running = true;
-	_sip_thread = std::make_shared<std::thread>(&SipDevice::on_response, this);
 	eXosip_lock(_sip_context);
 	auto ret = eXosip_register_send_register(_sip_context, _register_id, register_msg);
 	eXosip_unlock(_sip_context);
@@ -493,7 +495,6 @@ void SipDevice::on_call_invite(eXosip_event_t* event) {
 		LOG(ERROR) << "eXosip_call_build_answer failed";
 		return;
 	}
-
 	osip_message_set_content_type(message, "APPLICATION/SDP");
 	osip_message_set_body(message, info.c_str(), info.length());
 	eXosip_call_send_answer(_sip_context, event->tid, 200, message);
@@ -532,6 +533,7 @@ void SipDevice::heartbeat_task() {
 
 		osip_message_set_content_type(request, "Application/MANSCDP+xml");
 		osip_message_set_body(request, info.c_str(), info.length());
+
 		eXosip_lock(_sip_context);
 		eXosip_message_send_request(_sip_context, request);
 		eXosip_unlock(_sip_context);
