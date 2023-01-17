@@ -6,6 +6,7 @@
 #include "Device.h"
 #include "HttpClient.h"
 
+
 int main() {
     google::InitGoogleLogging("");
     google::SetStderrLogging(google::GLOG_INFO);
@@ -31,7 +32,17 @@ int main() {
         devices.push_back(device);
     }
 
+#ifdef _DEBUG
     getchar();
+#else
+    static std::promise<void> s_exit;
+    signal(SIGINT, [](int signal)
+           {
+               LOG(INFO) << "Catch Signal: " << signal;
+               s_exit.set_value();
+           });
+    s_exit.get_future().wait();
+#endif
 
     for (auto &&device : devices) {
         device->log_out();

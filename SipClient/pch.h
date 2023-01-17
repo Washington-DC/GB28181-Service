@@ -13,6 +13,8 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <future>
+#include <csignal>
 
 #include <WinSock2.h>
 
