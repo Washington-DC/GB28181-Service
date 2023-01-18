@@ -287,7 +287,8 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 		send_response_ok(event);
 
 		pugi::xml_document doc;
-		if (!doc.load_string(body->body)) {
+		auto ret = doc.load_string(body->body);
+		if (ret.status != pugi::status_ok) {
 			LOG(ERROR) << "load request xml failed";
 			return;
 		}
