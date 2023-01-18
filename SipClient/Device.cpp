@@ -569,7 +569,7 @@ std::string SipDevice::generate_catalog_xml(const std::string& sn) {
 	for (auto&& channel : this->Channels) {
 		auto node = device.append_child("Item");
 		node.append_child("DeviceID").text().set(channel->ID.c_str());
-		node.append_child("Name").text().set("Channel");
+		node.append_child("Name").text().set(channel->Name.c_str());
 		node.append_child("Manufacturer").text().set(this->Manufacturer.c_str());
 		node.append_child("Model").text().set(this->Name.c_str());
 		node.append_child("Status").text().set("ON");
