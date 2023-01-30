@@ -119,21 +119,22 @@ bool SipDevice::stop_sip_client() {
 }
 
 bool SipDevice::send_device_info() {
-	auto text = R"(<?xml version="1.0" encoding="GB2312"?>
-					<Response>
-						<CmdType>DeviceInfo</CmdType>
-						<SN>{}</SN>
-						<DeviceID>{}</DeviceID>
+	auto text = 
+R"(<?xml version="1.0" encoding="GB2312"?>
+<Response>
+	<CmdType>DeviceInfo</CmdType>
+	<SN>{}</SN>
+	<DeviceID>{}</DeviceID>
 
-						<Result>OK</Result>
-						<DeviceName>{}</DeviceName>
-						<Manufacturer>{}</Manufacturer>
+	<Result>OK</Result>
+	<DeviceName>{}</DeviceName>
+	<Manufacturer>{}</Manufacturer>
 
-						<Model>SipServer</Model>
-						<Firmware>V1.0.0</Firmware>
-						<Channel>{}</Channel>
-					</Response>
-					)"s;
+	<Model>SipServer</Model>
+	<Firmware>V1.0.0</Firmware>
+	<Channel>{}</Channel>
+</Response>
+)"s;
 
 	auto xml = fmt::format(text, get_sn(), this->ID, this->Name, this->Manufacturer, this->Channels.size());
 	osip_message_t* request = nullptr;
@@ -208,7 +209,8 @@ void SipDevice::on_response() {
 			continue;
 
 		switch (event->type) {
-			case EXOSIP_IN_SUBSCRIPTION_NEW: break;
+			case EXOSIP_IN_SUBSCRIPTION_NEW: 
+				break;
 			case EXOSIP_MESSAGE_NEW: //查询目录
 				on_message_new(event);
 				break;
@@ -227,8 +229,11 @@ void SipDevice::on_response() {
 			case EXOSIP_CALL_CLOSED: //关闭推流
 				on_call_closed(event);
 				break;
-			case EXOSIP_CALL_INVITE: on_call_invite(event); break;
-			default: break;
+			case EXOSIP_CALL_INVITE: 
+				on_call_invite(event); 
+				break;
+			default: 
+				break;
 		}
 
 		if (event != nullptr) {
@@ -323,21 +328,22 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 				eXosip_unlock(_sip_context);
 			}
 			else if (cmd == "DeviceInfo") {
-				auto text = R"(<?xml version="1.0" encoding="GB2312"?>
-					<Response>
-						<CmdType>DeviceInfo</CmdType>
-						<SN>{}</SN>
-						<DeviceID>{}</DeviceID>
+				auto text = 
+R"(<?xml version="1.0" encoding="GB2312"?>
+<Response>
+	<CmdType>DeviceInfo</CmdType>
+	<SN>{}</SN>
+	<DeviceID>{}</DeviceID>
 
-						<Result>OK</Result>
-						<DeviceName>{}</DeviceName>
-						<Manufacturer>{}</Manufacturer>
+	<Result>OK</Result>
+	<DeviceName>{}</DeviceName>
+	<Manufacturer>{}</Manufacturer>
 
-						<Model>SipServer</Model>
-						<Firmware>V1.0.0</Firmware>
-						<Channel>{}</Channel>
-					</Response>
-					)"s;
+	<Model>SipServer</Model>
+	<Firmware>V1.0.0</Firmware>
+	<Channel>{}</Channel>
+</Response>
+)"s;
 
 				auto xml = fmt::format(text, sn, this->ID, this->Name, this->Manufacturer, this->Channels.size());
 				osip_message_t* request = nullptr;
@@ -514,14 +520,15 @@ void SipDevice::send_response_ok(eXosip_event_t* event) {
 
 void SipDevice::heartbeat_task() {
 	while (_is_running && _register_success && _is_heartbeat_running) {
-		auto text = R"(<?xml version="1.0"?>
-						<Notify>
-							<CmdType>Keepalive</CmdType>
-							<SN>{}</SN>
-							<DeviceID>{}</DeviceID>
-							<Status>OK</Status>
-						</Notify>
-						)"s;
+		auto text = 
+R"(<?xml version="1.0"?>
+<Notify>
+	<CmdType>Keepalive</CmdType>
+	<SN>{}</SN>
+	<DeviceID>{}</DeviceID>
+	<Status>OK</Status>
+</Notify>
+)"s;
 		auto info = fmt::format(text, get_sn(), this->ID);
 
 		osip_message_t* request = nullptr;
@@ -547,16 +554,17 @@ void SipDevice::heartbeat_task() {
 }
 
 std::string SipDevice::generate_catalog_xml(const std::string& sn) {
-	auto text = R"(<?xml version="1.0" encoding="GB2312"?>
-					<Response>
-						<CmdType>Catalog</CmdType>
-						<SN>{}</SN>
-						<DeviceID>{}</DeviceID>
-						<SumNum>{}</SumNum>
-						<DeviceList Num="{}">
-						</DeviceList>
-					</Response>
-					)"s;
+	auto text = 
+R"(<?xml version="1.0" encoding="GB2312"?>
+<Response>
+	<CmdType>Catalog</CmdType>
+	<SN>{}</SN>
+	<DeviceID>{}</DeviceID>
+	<SumNum>{}</SumNum>
+	<DeviceList Num="{}">
+	</DeviceList>
+</Response>
+)"s;
 
 	auto xml = fmt::format(text, sn, this->ID, this->Channels.size(), this->Channels.size());
 	pugi::xml_document doc;
