@@ -450,7 +450,10 @@ void SipDevice::on_call_invite(eXosip_event_t* event) {
 		channel_info = find_channel(invite_video_channel_id);
 	}
 	else
+	{
+		LOG(ERROR) << "event->request->req_uri错误";
 		return;
+	}
 
 	if (channel_info == nullptr) {
 		LOG(ERROR) << "未找到对应Channel: " << invite_video_channel_id;
@@ -463,7 +466,10 @@ void SipDevice::on_call_invite(eXosip_event_t* event) {
 		std::string text = sdp_body->body;
 		ssrc = parse_ssrc(text);
 		if (ssrc.empty())
+		{
+			LOG(ERROR) << "未找到SSRC";
 			return;
+		}
 	}
 	sdp_connection_t* connect = eXosip_get_video_connection(sdp);
 	sdp_media_t* media = eXosip_get_video_media(sdp);
