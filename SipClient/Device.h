@@ -10,7 +10,6 @@ public:
     bool start_sip_client();
     bool stop_sip_client();
     bool log_out();
-    bool send_device_info();
 
 private:
     void on_response();

@@ -47,6 +47,9 @@ bool SipDevice::init() {
 	return true;
 }
 
+/// @brief 启动sip客户端功能
+/// 绑定本地端口，创建线程接收数据，发送注册信息
+/// @return 
 bool SipDevice::start_sip_client() {
 	if (NetHelper::IsPortAvailable(this->Port))
 		_local_port = this->Port;
@@ -87,6 +90,8 @@ bool SipDevice::start_sip_client() {
 	}
 }
 
+/// @brief 停止sip功能
+/// @return 
 bool SipDevice::stop_sip_client() {
 	_is_running = false;
 
@@ -118,43 +123,8 @@ bool SipDevice::stop_sip_client() {
 	return true;
 }
 
-bool SipDevice::send_device_info() {
-	auto text = 
-R"(<?xml version="1.0" encoding="GB2312"?>
-<Response>
-	<CmdType>DeviceInfo</CmdType>
-	<SN>{}</SN>
-	<DeviceID>{}</DeviceID>
-
-	<Result>OK</Result>
-	<DeviceName>{}</DeviceName>
-	<Manufacturer>{}</Manufacturer>
-
-	<Model>SipServer</Model>
-	<Firmware>V1.0.0</Firmware>
-	<Channel>{}</Channel>
-</Response>
-)"s;
-
-	auto xml = fmt::format(text, get_sn(), this->ID, this->Name, this->Manufacturer, this->Channels.size());
-	osip_message_t* request = nullptr;
-	auto ret = eXosip_message_build_request(
-		_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-	if (ret != OSIP_SUCCESS) {
-		LOG(ERROR) << "eXosip_message_build_request failed";
-		return false;
-	}
-
-	osip_message_set_content_type(request, "Application/MANSCDP+xml");
-	osip_message_set_body(request, xml.c_str(), xml.length());
-
-	eXosip_lock(_sip_context);
-	eXosip_message_send_request(_sip_context, request);
-	eXosip_unlock(_sip_context);
-
-	return true;
-}
-
+/// @brief 注销
+/// @return 
 bool SipDevice::log_out() {
 	_is_heartbeat_running = false;
 
@@ -191,6 +161,7 @@ bool SipDevice::log_out() {
 	return true;
 }
 
+/// @brief 轮询接收数据
 void SipDevice::on_response() {
 	eXosip_event_t* event = nullptr;
 	while (_is_running) {
@@ -229,7 +200,7 @@ void SipDevice::on_response() {
 			case EXOSIP_CALL_CLOSED: //关闭推流
 				on_call_closed(event);
 				break;
-			case EXOSIP_CALL_INVITE: 
+			case EXOSIP_CALL_INVITE: //请求会话
 				on_call_invite(event); 
 				break;
 			default: 
@@ -243,6 +214,8 @@ void SipDevice::on_response() {
 	}
 }
 
+/// @brief 注册失败
+/// @param event 
 void SipDevice::on_registration_failure(eXosip_event_t* event) {
 	LOG(ERROR) << "注册失败";
 	_register_success = false;
@@ -266,6 +239,8 @@ void SipDevice::on_registration_failure(eXosip_event_t* event) {
 	}
 }
 
+/// @brief 注册成功
+/// @param event 
 void SipDevice::on_registration_success(eXosip_event_t* event) {
 	LOG(INFO) << "注册成功";
 
@@ -281,6 +256,8 @@ void SipDevice::on_registration_success(eXosip_event_t* event) {
 	}
 }
 
+/// @brief 收到消息，这里主要有查询Catalog和DeviceInfo两种
+/// @param event 
 void SipDevice::on_message_new(eXosip_event_t* event) {
 	if (MSG_IS_MESSAGE(event->request)) {
 		osip_body_t* body = nullptr;
@@ -309,6 +286,7 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 			auto sn_node = root.child("SN");
 			std::string sn = sn_node.child_value();
 			LOG(INFO) << "SN: " << sn;
+			//目录查询，返回channels信息
 			if (cmd == "Catalog") {
 				auto text = generate_catalog_xml(sn);
 
@@ -327,6 +305,7 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 				eXosip_message_send_request(_sip_context, request);
 				eXosip_unlock(_sip_context);
 			}
+			//设备信息查询，发送设备信息,主要包括设备id，设备名称，厂家，版本，channel数量等
 			else if (cmd == "DeviceInfo") {
 				auto text = 
 R"(<?xml version="1.0" encoding="GB2312"?>
@@ -370,6 +349,8 @@ R"(<?xml version="1.0" encoding="GB2312"?>
 	}
 }
 
+/// @brief 服务端删除设备后，可能会收到此信息，此时重新发送注册信息
+/// @param event 
 void SipDevice::on_message_request_failure(eXosip_event_t* event) {
 	osip_message_t* register_msg = nullptr;
 	auto ret = eXosip_register_build_register(_sip_context, _register_id, 3600, &register_msg);
@@ -388,6 +369,8 @@ void SipDevice::on_message_request_failure(eXosip_event_t* event) {
 	}
 }
 
+/// @brief 开始推流
+/// @param event 
 void SipDevice::on_call_ack(eXosip_event_t* event) {
 	LOG(INFO) << "接收到 ACK，开始推流";
 
@@ -405,6 +388,8 @@ void SipDevice::on_call_ack(eXosip_event_t* event) {
 	}
 }
 
+/// @brief 停止推流
+/// @param event 
 void SipDevice::on_call_closed(eXosip_event_t* event) {
 	LOG(INFO) << "接收到 BYE，结束推流";
 
@@ -423,6 +408,8 @@ void SipDevice::on_call_closed(eXosip_event_t* event) {
 	}
 }
 
+/// @brief 请求会话，发送sdp信息
+/// @param event 
 void SipDevice::on_call_invite(eXosip_event_t* event) {
 	LOG(INFO) << "接收到INVITE";
 	osip_body_t* sdp_body = nullptr;
@@ -515,6 +502,8 @@ void SipDevice::on_call_invite(eXosip_event_t* event) {
 	LOG(INFO) << "SDP Response: " << info;
 }
 
+/// @brief 返回成功消息
+/// @param event 
 void SipDevice::send_response_ok(eXosip_event_t* event) {
 	osip_message_t* message = event->request;
 	eXosip_message_build_answer(_sip_context, event->tid, 200, &message);
@@ -524,6 +513,7 @@ void SipDevice::send_response_ok(eXosip_event_t* event) {
 	eXosip_unlock(_sip_context);
 }
 
+/// @brief 心跳
 void SipDevice::heartbeat_task() {
 	while (_is_running && _register_success && _is_heartbeat_running) {
 		auto text = 
@@ -559,6 +549,9 @@ R"(<?xml version="1.0"?>
 	}
 }
 
+/// @brief 生成目录信息
+/// @param sn 
+/// @return 
 std::string SipDevice::generate_catalog_xml(const std::string& sn) {
 	auto text = 
 R"(<?xml version="1.0" encoding="GB2312"?>
