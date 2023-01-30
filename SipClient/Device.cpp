@@ -591,7 +591,7 @@ R"(<?xml version="1.0" encoding="GB2312"?>
 
 	std::stringstream ss;
 	doc.save(ss);
-	LOG(INFO) << "Catalog:----------------------------- \n" << ss.str();
+	//LOG(INFO) << "Catalog:----------------------------- \n" << ss.str();
 
 	return ss.str();
 }
