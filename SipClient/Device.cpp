@@ -3,12 +3,16 @@
 #include "HttpClient.h"
 #include "NetUtils.h"
 
-static int start_port = 40000;
+static int start_port = 20000;
 static int SN_MAX = 99999999;
 static int sn = 0;
 
 static int get_port() {
 	start_port++;
+	if (start_port > 65500)
+	{
+		return 20000;
+	}
 	return start_port;
 }
 static int get_sn() {
@@ -134,7 +138,6 @@ bool SipDevice::log_out() {
 		_heartbeat_thread = nullptr;
 	}
 	_logout = true;
-	;
 
 	LOG(INFO) << "·¢ËÍ×¢ÏúÃüÁî";
 	osip_message_t* register_msg = nullptr;
@@ -466,7 +469,7 @@ void SipDevice::on_call_invite(eXosip_event_t* event) {
 	session->TargetPort = std::stoi(media->m_port);
 	auto protocol = media->m_proto;
 	session->UseTcp = strstr(protocol, "TCP");
-	session->LocalPort = NetHelper::FindAvailablePort();
+	session->LocalPort = NetHelper::FindAvailablePort(get_port());
 	session->SSRC = ssrc;
 	session->ID = invite_video_channel_id;
 	session->Channel = channel_info;
