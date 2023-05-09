@@ -250,10 +250,7 @@ void SipDevice::on_registration_success(eXosip_event_t* event) {
 	if (!_logout) {
 		_register_success = true;
 		_is_heartbeat_running = true;
-		if (_heartbeat_thread) {
-			_is_heartbeat_running = true;
-		}
-		else {
+		if (_heartbeat_thread == nullptr) {
 			_heartbeat_thread = std::make_shared<std::thread>(&SipDevice::heartbeat_task, this);
 		}
 	}
