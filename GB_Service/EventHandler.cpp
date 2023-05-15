@@ -49,11 +49,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 	if (authorization && authorization->username)
 	{
 		char* method = nullptr;
-		//char* algorithm = nullptr;
 		char* username = nullptr;
-		//char* realm = nullptr;
-		//char* nonce = nullptr;
-		//char* nonce_count = nullptr;
 		char* uri = nullptr;
 		char* response = nullptr;
 
@@ -63,29 +59,18 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 
 #define SIP_STRDUP(field)  if(authorization->field) (field) = osip_strdup_without_quote(authorization->field);
 
-		//SIP_STRDUP(algorithm);
-		SIP_STRDUP(username);
-		//SIP_STRDUP(realm);
-		//SIP_STRDUP(nonce);
-		//SIP_STRDUP(nonce_count);
 		SIP_STRDUP(uri);
+		SIP_STRDUP(username);
 		SIP_STRDUP(response);
 
 		auto config = ConfigManager::GetInstance()->GetSipServerInfo();
-
-		//DigestCalcHA1(algorithm, username, realm, config->Password.c_str(), nonce, nonce_count, HA1);
-		//DigestCalcResponse(HA1, nonce, nonce_count, authorization->cnonce, authorization->message_qop,
-		//	0, method, uri, HA2, Response);
 
 		HASHHEX HA1, calc_response;
 		DigestCalcHA1("REGISTER", username, config->Realm.c_str(), config->Password.c_str(),
 			config->Nonce.c_str(), NULL, HA1);
 		DigestCalcResponse(HA1, config->Nonce.c_str(), NULL, NULL, NULL, 0, method, uri, NULL,
 			calc_response);
-
-
 		LOG(INFO) << "MD5: " << calc_response;
-		//memcpy(calc_response, temp_response, HASHHEXLEN);
 
 		std::string client_host = strdup(contact->url->host);
 		auto client_port = strdup(contact->url->port);
