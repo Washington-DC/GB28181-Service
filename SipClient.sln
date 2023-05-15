@@ -8,13 +8,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{9F5EFC7A-7D53-408E-80C8-45D0EBC319E0}"
 	ProjectSection(SolutionItems) = preProject
 		x64\Debug\config.xml = x64\Debug\config.xml
+		x64\Debug\server.xml = x64\Debug\server.xml
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "base", "base\base.vcxproj", "{8D9A6595-717A-41C8-B468-0011A72BE3D1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SipService", "SipService\SipService.vcxproj", "{B6EAC6C7-1F8B-44E8-8EDB-4A6DDB0EE80D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GB_Service", "GB_Service\GB_Service.vcxproj", "{82CF9D1A-A13A-4EDA-A85E-1D49BE718048}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GB28181_Service", "GB_Service\GB_Service.vcxproj", "{82CF9D1A-A13A-4EDA-A85E-1D49BE718048}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

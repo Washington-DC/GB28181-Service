@@ -142,7 +142,7 @@ int osip_to_tag_match(osip_to_t *to1, osip_to_t *to2);
  * @param header The element to work on.
  * @param dest A pointer on the element found.
  */
-#define osip_to_get_tag(header, dest) osip_generic_param_get_byname((&(header)->gen_params), "tag", dest)
+#define osip_to_get_tag(header, dest) osip_generic_param_get_byname((&(header)->gen_params), (char*)"tag", dest)
 
 #ifndef DOXYGEN /* avoid DOXYGEN warning */
 /* Compare the username, host and tag part of the two froms */

@@ -21,7 +21,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GB28181_Service.cpp">
+    <ClCompile Include="Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
@@ -30,12 +30,57 @@
     <ClCompile Include="SipServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="EventHandlerManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="EventHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SipEvent.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MD5.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpDigest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SipRequest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SipServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="EventHandlerManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="EventHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SipEvent.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Structs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpDigest.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SipRequest.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

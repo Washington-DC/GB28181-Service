@@ -72,8 +72,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\depends\json;..\depends\boost-1.75\include;..;..\depends\cpprestsdk\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\boost-1.75\lib;..\depends\cpprestsdk\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..;..\depends\cpprestsdk\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\cpprestsdk\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -115,6 +115,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,18 +141,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GB28181_Service.cpp" />
+    <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="EventHandlerManager.cpp" />
+    <ClCompile Include="HttpDigest.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="EventHandler.cpp" />
+    <ClCompile Include="MD5.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SipRequest.cpp" />
+    <ClCompile Include="SipEvent.cpp" />
     <ClCompile Include="SipServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="EventHandlerManager.h" />
+    <ClInclude Include="EventHandler.h" />
+    <ClInclude Include="HttpDigest.h" />
+    <ClInclude Include="MD5.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="SipRequest.h" />
+    <ClInclude Include="SipEvent.h" />
     <ClInclude Include="SipServer.h" />
+    <ClInclude Include="Structs.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\base\base.vcxproj">

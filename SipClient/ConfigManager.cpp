@@ -61,7 +61,7 @@ bool ConfigManager::LoadConfig(std::wstring filepath) {
             device_info->Manufacturer = device_node.child_value("Manufacturer");
             // SIP传输协议，这里固定为TCP
             std::string text = device_node.child_value("Protocol");
-            device_info->Protocol = IPPROTO_TCP;
+            device_info->Protocol = IPPROTO_UDP;
             //心跳间隔时间
             nbase::StringToInt(device_node.child_value("HeartbeatInterval"), &device_info->HeartbeatInterval);
             //设备目录，一般情况下只有一个通道，代表一个设备， 不排除某些情况下会有多台设备的情况

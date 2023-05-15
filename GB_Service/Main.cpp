@@ -3,10 +3,32 @@
 
 #include "pch.h"
 #include <iostream>
-
+#include "SipServer.h"
+#include "ConfigManager.h"
 int main()
 {
     std::cout << "Hello World!\n";
+
+    google::InitGoogleLogging("");
+    google::SetStderrLogging(google::GLOG_INFO);
+    FLAGS_logbufsecs = 1;
+    FLAGS_colorlogtostderr = true;
+
+    auto root = nbase::win32::GetCurrentModuleDirectory();
+    auto config_file = root + L"server.xml";
+
+    auto ret = ConfigManager::GetInstance()->LoadConfig(config_file);
+    if (!ret)
+        return 0;
+
+    //auto sip_server_info = ConfigManager::GetInstance()->GetSipServerInfo();
+    //auto media_server_info = ConfigManager::GetInstance()->GetMediaServerInfo();
+
+    SipServer::GetInstance()->Init();
+    SipServer::GetInstance()->Start();
+    getchar();
+    SipServer::GetInstance()->Stop();
+
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
