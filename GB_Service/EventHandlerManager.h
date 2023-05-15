@@ -86,9 +86,9 @@ public:
 
 
 private:
-    std::map<uint32_t, EventNameProcPair> m_eventProcMap;
-    MessageHandler                        m_msghandler;
-    RegisterHandler                       m_registerhandler;
-    CallHandler                           m_callhandler;
+    std::map<uint32_t, EventNameProcPair> _event_processor_map;
+    MessageHandler                        _msg_handler;
+    RegisterHandler                       _register_handler;
+    CallHandler                           _call_handler;
 };
 

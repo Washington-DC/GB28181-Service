@@ -5,7 +5,7 @@ struct SipServerInfo {
     std::string IP;
     int Port;
     std::string ID;
-    std::string Domain;
+    std::string Realm;
     std::string Password;
     std::string Nonce;
 };

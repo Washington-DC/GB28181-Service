@@ -142,6 +142,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="Device.cpp" />
+    <ClCompile Include="DeviceManager.cpp" />
     <ClCompile Include="EventHandlerManager.cpp" />
     <ClCompile Include="HttpDigest.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -159,6 +161,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="Device.h" />
+    <ClInclude Include="DeviceManager.h" />
     <ClInclude Include="EventHandlerManager.h" />
     <ClInclude Include="EventHandler.h" />
     <ClInclude Include="HttpDigest.h" />

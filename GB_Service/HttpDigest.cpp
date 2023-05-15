@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "HttpDigest.h"
 
-#include "MD5.h"
+//#include "MD5.h"
+
+#include <osipparser2/osip_md5.h>
 
 #ifdef _WIN32
 //#define strcasecmp _stricmp
@@ -44,24 +46,24 @@ DigestCalcHA1(IN const char* pszAlg,
     IN const char* pszCNonce,
     OUT HASHHEX SessionKey)
 {
-    MD5_CTX Md5Ctx;
+    osip_MD5_CTX Md5Ctx;
     HASH HA1;
 
-    MD5Init(&Md5Ctx);
-    MD5Update(&Md5Ctx, (unsigned char*)pszUserName, (unsigned int)strlen(pszUserName));
-    MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-    MD5Update(&Md5Ctx, (unsigned char*)pszRealm, (unsigned int)strlen(pszRealm));
-    MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-    MD5Update(&Md5Ctx, (unsigned char*)pszPassword, (unsigned int)strlen(pszPassword));
-    MD5Final((unsigned char*)HA1, &Md5Ctx);
+    osip_MD5Init(&Md5Ctx);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)pszUserName, (unsigned int)strlen(pszUserName));
+    osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)pszRealm, (unsigned int)strlen(pszRealm));
+    osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)pszPassword, (unsigned int)strlen(pszPassword));
+    osip_MD5Final((unsigned char*)HA1, &Md5Ctx);
     if ((pszAlg != NULL) && strcasecmp(pszAlg, "md5-sess") == 0) {
-        MD5Init(&Md5Ctx);
-        MD5Update(&Md5Ctx, (unsigned char*)HA1, HASHLEN);
-        MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-        MD5Update(&Md5Ctx, (unsigned char*)pszNonce, (unsigned int)strlen(pszNonce));
-        MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-        MD5Update(&Md5Ctx, (unsigned char*)pszCNonce, (unsigned int)strlen(pszCNonce));
-        MD5Final((unsigned char*)HA1, &Md5Ctx);
+        osip_MD5Init(&Md5Ctx);
+        osip_MD5Update(&Md5Ctx, (unsigned char*)HA1, HASHLEN);
+        osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+        osip_MD5Update(&Md5Ctx, (unsigned char*)pszNonce, (unsigned int)strlen(pszNonce));
+        osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+        osip_MD5Update(&Md5Ctx, (unsigned char*)pszCNonce, (unsigned int)strlen(pszCNonce));
+        osip_MD5Final((unsigned char*)HA1, &Md5Ctx);
     }
     my_CvtHex(HA1, SessionKey);
 }
@@ -80,16 +82,16 @@ DigestCalcResponse(IN HASHHEX HA1,     /* H(A1) */
     OUT HASHHEX Response
 /* request-digest or response-digest */)
 {
-    MD5_CTX Md5Ctx;
+    osip_MD5_CTX Md5Ctx;
     HASH HA2;
     HASH RespHash;
     HASHHEX HA2Hex;
 
     /* calculate H(A2) */
-    MD5Init(&Md5Ctx);
-    MD5Update(&Md5Ctx, (unsigned char*)pszMethod, (unsigned int)strlen(pszMethod));
-    MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-    MD5Update(&Md5Ctx, (unsigned char*)pszDigestUri, (unsigned int)strlen(pszDigestUri));
+    osip_MD5Init(&Md5Ctx);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)pszMethod, (unsigned int)strlen(pszMethod));
+    osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)pszDigestUri, (unsigned int)strlen(pszDigestUri));
 
     if (pszQop == NULL) {
         goto auth_withoutqop;
@@ -102,43 +104,43 @@ DigestCalcResponse(IN HASHHEX HA1,     /* H(A1) */
     }
 
 auth_withoutqop:
-    MD5Final((unsigned char*)HA2, &Md5Ctx);
+    osip_MD5Final((unsigned char*)HA2, &Md5Ctx);
     my_CvtHex(HA2, HA2Hex);
 
     /* calculate response */
-    MD5Init(&Md5Ctx);
-    MD5Update(&Md5Ctx, (unsigned char*)HA1, HASHHEXLEN);
-    MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-    MD5Update(&Md5Ctx, (unsigned char*)pszNonce, (unsigned int)strlen(pszNonce));
-    MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+    osip_MD5Init(&Md5Ctx);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)HA1, HASHHEXLEN);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)pszNonce, (unsigned int)strlen(pszNonce));
+    osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
 
     goto end;
 
 auth_withauth_int:
 
-    MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-    MD5Update(&Md5Ctx, (unsigned char*)HEntity, HASHHEXLEN);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)HEntity, HASHHEXLEN);
 
 auth_withauth:
-    MD5Final((unsigned char*)HA2, &Md5Ctx);
+    osip_MD5Final((unsigned char*)HA2, &Md5Ctx);
     my_CvtHex(HA2, HA2Hex);
 
     /* calculate response */
-    MD5Init(&Md5Ctx);
-    MD5Update(&Md5Ctx, (unsigned char*)HA1, HASHHEXLEN);
-    MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-    MD5Update(&Md5Ctx, (unsigned char*)pszNonce, (unsigned int)strlen(pszNonce));
-    MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+    osip_MD5Init(&Md5Ctx);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)HA1, HASHHEXLEN);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)pszNonce, (unsigned int)strlen(pszNonce));
+    osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
     if (Aka == 0) {
-        MD5Update(&Md5Ctx, (unsigned char*)pszNonceCount, (unsigned int)strlen(pszNonceCount));
-        MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-        MD5Update(&Md5Ctx, (unsigned char*)pszCNonce, (unsigned int)strlen(pszCNonce));
-        MD5Update(&Md5Ctx, (unsigned char*)":", 1);
-        MD5Update(&Md5Ctx, (unsigned char*)pszQop, (unsigned int)strlen(pszQop));
-        MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+        osip_MD5Update(&Md5Ctx, (unsigned char*)pszNonceCount, (unsigned int)strlen(pszNonceCount));
+        osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+        osip_MD5Update(&Md5Ctx, (unsigned char*)pszCNonce, (unsigned int)strlen(pszCNonce));
+        osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
+        osip_MD5Update(&Md5Ctx, (unsigned char*)pszQop, (unsigned int)strlen(pszQop));
+        osip_MD5Update(&Md5Ctx, (unsigned char*)":", 1);
     }
 end:
-    MD5Update(&Md5Ctx, (unsigned char*)HA2Hex, HASHHEXLEN);
-    MD5Final((unsigned char*)RespHash, &Md5Ctx);
+    osip_MD5Update(&Md5Ctx, (unsigned char*)HA2Hex, HASHHEXLEN);
+    osip_MD5Final((unsigned char*)RespHash, &Md5Ctx);
     my_CvtHex(RespHash, Response);
 }

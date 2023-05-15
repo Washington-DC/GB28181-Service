@@ -57,7 +57,7 @@ EventHandlerManager::EventHandlerManager()
 
     for (uint32_t i = 0; i < EXOSIP_EVENT_COUNT; ++i)
     {
-        m_eventProcMap.insert(std::make_pair(i, eventProcTable[i]));
+        _event_processor_map.insert(std::make_pair(i, eventProcTable[i]));
     }
 }
 
@@ -65,11 +65,11 @@ EventHandlerManager::EventNameProcPair EventHandlerManager::GetEventProc(eXosip_
 {
     if (type > EXOSIP_EVENT_COUNT)
     {
-        EventNameProcPair pair = { "", nullptr };
+        EventNameProcPair pair = { nullptr, nullptr };
         LOG(WARNING) << "Event Type: " << type << " don't exist!";
         return pair;
     }
-    auto value = m_eventProcMap.find(type);
+    auto value = _event_processor_map.find(type);
     return value->second;
 }
 
@@ -213,7 +213,7 @@ int EventHandlerManager::on_exosip_message_new(const SipEvent::Ptr& event)
     eXosip_event_t* exosip_event = event->exosip_event;
 
     if (MSG_IS_REGISTER(exosip_event->request)) {
-        m_registerhandler.HandleIncomingRequest(event);
+        _register_handler.HandleIncomingRequest(event);
     }
     else if (MSG_IS_MESSAGE(exosip_event->request)) {
         //m_msghandler.HandleIncomingReq(event);
