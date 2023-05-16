@@ -4,11 +4,11 @@
 #include "HttpDigest.h"
 #include "ConfigManager.h"
 #include "DeviceManager.h"
+#include "SipRequest.h"
 
 int BaseEventHandler::SendResponse(const char* uname, eXosip_t* excontext, int tid, int status)
 {
 	osip_message_t* answer = nullptr;
-
 	eXosip_lock(excontext);
 	eXosip_message_build_answer(excontext, tid, status, &answer);
 	int ret = eXosip_message_send_answer(excontext, tid, status, nullptr);
@@ -18,8 +18,8 @@ int BaseEventHandler::SendResponse(const char* uname, eXosip_t* excontext, int t
 
 int BaseEventHandler::SendCallAck(eXosip_t* excontext, int did)
 {
-	eXosip_lock(excontext);
 	osip_message_t* ack = nullptr;
+	eXosip_lock(excontext);
 	eXosip_call_build_ack(excontext, did, &ack);
 	int ret = eXosip_call_send_ack(excontext, did, ack);
 	eXosip_unlock(excontext);
@@ -86,6 +86,9 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			device->SetStatus(1);
 			//device
 			DeviceManager::GetInstance()->AddDevice(device);
+
+			auto request = std::make_shared<CatalogRequest>(e->exosip_context, device);
+			request->SendMessage();
 		}
 		else
 		{
@@ -112,7 +115,6 @@ void RegisterHandler::_response_register_401unauthorized(const SipEvent::Ptr& e)
 	osip_www_authenticate_t* www_authenticate_header = nullptr;
 	osip_www_authenticate_init(&www_authenticate_header);
 
-	//std::string realm = "cdtye";
 	char* dest = nullptr;
 	osip_message_t* response = nullptr;
 
@@ -139,4 +141,26 @@ void RegisterHandler::_response_register_401unauthorized(const SipEvent::Ptr& e)
 
 	osip_www_authenticate_free(www_authenticate_header);
 	osip_free(dest);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+
+
+int MessageHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
+{
+	auto username = e->exosip_event->request->from->url->username;
+	auto host = e->exosip_event->request->from->url->host;
+
+	osip_body_t* body = nullptr;
+	osip_message_get_body(e->exosip_event->request, 0, &body);
+	if (body == nullptr)
+	{
+		SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+		return -1;
+	}
+
+
+
 }

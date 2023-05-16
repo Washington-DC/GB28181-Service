@@ -216,7 +216,7 @@ int EventHandlerManager::on_exosip_message_new(const SipEvent::Ptr& event)
         _register_handler.HandleIncomingRequest(event);
     }
     else if (MSG_IS_MESSAGE(exosip_event->request)) {
-        //m_msghandler.HandleIncomingReq(event);
+        _msg_handler.HandleIncomingRequest(event);
     }
     else if (MSG_IS_BYE(exosip_event->request)) {
         WarnL << " UNKNOW METHON   MSG_IS_BYE";

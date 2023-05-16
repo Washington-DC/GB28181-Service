@@ -42,9 +42,6 @@
     <ClCompile Include="ConfigManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="MD5.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="HttpDigest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -55,6 +52,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DeviceManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RequestPool.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -80,9 +80,6 @@
     <ClInclude Include="Structs.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="MD5.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="HttpDigest.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -93,6 +90,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="DeviceManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RequestPool.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

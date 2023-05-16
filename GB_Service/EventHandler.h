@@ -28,6 +28,8 @@ private:
 
 class MessageHandler :public BaseEventHandler
 {
+public:
+    int HandleIncomingRequest(const SipEvent::Ptr& e);
 };
 
 

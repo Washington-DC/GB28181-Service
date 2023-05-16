@@ -25,3 +25,8 @@ std::string GenerateRandomString(int n)
 
 	return text;
 }
+
+std::string GenerateSN()
+{
+	return std::to_string(g_sn++);
+}

@@ -1,8 +1,14 @@
 #include "pch.h"
 #include "SipRequest.h"
+#include "ConfigManager.h"
+#include "RequestPool.h"
 
-BaseRequest::BaseRequest(REQUEST_MESSAGE_TYPE type)
+BaseRequest::BaseRequest(eXosip_t* ctx, Device::Ptr device, REQUEST_MESSAGE_TYPE type)
+	:_exosip_context(ctx)
+	, _request_type(type)
 {
+	_device = device;
+	_request_time = time(nullptr);
 }
 
 BaseRequest::~BaseRequest()
@@ -32,10 +38,9 @@ bool BaseRequest::IsFinished()
 	return _b_finished;
 }
 
-int BaseRequest::SetRequestID(std::string& id)
+void BaseRequest::SetRequestID(const std::string& id)
 {
 	_request_id = id;
-	return 0;
 }
 
 REQUEST_MESSAGE_TYPE BaseRequest::GetRequestType()
@@ -43,15 +48,20 @@ REQUEST_MESSAGE_TYPE BaseRequest::GetRequestType()
 	return _request_type;
 }
 
-int BaseRequest::OnRequestFinished()
+void BaseRequest::OnRequestFinished()
 {
 	_b_finished = true;
 	if (_b_wait)
-		_finished();
-	return 0;
+		Finish();
 }
 
-void BaseRequest::_finished()
+time_t BaseRequest::GetRequestTime()
+{
+	return _request_time;
+}
+
+
+void BaseRequest::Finish()
 {
 	if (!_b_wait)
 		return;
@@ -61,13 +71,95 @@ void BaseRequest::_finished()
 	_b_wait = false;
 }
 
+
+Device::Ptr BaseRequest::GetDevice()
+{
+	return _device;
+}
+
+
 const char* BaseRequest::_get_request_id_from_request(osip_message_t* msg)
 {
 	osip_generic_param_t* tag = nullptr;
-	osip_to_get_tag(msg->from,&tag);
+	osip_to_get_tag(msg->from, &tag);
 	if (tag == nullptr || tag->gvalue == nullptr)
 	{
 		return nullptr;
 	}
 	return tag->gvalue;
+}
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+std::atomic_uint64_t MessageRequest::_sn = 0;
+
+MessageRequest::MessageRequest(eXosip_t* ctx, Device::Ptr device, REQUEST_MESSAGE_TYPE type)
+	:BaseRequest(ctx, device, type)
+{
+	_request_sn = _sn++;
+}
+
+MessageRequest::~MessageRequest()
+{
+}
+
+int MessageRequest::SendMessage(bool needcb)
+{
+	auto config = ConfigManager::GetInstance()->GetSipServerInfo();
+	auto from_uri = fmt::format("sip:{}@{}:{}", config->ID, config->IP, config->Port);
+	auto to_uri = fmt::format("sip:{}@{}:{}", _device->GetDeviceID(), _device->GetIP(), _device->GetPort());
+
+	osip_message_t* msg = nullptr;
+	auto ret = eXosip_message_build_request(_exosip_context, &msg, "MESSAGE", to_uri.c_str(), from_uri.c_str(), nullptr);
+	if (ret != OSIP_SUCCESS)
+	{
+		return ret;
+	}
+
+	auto body = make_manscdp_body();
+	osip_message_set_body(msg, body.c_str(), body.length());
+	osip_message_set_content_type(msg, "Application/MANSCDP+xml");
+
+	eXosip_lock(_exosip_context);
+	ret = eXosip_message_send_request(_exosip_context, msg);
+	eXosip_unlock(_exosip_context);
+	//if (ret != OSIP_SUCCESS)
+	//{
+	//	return ret;
+	//}
+
+	if (needcb)
+	{
+		std::string request_id = _get_request_id_from_request(msg);
+		if (request_id.length() > 0)
+		{
+			BaseRequest::Ptr request = shared_from_this();
+			RequestPool::GetInstance()->AddRequest(request_id, request);
+		}
+	}
+	return 0;
+}
+
+const std::string MessageRequest::GetRequestSN()
+{
+	return std::to_string(_request_sn);
+}
+
+const std::string MessageRequest::make_manscdp_body()
+{
+	return std::string();
+}
+
+const std::string CatalogRequest::make_manscdp_body()
+{
+	auto text = R"(<?xml version="1.0"?>
+								<Query>
+								<CmdType>Catalog</CmdType>
+								<SN>{}</SN>
+								<DeviceID>{}</DeviceID>
+								</Query>
+								)";
+
+	return fmt::format(text, _request_sn, _device->GetDeviceID());
 }

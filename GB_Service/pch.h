@@ -69,9 +69,10 @@ using namespace std::chrono_literals;
 #pragma comment(lib, "glog.lib")
 #pragma comment(lib, "fmt.lib")
 #endif
-
+static uint64_t g_sn = 0;
 
 std::string GenerateRandomString(int n);
+std::string GenerateSN();
 
 
 #endif //PCH_H

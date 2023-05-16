@@ -16,7 +16,7 @@ bool ConfigManager::LoadConfig(std::wstring filepath) {
 	if (sip_server_node) {
 		server_info = std::make_shared<SipServerInfo>();
 		// SIP 服务器IP
-		server_info->IP = "0.0.0.0";
+		server_info->IP = sip_server_node.child_value("IP");
 		// SIP 服务器固定端口
 		nbase::StringToInt(sip_server_node.child_value("Port"), &server_info->Port);
 		// SIP 服务器ID
