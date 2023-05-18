@@ -8,7 +8,7 @@ public:
     BaseEventHandler() = default;
     virtual ~BaseEventHandler() = default;
 
-    //virtual int handle(SipEvent::Ptr, tinyxml2::XMLDocument& xml) {};
+    virtual bool Handle(const SipEvent::Ptr& e, pugi::xml_document& doc);
 
 protected:
     int SendResponse(const char* uname, struct eXosip_t* excontext, int tid, int status);
@@ -25,6 +25,27 @@ public:
 private:
     void _response_register_401unauthorized(const SipEvent::Ptr& e);
 };
+
+
+class CatalogHandler :public BaseEventHandler
+{
+public:
+    virtual bool Handle(const SipEvent::Ptr& e,pugi::xml_document& doc);
+};
+
+
+class HeartbeatHandler :public BaseEventHandler
+{
+public:
+    virtual bool Handle(const SipEvent::Ptr& e, pugi::xml_document& doc);
+};
+
+class DeviceInfoHandler :public BaseEventHandler
+{
+public:
+    virtual bool Handle(const SipEvent::Ptr& e, pugi::xml_document& doc);
+};
+
 
 class MessageHandler :public BaseEventHandler
 {

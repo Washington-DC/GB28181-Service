@@ -72,8 +72,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..;..\depends\cpprestsdk\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\cpprestsdk\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\depends\crow;E:\OpenSource\Repository_x64\boost182\include\boost-1_82;..\depends\oatpp\include\oatpp-1.3.0\oatpp-swagger;..\depends\oatpp\include\oatpp-1.3.0\oatpp-curl;..\depends\oatpp\include\oatpp-1.3.0\oatpp;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..;..\depends\cpprestsdk\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\OpenSource\Repository_x64\boost182\lib;..\depends\oatpp\lib\oatpp-1.3.0\debug;..\depends\curl\lib;..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\cpprestsdk\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -110,7 +110,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -146,6 +146,7 @@
     <ClCompile Include="DeviceManager.cpp" />
     <ClCompile Include="EventHandlerManager.cpp" />
     <ClCompile Include="HttpDigest.cpp" />
+    <ClCompile Include="HttpServer.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="EventHandler.cpp" />
     <ClCompile Include="pch.cpp">
@@ -158,6 +159,8 @@
     <ClCompile Include="SipRequest.cpp" />
     <ClCompile Include="SipEvent.cpp" />
     <ClCompile Include="SipServer.cpp" />
+    <ClCompile Include="StreamManager.cpp" />
+    <ClCompile Include="XmlParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
@@ -166,12 +169,15 @@
     <ClInclude Include="EventHandlerManager.h" />
     <ClInclude Include="EventHandler.h" />
     <ClInclude Include="HttpDigest.h" />
+    <ClInclude Include="HttpServer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="RequestPool.h" />
     <ClInclude Include="SipRequest.h" />
     <ClInclude Include="SipEvent.h" />
     <ClInclude Include="SipServer.h" />
+    <ClInclude Include="StreamManager.h" />
     <ClInclude Include="Structs.h" />
+    <ClInclude Include="XmlParser.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\base\base.vcxproj">

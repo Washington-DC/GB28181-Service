@@ -51,13 +51,13 @@ void DeviceManager::UpdateDeviceStatus(const std::string& device_id, int status)
 	}
 }
 
-void DeviceManager::UpdateDeviceLastTime(const std::string& device_id, int64_t time)
+void DeviceManager::UpdateDeviceLastTime(const std::string& device_id, time_t time)
 {
 	std::scoped_lock<std::mutex> lk(_mutex);
 	auto iter = _devices.find(device_id);
 	if (iter != _devices.end())
 	{
-		iter->second->SetLastTime(time);
+		iter->second->UpdateLastTime(time);
 	}
 }
 

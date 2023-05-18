@@ -5,6 +5,12 @@
 #include "ConfigManager.h"
 #include "DeviceManager.h"
 #include "SipRequest.h"
+#include "XmlParser.h"
+
+bool BaseEventHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
+{
+	return false;
+}
 
 int BaseEventHandler::SendResponse(const char* uname, eXosip_t* excontext, int tid, int status)
 {
@@ -84,11 +90,19 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			//TOOD:
 			auto device = std::make_shared<Device>(client_device_id, client_host, client_port);
 			device->SetStatus(1);
+			device->UpdateRegistTime();
 			//device
 			DeviceManager::GetInstance()->AddDevice(device);
 
-			auto request = std::make_shared<CatalogRequest>(e->exosip_context, device);
-			request->SendMessage();
+			{
+				auto request = std::make_shared<DeviceInfoRequest>(e->exosip_context, device);
+				request->SendMessage();
+			}
+
+			{
+				auto request = std::make_shared<CatalogRequest>(e->exosip_context, device);
+				request->SendMessage();
+			}
 		}
 		else
 		{
@@ -161,6 +175,155 @@ int MessageHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		return -1;
 	}
 
+	LOG(INFO) << "============================================";
+	LOG(INFO) << "\n" << std::string(body->body);
 
 
+	XmlParser parser;
+	pugi::xml_document doc;
+	auto ret = parser.Parse(body->body, body->length, doc);
+	if (!ret)
+	{
+		SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+		return 0;
+	}
+
+	manscdp_msgbody_header_t header;
+	ret = parser.ParseHeader(header, doc);
+	if (!ret)
+	{
+		SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+		return 0;
+	}
+
+	switch (header.cmd_category)
+	{
+		case MANSCDP_CMD_CATEGORY_CONTROL:
+			break;
+		case MANSCDP_CMD_CATEGORY_QUERY:
+			break;
+		case MANSCDP_CMD_CATEGORY_NOTIFY:
+			if (header.cmd_type == MANSCDP_NOTIFY_CMD_KEEPALIVE)
+			{
+				HeartbeatHandler h;
+				h.Handle(e, doc);
+			}
+			break;
+		case MANSCDP_CMD_CATEGORY_RESPONSE:
+			if (header.cmd_type == MANSCDP_QUERY_CMD_CATALOG)
+			{
+				CatalogHandler h;
+				h.Handle(e, doc);
+			}
+			else if (header.cmd_type == MANSCDP_QUERY_CMD_DEVICE_INFO)
+			{
+				DeviceInfoHandler h;
+				h.Handle(e, doc);
+			}
+			else if (header.cmd_type == MANSCDP_QUERY_CMD_PRESET_QUERY)
+			{
+
+			}
+
+
+			break;
+		default:
+			break;
+	}
+
+
+	return 0;
+}
+
+bool CatalogHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
+{
+	auto root = doc.first_child();
+
+	auto device_id = root.child("DeviceID").text().as_string();
+	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+	if (device == nullptr)
+	{
+		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+		return false;
+	}
+
+	auto node = root.child("DeviceList");
+	if (node.empty())
+	{
+		return false;
+	}
+
+	auto children = node.children("Item");
+	for (auto&& child : children)
+	{
+		auto channel = std::make_shared<Channel>();
+		channel->SetChannelID(child.child("DeviceID").text().as_string());
+		channel->SetName(child.child("Name").text().as_string());
+		channel->SetManufacturer(child.child("Manufacturer").text().as_string());
+		channel->SetModel(child.child("Model").text().as_string());
+		channel->SetOwner(child.child("Owner").text().as_string());
+		channel->SetCivilCode(child.child("CivilCode").text().as_string());
+		channel->SetAddress(child.child("Address").text().as_string());
+		channel->SetParental(child.child("Parental").text().as_string());
+		channel->SetParentID(child.child("ParentID").text().as_string());
+		channel->SetRegisterWay(child.child("RegisterWay").text().as_string());
+		channel->SetSecrety(child.child("Secrecy").text().as_string());
+		channel->SetStreamNum(child.child("StreamNum").text().as_string());
+		channel->SetIpAddress(child.child("IPAddress").text().as_string());
+		channel->SetStatus(child.child("Status").text().as_string());
+
+		auto info = child.child("Info");
+		if (info && info.child("PTZType"))
+		{
+			channel->SetPtzType(info.child("PTZType").text().as_string());
+		}
+		if (info && info.child("DownloadSpeed"))
+		{
+			channel->SetDownloadSpeed(info.child("DownloadSpeed").text().as_string());
+		}
+
+		device->InsertChannel(device_id, channel->GetChannelID(), channel);
+	}
+
+	SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
+	return true;
+}
+
+bool HeartbeatHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
+{
+	auto root = doc.first_child();
+
+	auto device_id = root.child("DeviceID").text().as_string();
+	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+	if (device)
+	{
+		device->UpdateLastTime();
+		device->SetStatus(1);
+
+		LOG(INFO) << "\n" << device->toString();
+
+		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
+		return true;
+	}
+	return false;
+}
+
+bool DeviceInfoHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
+{
+	auto root = doc.first_child();
+
+	auto device_id = root.child("DeviceID").text().as_string();
+	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+	if (device)
+	{
+		device->SetName(root.child("DeviceName").text().as_string());
+		device->SetManufacturer(root.child("Manufacturer").text().as_string());
+		device->SetModel(root.child("Model").text().as_string());
+
+		LOG(INFO) << "\n" << device->toString();
+
+		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
+		return true;
+	}
+	return false;
 }

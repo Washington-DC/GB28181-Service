@@ -64,7 +64,23 @@ class CatalogRequest :public MessageRequest
 public:
 	typedef std::shared_ptr<CatalogRequest> Ptr;
 	CatalogRequest(eXosip_t* ctx, Device::Ptr device)
-		:MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::QUIRY_CATALOG)
+		:MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::QUERY_CATALOG)
+	{
+
+	}
+
+public:
+	virtual const std::string make_manscdp_body();
+
+};
+
+
+class DeviceInfoRequest :public MessageRequest
+{
+public:
+	typedef std::shared_ptr<DeviceInfoRequest> Ptr;
+	DeviceInfoRequest(eXosip_t* ctx, Device::Ptr device)
+		:MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::QUERY_DEVICEINFO)
 	{
 
 	}

@@ -7,7 +7,7 @@ public:
 	typedef std::shared_ptr<Channel> Ptr;
 
 	Channel() = default;
-	void InsertSubChannel(const std::string parent_id,const std::string& channel_id, Channel::Ptr channel);
+	void InsertSubChannel(const std::string parent_id, const std::string& channel_id, Channel::Ptr channel);
 	Channel::Ptr GetSubChannel(const std::string& channel_id);
 	void DeleteSubChannel(const std::string& channel_id);
 	std::vector<Channel::Ptr> GetAllSubChannels();
@@ -16,7 +16,6 @@ public:
 	void AddChannelCount();
 	void SubChannelCount();
 
-	std::string toString();
 
 	void SetParentID(const std::string& parent_id);
 	std::string GetParentID() const;
@@ -42,6 +41,9 @@ public:
 	void SetAddress(const std::string& address);
 	std::string GetAddress() const;
 
+	void SetStatus(const std::string& status);
+	std::string GetStatus() const;
+
 	void SetParental(const std::string& parental);
 	std::string GetParental() const;
 
@@ -63,6 +65,8 @@ public:
 	void SetDownloadSpeed(const std::string& speed);
 	std::string GetDownloadSpeed() const;
 
+	std::string toString();
+	nlohmann::json toJson();
 
 private:
 	std::string _channel_id;
@@ -80,7 +84,7 @@ private:
 	std::string _ip;
 	std::string _status;
 
-	int _sub_channel_count;
+	int _sub_channel_count = 0;
 	std::string _ptz_type;
 	std::string _download_speed;
 
@@ -96,9 +100,9 @@ public:
 	typedef std::shared_ptr<Device> Ptr;
 
 	Device() = default;
-	Device(const std::string& device_id,const std::string& ip,const std::string& port);
+	Device(const std::string& device_id, const std::string& ip, const std::string& port);
 
-	void InsertChannel(const std::string& parent_id,const std::string& channel_id,Channel::Ptr channel);
+	void InsertChannel(const std::string& parent_id, const std::string& channel_id, Channel::Ptr channel);
 	void DeleteChannel(const std::string& channel_id);
 
 	Channel::Ptr GetChannel(const std::string& channel_id);
@@ -119,14 +123,20 @@ public:
 	std::string GetTransport() const;
 	void SetTransport(const std::string& transport);
 
+	void SetManufacturer(const std::string& manufacturer);
+	std::string GetManufacturer() const;
+
+	void SetModel(const std::string& model);
+	std::string GetModel() const;
+
 	int GetStatus() const;
 	void SetStatus(int status);
 
-	int64_t GetRegistTime();
-	void SetRegistTime(int64_t t);
+	time_t GetRegistTime();
+	void UpdateRegistTime(time_t t = time(nullptr));
 
-	int64_t GetLastTime();
-	void SetLastTime(int64_t t);
+	time_t GetLastTime();
+	void UpdateLastTime(time_t t = time(nullptr));
 
 	int GetChannelCount();
 	void SetChannelCount(int count);
@@ -134,6 +144,7 @@ public:
 	std::string GetParentID() const;
 	void SetParentID(const std::string& parent_id);
 
+	nlohmann::json toJson();
 	std::string toString();
 
 private:
@@ -142,13 +153,15 @@ private:
 	std::string _name;
 	std::string _ip;
 	std::string _port;
-	std::string _transport;
-	int _status;
+	std::string _transport = "UDP";
+	std::string _manufacturer;
+	std::string _model;
+	int _status = 0;
 
-	int64_t _regist_time;
-	int64_t _last_time;
+	time_t _regist_time = 0;
+	time_t _last_time = 0;
 
-	int _channel_count;
+	int _channel_count = 0;
 	std::string _parent_id;
 
 	std::map<std::string, Channel::Ptr> _channels;

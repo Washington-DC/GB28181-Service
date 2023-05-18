@@ -5,24 +5,30 @@
 #include <iostream>
 #include "SipServer.h"
 #include "ConfigManager.h"
+#include "HttpServer.h"
+
+
 int main()
 {
-    google::InitGoogleLogging("");
-    google::SetStderrLogging(google::GLOG_INFO);
-    FLAGS_logbufsecs = 1;
-    FLAGS_colorlogtostderr = true;
+	google::InitGoogleLogging("");
+	google::SetStderrLogging(google::GLOG_INFO);
+	FLAGS_logbufsecs = 1;
+	FLAGS_colorlogtostderr = true;
 
-    auto root = nbase::win32::GetCurrentModuleDirectory();
-    auto config_file = root + L"server.xml";
+	auto root = nbase::win32::GetCurrentModuleDirectory();
+	auto config_file = root + L"server.xml";
 
-    auto ret = ConfigManager::GetInstance()->LoadConfig(config_file);
-    if (!ret)
-        return 0;
+	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file);
+	if (!ret)
+		return 0;
 
-    SipServer::GetInstance()->Init();
-    SipServer::GetInstance()->Start();
-    getchar();
-    SipServer::GetInstance()->Stop();
+	SipServer::GetInstance()->Init();
+	SipServer::GetInstance()->Start();
+	HttpServer::GetInstance()->Start(8000);
+
+	getchar();
+
+	SipServer::GetInstance()->Stop();
 
 }
 

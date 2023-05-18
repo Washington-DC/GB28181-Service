@@ -78,11 +78,6 @@ void Channel::SubChannelCount()
 		_sub_channel_count = 0;
 }
 
-std::string Channel::toString()
-{
-	return std::string();
-}
-
 void Channel::SetParentID(const std::string& parent_id)
 {
 	_parent_id = parent_id;
@@ -163,6 +158,16 @@ std::string Channel::GetAddress() const
 	return _address;
 }
 
+void Channel::SetStatus(const std::string& status)
+{
+	_status = status;
+}
+
+std::string Channel::GetStatus() const
+{
+	return _status;
+}
+
 void Channel::SetParental(const std::string& parental)
 {
 	_parental = parental;
@@ -234,6 +239,28 @@ std::string Channel::GetDownloadSpeed() const
 }
 
 
+
+std::string Channel::toString()
+{
+	return toJson().dump(4);
+}
+
+
+nlohmann::json Channel::toJson()
+{
+	return nlohmann::json
+	{
+		{"ID",_channel_id},
+		{"Name",_name},
+		{"Manufacturer",_manufacturer},
+		{"Model",_model},
+		{"Status",_status},
+		{"PtzType",_ptz_type},
+		{"SubChannelCount",_sub_channels.size()}
+	};
+}
+
+
 //--------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------
@@ -249,7 +276,7 @@ Device::Device(const std::string& device_id, const std::string& ip, const std::s
 void Device::InsertChannel(const std::string& parent_id, const std::string& channel_id, Channel::Ptr channel)
 {
 	std::scoped_lock<std::mutex> lk(_mutex);
-	if (parent_id == parent_id)
+	if (_device_id == parent_id)
 	{
 		_channels[channel_id] = channel;
 		_channel_count++;
@@ -269,7 +296,7 @@ void Device::DeleteChannel(const std::string& channel_id)
 	auto iter = _channels.find(channel_id);
 	if (iter != _channels.end())
 	{
-		_channels.erase(iter); 
+		_channels.erase(iter);
 		_channel_count--;
 	}
 	else
@@ -353,6 +380,26 @@ void Device::SetTransport(const std::string& transport)
 	_transport = transport;
 }
 
+void Device::SetManufacturer(const std::string& manufacturer)
+{
+	_manufacturer = manufacturer;
+}
+
+std::string Device::GetManufacturer() const
+{
+	return _manufacturer;
+}
+
+void Device::SetModel(const std::string& model)
+{
+	_model = model;
+}
+
+std::string Device::GetModel() const
+{
+	return _model;
+}
+
 int Device::GetStatus() const
 {
 	return _status;
@@ -363,22 +410,22 @@ void Device::SetStatus(int status)
 	_status = status;
 }
 
-int64_t Device::GetRegistTime()
+time_t Device::GetRegistTime()
 {
 	return _regist_time;
 }
 
-void Device::SetRegistTime(int64_t t)
+void Device::UpdateRegistTime(time_t t)
 {
 	_regist_time = t;
 }
 
-int64_t Device::GetLastTime()
+time_t Device::GetLastTime()
 {
 	return _last_time;
 }
 
-void Device::SetLastTime(int64_t t)
+void Device::UpdateLastTime(time_t t)
 {
 	_last_time = t;
 }
@@ -403,7 +450,26 @@ void Device::SetParentID(const std::string& parent_id)
 	_parent_id = parent_id;
 }
 
+
+nlohmann::json Device::toJson()
+{
+	return nlohmann::json
+	{
+		{"ID",_device_id},
+		{"Name",_name},
+		{"IP",_ip},
+		{"Port",_port},
+		{"ChannelCount",_channel_count},
+		{"Protocol",_transport},
+		{"Status",_status},
+		{"LastTime",_last_time},
+		{"RegistTime",_regist_time},
+		{"Manufacturer",_manufacturer}
+	};
+}
+
+
 std::string Device::toString()
 {
-	return std::string();
+	return toJson().dump(4);
 }

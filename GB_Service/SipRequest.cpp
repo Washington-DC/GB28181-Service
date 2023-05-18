@@ -163,3 +163,17 @@ const std::string CatalogRequest::make_manscdp_body()
 
 	return fmt::format(text, _request_sn, _device->GetDeviceID());
 }
+
+
+const std::string DeviceInfoRequest::make_manscdp_body()
+{
+	auto text = R"(<?xml version="1.0"?>
+								<Query>
+								<CmdType>DeviceInfo</CmdType>
+								<SN>{}</SN>
+								<DeviceID>{}</DeviceID>
+								</Query>
+								)";
+
+	return fmt::format(text, _request_sn, _device->GetDeviceID());
+}
