@@ -159,6 +159,7 @@
     <ClCompile Include="SipRequest.cpp" />
     <ClCompile Include="SipEvent.cpp" />
     <ClCompile Include="SipServer.cpp" />
+    <ClCompile Include="SSRC_Config.cpp" />
     <ClCompile Include="StreamManager.cpp" />
     <ClCompile Include="XmlParser.cpp" />
   </ItemGroup>
@@ -175,6 +176,7 @@
     <ClInclude Include="SipRequest.h" />
     <ClInclude Include="SipEvent.h" />
     <ClInclude Include="SipServer.h" />
+    <ClInclude Include="SSRC_Config.h" />
     <ClInclude Include="StreamManager.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="XmlParser.h" />

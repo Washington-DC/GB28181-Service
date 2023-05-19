@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "HttpServer.h"
 #include "DeviceManager.h"
+#include "StreamManager.h"
 
 HttpServer::HttpServer()
 	:_blueprint("v1")
@@ -8,7 +9,7 @@ HttpServer::HttpServer()
 
 	CROW_BP_ROUTE(_blueprint, "/")([]() {return "Hello World!"; });
 
-	CROW_BP_ROUTE(_blueprint, "/devicelist")([]()
+	CROW_BP_ROUTE(_blueprint, "/devicelist")([this]()
 		{
 			auto devices = DeviceManager::GetInstance()->GetDeviceList();
 			auto doc = nlohmann::json::array();
@@ -16,15 +17,11 @@ HttpServer::HttpServer()
 			{
 				doc.push_back(dev->toJson());
 			}
-			return nlohmann::json
-			{
-				{"status",0},
-				{"data",doc}
-			}.dump(4);
+			return _mk_response(0, doc);
 		}
 	);
 
-	CROW_BP_ROUTE(_blueprint, "/device/<string>/channellist")([](std::string device_id)
+	CROW_BP_ROUTE(_blueprint, "/device/<string>/channellist")([this](std::string device_id)
 		{
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
 			if (device)
@@ -36,118 +33,80 @@ HttpServer::HttpServer()
 					doc.push_back(channel->toJson());
 				}
 
-				return nlohmann::json
-				{
-					{"status",0},
-					{"data",doc}
-				}.dump(4);
+				return _mk_response(0, doc);
 			}
 			else
 			{
-				return nlohmann::json
-				{
-					{"status",1},
-					{"data","device not found"}
-				}.dump(4);
+				return _mk_response(1, "device not found");
 			}
 		}
 	);
 
 
-	CROW_BP_ROUTE(_blueprint, "/device/<string>")([](std::string device_id)
+	CROW_BP_ROUTE(_blueprint, "/device/<string>")([this](std::string device_id)
 		{
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
 			if (device)
 			{
-				return nlohmann::json
-				{
-					{"status",0},
-					{"data",device->toJson()}
-				}.dump(4);
+				return _mk_response(0, device->toJson());
 			}
 			else
 			{
-				return nlohmann::json
-				{
-					{"status",1},
-					{"data","device not found"}
-				}.dump(4);
+				return _mk_response(1, "device not found");
 			}
 		}
 	);
 
-	CROW_BP_ROUTE(_blueprint, "/device/<string>/channel/<string>")([](std::string device_id, std::string channel_id)
+	CROW_BP_ROUTE(_blueprint, "/device/<string>/channel/<string>")
+		([this](std::string device_id, std::string channel_id)
 		{
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-			if (device)
+			if (device == nullptr)
 			{
-				auto channel = device->GetChannel(channel_id);
+				return _mk_response(1, "device not found");
+			}
 
-				if (channel)
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "channel not found");
+			}
+
+			return _mk_response(0, channel->toJson());
+		}
+	);
+
+
+	CROW_BP_ROUTE(_blueprint, "/device/<string>/channel/<string>/play")
+		([this](std::string device_id, std::string channel_id)
+		{
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "device not found");
+			}
+
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "channel not found");
+			}
+			auto stream_id = fmt::format("{}_{}", device_id, channel_id);
+
+			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
+			if (stream)
+			{
+				auto session = std::dynamic_pointer_cast<CallSession>(stream);
+				if (session->IsConnected())
 				{
-					return nlohmann::json
-					{
-						{"status",0},
-						{"data",channel->toJson()}
-					}.dump(4);
+					return _mk_response(400, "already exists");
 				}
 				else
 				{
-					return nlohmann::json
-					{
-						{"status",1},
-						{"data","channel not found"}
-					}.dump(4);
+
 				}
 			}
-			else
-			{
-				return nlohmann::json
-				{
-					{"status",1},
-					{"data","device not found"}
-				}.dump(4);
-			}
-		}
-	);
-
-
-	CROW_BP_ROUTE(_blueprint, "/device/<string>/channel/<string>/play")([](std::string device_id, std::string channel_id)
-		{
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-			if (device)
-			{
-				auto channel = device->GetChannel(channel_id);
-				if (channel)
-				{
-					nlohmann::json doc = {
-						{"ssrc",""},
-						{"result","ok"}
-					};
-
-					return nlohmann::json
-					{
-						{"status",0},
-						{"data",doc}
-					}.dump(4);
-				}
-				else
-				{
-					return nlohmann::json
-					{
-						{"status",1},
-						{"data","channel not found"}
-					}.dump(4);
-				}
-			}
-			else
-			{
-				return nlohmann::json
-				{
-					{"status",1},
-					{"data","device not found"}
-				}.dump(4);
-			}
+			return _mk_response(0, "ok");
 		}
 	);
 

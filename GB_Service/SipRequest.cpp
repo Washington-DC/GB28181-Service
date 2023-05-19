@@ -124,6 +124,7 @@ int MessageRequest::SendMessage(bool needcb)
 	eXosip_lock(_exosip_context);
 	ret = eXosip_message_send_request(_exosip_context, msg);
 	eXosip_unlock(_exosip_context);
+	//MARK: 这里虽然成功了，但是返回值不是0
 	//if (ret != OSIP_SUCCESS)
 	//{
 	//	return ret;
@@ -176,4 +177,52 @@ const std::string DeviceInfoRequest::make_manscdp_body()
 								)";
 
 	return fmt::format(text, _request_sn, _device->GetDeviceID());
+}
+
+
+
+const std::string InviteRequest::make_sdp_body()
+{
+	auto text = R"(v=0
+o={} 0 0 IN IP4 {}
+s=Play
+c=IN IP4 {}
+t=0 0
+m=video {} TCP/RTP/AVP 96 98 97
+a=recvonly
+a=rtpmap:96 PS/90000
+a=rtpmap:98 H264/90000
+a=rtpmap:97 MPEG4/90000
+a=setup:passive
+a=connection:new
+y={}
+f=)";
+
+	auto server = ConfigManager::GetInstance()->GetSipServerInfo();
+	return fmt::format(text, server->ID, server->IP, server->IP, _ssrc->GetPort(), _ssrc->GetSSRC());
+}
+
+
+
+
+int InviteRequest::SendCall(bool needcb)
+{
+	auto config = ConfigManager::GetInstance()->GetSipServerInfo();
+	auto from_uri = fmt::format("sip:{}@{}:{}", config->ID, config->IP, config->Port);
+	auto to_uri = fmt::format("sip:{}@{}:{}", _device->GetDeviceID(), _device->GetIP(), _device->GetPort());
+
+	osip_message_t* msg = nullptr;
+	eXosip_lock(_exosip_context);
+	auto ret = eXosip_call_build_initial_invite(_exosip_context, &msg, to_uri.c_str(), from_uri.c_str(), nullptr, nullptr);
+	eXosip_unlock(_exosip_context);
+
+	if (ret != OSIP_SUCCESS)
+	{
+		LOG(ERROR) << "eXosip_call_build_initial_invite error: " << ret;
+		return -1;
+	}
+
+	auto stream_id = fmt::format("{}_{}", _device->GetDeviceID(), channel_id);
+
+
 }

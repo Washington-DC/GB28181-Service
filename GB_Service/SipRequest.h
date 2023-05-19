@@ -1,7 +1,7 @@
 #pragma once
 #include "Structs.h"
 #include "Device.h"
-
+#include "SSRC_Config.h"
 class BaseRequest :public std::enable_shared_from_this<BaseRequest>
 {
 public:
@@ -88,4 +88,26 @@ public:
 public:
 	virtual const std::string make_manscdp_body();
 
+};
+
+
+
+class InviteRequest :public BaseRequest, public std::enable_shared_from_this<BaseRequest>
+{
+public:
+	typedef std::shared_ptr<InviteRequest> Ptr;
+	InviteRequest(eXosip_t* ctx, Device::Ptr device, const std::string& channel_id)
+		:BaseRequest(ctx, device, REQUEST_MESSAGE_TYPE::REQUEST_CALL_INVITE)
+		, _channel_id(channel_id)
+	{
+	};
+
+	virtual int SendCall(bool needcb = true);
+
+protected:
+	virtual const std::string make_sdp_body();
+
+private:
+	SSRCInfo::Ptr _ssrc;
+	std::string _channel_id;
 };

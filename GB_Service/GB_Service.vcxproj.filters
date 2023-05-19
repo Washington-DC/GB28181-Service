@@ -13,12 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="GB28181">
-      <UniqueIdentifier>{cb58191b-f6c2-4819-8d1d-0d8d7e16e2b7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="API">
-      <UniqueIdentifier>{659667a7-3a44-4085-bdac-ddf58cce247e}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -66,6 +60,9 @@
     <ClCompile Include="StreamManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SSRC_Config.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -111,6 +108,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="StreamManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SSRC_Config.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
