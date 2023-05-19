@@ -9,6 +9,8 @@ public:
 	bool Start();
 	bool Stop();
 
+	eXosip_t* GetSipContext();
+
 private:
 	SipServer() = default;
 	void RecvEventThread();

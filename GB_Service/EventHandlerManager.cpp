@@ -100,6 +100,8 @@ int EventHandlerManager::on_exosip_call_noanswer(const SipEvent::Ptr& event)
 
 int EventHandlerManager::on_exosip_call_proceeding(const SipEvent::Ptr& event)
 {
+    _call_handler.on_proceeding(event);
+
     return 0;
 }
 
@@ -110,6 +112,8 @@ int EventHandlerManager::on_exosip_call_ringing(const SipEvent::Ptr& event)
 
 int EventHandlerManager::on_exosip_call_answered(const SipEvent::Ptr& event)
 {
+    _call_handler.HandleResponseSuccess(event);
+
     return 0;
 }
 
@@ -156,15 +160,10 @@ int EventHandlerManager::on_exosip_call_message_new(const SipEvent::Ptr& event)
 
     InfoL << "on_exosip_call_message_new response reqid = " << reqid;
 
-
-
- /*   eXosip_event_t* exosip_event = event->exevent;
-
-    if (!strncmp(exosip_event->request->sip_method, "MESSAGE", strlen("MESSAGE")))
+    if (!strncmp(event->exosip_event->request->sip_method, "MESSAGE", strlen("MESSAGE")))
     {
-        m_msghandler.HandleIncomingReq(event);
+        _msg_handler.HandleIncomingRequest(event);
     }
-    return 0;*/
     return 0;
 }
 
@@ -200,6 +199,7 @@ int EventHandlerManager::on_exosip_call_message_globalfailure(const SipEvent::Pt
 
 int EventHandlerManager::on_exosip_call_closed(const SipEvent::Ptr& event)
 {
+    _call_handler.HandleClose(event);
     return 0;
 }
 
@@ -224,6 +224,8 @@ int EventHandlerManager::on_exosip_message_new(const SipEvent::Ptr& event)
     else {
         WarnL << " UNKNOW METHON";
     }
+
+    LOG(INFO) << "===========================>>>" << exosip_event->request->sip_method;
 
     return 0;
 }

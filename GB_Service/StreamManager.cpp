@@ -24,7 +24,14 @@ STREAM_TYPE MediaStream::GetType()
 	return _type;
 }
 
-
+nlohmann::json MediaStream::toJson()
+{
+	return nlohmann::json{
+		{"app",_app},
+		{"stream_id",_stream_id},
+		{"type",_type},
+	};
+}
 
 int CallSession::GetCallID()
 {
@@ -63,7 +70,7 @@ bool CallSession::IsConnected()
 bool CallSession::WaitForStreamReady()
 {
 	std::unique_lock<std::mutex> lk(_mutex);
-	auto status = _cv.wait_for(lk,std::chrono::seconds(6));
+	auto status = _cv.wait_for(lk, std::chrono::seconds(6));
 	if (status == std::cv_status::timeout)
 	{
 		return false;
@@ -98,6 +105,24 @@ MediaStream::Ptr StreamManager::GetStream(const std::string& id)
 	}
 	return nullptr;
 }
+
+MediaStream::Ptr StreamManager::GetStreamByCallID(int id)
+{
+	std::scoped_lock<std::mutex> lock(_mutex);
+	for (auto&& s : _streams)
+	{
+		if (s.second->GetType() == STREAM_TYPE_GB)
+		{
+			auto session = std::dynamic_pointer_cast<CallSession>(s.second);
+			if (session && session->GetCallID() == id)
+			{
+				return s.second;
+			}
+		}
+	}
+	return nullptr;
+}
+
 
 std::vector<MediaStream::Ptr> StreamManager::GetAllStream()
 {

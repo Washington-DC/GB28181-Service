@@ -50,6 +50,13 @@ bool SipServer::Stop()
 	return true;
 }
 
+
+eXosip_t* SipServer::GetSipContext()
+{
+	return _sip_context;
+}
+
+
 void SipServer::RecvEventThread()
 {
 	while (_start)

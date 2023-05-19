@@ -2,6 +2,7 @@
 #include "SipRequest.h"
 #include "ConfigManager.h"
 #include "RequestPool.h"
+#include "StreamManager.h"
 
 BaseRequest::BaseRequest(eXosip_t* ctx, Device::Ptr device, REQUEST_MESSAGE_TYPE type)
 	:_exosip_context(ctx)
@@ -188,7 +189,7 @@ o={} 0 0 IN IP4 {}
 s=Play
 c=IN IP4 {}
 t=0 0
-m=video {} TCP/RTP/AVP 96 98 97
+m=video {} RTP/AVP 96 98 97
 a=recvonly
 a=rtpmap:96 PS/90000
 a=rtpmap:98 H264/90000
@@ -201,8 +202,6 @@ f=)";
 	auto server = ConfigManager::GetInstance()->GetSipServerInfo();
 	return fmt::format(text, server->ID, server->IP, server->IP, _ssrc->GetPort(), _ssrc->GetSSRC());
 }
-
-
 
 
 int InviteRequest::SendCall(bool needcb)
@@ -222,7 +221,42 @@ int InviteRequest::SendCall(bool needcb)
 		return -1;
 	}
 
-	auto stream_id = fmt::format("{}_{}", _device->GetDeviceID(), channel_id);
+	auto stream_id = fmt::format("{}_{}", _device->GetDeviceID(), _channel_id);
 
+	//TODO:
+	_ssrc = std::make_shared<SSRCInfo>(23045, "0123456789", stream_id);
 
+	auto session = std::make_shared<CallSession>("rtp", stream_id, _ssrc);
+	StreamManager::GetInstance()->AddStream(session);
+
+	auto sdp_body = make_sdp_body();
+
+	osip_message_set_body(msg, sdp_body.c_str(), sdp_body.length());
+	osip_message_set_content_type(msg, "application/sdp");
+	std::string session_expires = "1800;refresher=uac";
+	osip_message_set_header(msg, "session-expires", session_expires.c_str());
+	osip_message_set_supported(msg, "timer");
+	eXosip_lock(_exosip_context);
+	int call_id = eXosip_call_send_initial_invite(_exosip_context, msg);
+	eXosip_unlock(_exosip_context);
+
+	if (call_id > 0)
+	{
+		LOG(INFO) << "eXosip_call_send_initial_invite: " << call_id;
+	}
+	session->SetCallID(call_id);
+	LOG(INFO) << "==================================SDP: \n" << sdp_body;
+
+	if (needcb)
+	{
+		std::string request_id = _get_request_id_from_request(msg);
+		if (!request_id.empty())
+		{
+			BaseRequest::Ptr request = shared_from_this();
+			RequestPool::GetInstance()->AddRequest(request_id, request);
+		}
+	}
+	return 0;
 }
+
+

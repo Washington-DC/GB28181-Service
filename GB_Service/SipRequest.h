@@ -92,7 +92,7 @@ public:
 
 
 
-class InviteRequest :public BaseRequest, public std::enable_shared_from_this<BaseRequest>
+class InviteRequest :public BaseRequest
 {
 public:
 	typedef std::shared_ptr<InviteRequest> Ptr;

@@ -6,6 +6,7 @@
 #include "DeviceManager.h"
 #include "SipRequest.h"
 #include "XmlParser.h"
+#include "StreamManager.h"
 
 bool BaseEventHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 {
@@ -299,9 +300,6 @@ bool HeartbeatHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	{
 		device->UpdateLastTime();
 		device->SetStatus(1);
-
-		LOG(INFO) << "\n" << device->toString();
-
 		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
 		return true;
 	}
@@ -326,4 +324,80 @@ bool DeviceInfoHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 		return true;
 	}
 	return false;
+}
+
+
+
+int CallHandler::HandleResponseSuccess(const SipEvent::Ptr e)
+{
+	std::string device_id = e->exosip_event->request->to->url->username;
+
+	int call_id = e->exosip_event->cid;
+	int dialog_id = e->exosip_event->did;
+
+	LOG(INFO) << "on_exosip_call_answered DeviceID: " << device_id
+		<< "\tCallID: " << call_id << "\tDialogID: " << dialog_id;
+
+	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+	if (device == nullptr)
+	{
+		LOG(WARNING) << "Device Not Exists: " << device_id;
+		return -1;
+	}
+
+	auto sessions = StreamManager::GetInstance()->GetStreamByType(STREAM_TYPE_GB);
+	for (auto&& s : sessions)
+	{
+		auto session = std::dynamic_pointer_cast<CallSession>(s);
+
+		if (session->GetCallID() == call_id)
+		{
+			session->SetDialogID(dialog_id);
+			session->SetConnected(true);
+
+			SendCallAck(e->exosip_context, dialog_id);
+			return 0;
+		}
+	}
+	return -1;
+}
+
+int CallHandler::on_proceeding(const SipEvent::Ptr e)
+{
+	std::string reqid;
+	osip_generic_param_t* tag = nullptr;
+	osip_to_get_tag(e->exosip_event->request->from, &tag);
+	if (nullptr == tag || nullptr == tag->gvalue) {
+		reqid = "";
+	}
+	reqid = (const char*)tag->gvalue;
+
+	LOG(INFO) << "on_exosip_call_proceeding response reqid = " << reqid;
+	return 0;
+}
+
+int CallHandler::HandleClose(const SipEvent::Ptr e)
+{
+	std::string device_id = e->exosip_event->request->to->url->username;
+
+	int call_id = e->exosip_event->cid;
+	int dialog_id = e->exosip_event->did;
+
+	LOG(INFO) << "on_exosip_call_close DeviceID: " << device_id
+		<< "\tCallID: " << call_id << "\tDialogID: " << dialog_id;
+
+	auto sessions = StreamManager::GetInstance()->GetStreamByType(STREAM_TYPE_GB);
+	for (auto&& s : sessions)
+	{
+		auto session = std::dynamic_pointer_cast<CallSession>(s);
+
+		if (session->GetCallID() == call_id)
+		{
+			session->SetDialogID(dialog_id);
+			session->SetConnected(false);
+			return 0;
+		}
+	}
+	LOG(WARNING) << "CallID not found: " << call_id;
+	return -1;
 }

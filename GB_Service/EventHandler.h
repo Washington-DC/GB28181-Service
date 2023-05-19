@@ -56,5 +56,10 @@ public:
 
 class CallHandler :public BaseEventHandler
 {
+public:
+    int HandleResponseSuccess(const SipEvent::Ptr e);
 
+    int on_proceeding(const SipEvent::Ptr e);
+
+    int HandleClose(const SipEvent::Ptr e);
 };

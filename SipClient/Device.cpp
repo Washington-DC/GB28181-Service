@@ -591,15 +591,16 @@ R"(<?xml version="1.0" encoding="GB2312"?>
 
 std::string SipDevice::parse_ssrc(std::string text) {
 	text = nbase::StringTrim(text);
-	auto pos = text.find_last_of('\n');
-	if (pos != std::string::npos) {
-		text = text.substr(pos + 1);
-		if (strstr(text.c_str(), "y=0")) {
-			text = text.substr(2);
-			LOG(INFO) << "---Y: " << text;
-			return text;
+	auto tokens = nbase::StringTokenize(text.c_str(), "\n");
+	for (auto&& token : tokens)
+	{
+		if (strstr(token.c_str(), "y=0")) {
+			auto result = token.substr(2);
+			LOG(INFO) << "---Y: " << result;
+			return result;
 		}
 	}
+	
 	return std::string();
 }
 

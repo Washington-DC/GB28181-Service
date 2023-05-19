@@ -250,13 +250,13 @@ nlohmann::json Channel::toJson()
 {
 	return nlohmann::json
 	{
-		{"ID",_channel_id},
-		{"Name",_name},
-		{"Manufacturer",_manufacturer},
-		{"Model",_model},
-		{"Status",_status},
-		{"PtzType",_ptz_type},
-		{"SubChannelCount",_sub_channels.size()}
+		{"id",_channel_id},
+		{"name",_name},
+		{"manufacturer",_manufacturer},
+		{"model",_model},
+		{"status",_status},
+		{"ptz_type",_ptz_type},
+		{"sub_channel_count",_sub_channels.size()}
 	};
 }
 
@@ -455,16 +455,16 @@ nlohmann::json Device::toJson()
 {
 	return nlohmann::json
 	{
-		{"ID",_device_id},
-		{"Name",_name},
-		{"IP",_ip},
-		{"Port",_port},
-		{"ChannelCount",_channel_count},
-		{"Protocol",_transport},
-		{"Status",_status},
-		{"LastTime",_last_time},
-		{"RegistTime",_regist_time},
-		{"Manufacturer",_manufacturer}
+		{"id",_device_id},
+		{"name",_name},
+		{"ip",_ip},
+		{"port",_port},
+		{"channel_count",_channel_count},
+		{"protocol",_transport},
+		{"status",_status},
+		{"last_time",_last_time},
+		{"regist_time",_regist_time},
+		{"manufacturer",_manufacturer}
 	};
 }
 

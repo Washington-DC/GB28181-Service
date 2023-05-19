@@ -16,9 +16,15 @@ public:
 	MediaStream() = default;
 	MediaStream(const std::string& app, const std::string& stream_id, STREAM_TYPE type);
 
+	//MARK: 基类必须要有一个虚函数
+	virtual ~MediaStream() {}
+
 	std::string GetApp() const;
 	std::string GetStreamID() const;
 	STREAM_TYPE GetType();
+
+	nlohmann::json toJson();
+
 private:
 	std::string _app;
 	std::string _stream_id;
@@ -45,8 +51,11 @@ class CallSession :public MediaStream
 {
 public:
 	typedef std::shared_ptr<CallSession> Ptr;
-	CallSession(const std::string& app, const std::string& stream_id,const std::string& ssrc)
-		:MediaStream(app, stream_id, STREAM_TYPE::STREAM_TYPE_GB) {};
+	CallSession(const std::string& app, const std::string& stream_id,const SSRCInfo::Ptr ssrc)
+		:MediaStream(app, stream_id, STREAM_TYPE::STREAM_TYPE_GB)
+		,_ssrc(ssrc) {};
+
+	virtual ~CallSession() {}
 
 	int GetCallID();
 	void SetCallID(int id);
@@ -80,6 +89,7 @@ public:
 	void RemoveStream(const std::string& id);
 
 	MediaStream::Ptr GetStream(const std::string& id);
+	MediaStream::Ptr GetStreamByCallID(int id);
 	std::vector<MediaStream::Ptr> GetAllStream();
 	std::vector<MediaStream::Ptr> GetStreamByType(STREAM_TYPE type);
 	MediaStream::Ptr MakeStream(const std::string& stream_id, const std::string& app, STREAM_TYPE type);
