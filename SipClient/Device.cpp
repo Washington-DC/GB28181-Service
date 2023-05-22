@@ -236,9 +236,12 @@ void SipDevice::on_registration_failure(eXosip_event_t* event) {
 	if (event->response->status_code == 401) {
 		osip_www_authenticate_t* www_authenticate_header = nullptr;
 		osip_message_get_www_authenticate(event->response, 0, &www_authenticate_header);
-		eXosip_add_authentication_info(
-			_sip_context, this->ID.c_str(), this->ID.c_str(), _sip_server_info->Password.c_str(), "md5",
-			www_authenticate_header->realm);
+		if (www_authenticate_header)
+		{
+			eXosip_add_authentication_info(
+				_sip_context, this->ID.c_str(), this->ID.c_str(), _sip_server_info->Password.c_str(), "md5",
+				www_authenticate_header->realm);
+		}
 	}
 }
 
