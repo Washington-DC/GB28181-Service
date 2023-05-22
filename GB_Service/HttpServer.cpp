@@ -5,13 +5,16 @@
 #include "SipRequest.h"
 #include "SipServer.h"
 
+
 HttpServer::HttpServer()
-	:_blueprint("v1")
+	:_api_blueprint("v1")
+	,_hook_blueprint("index/hook")
 {
+	CROW_ROUTE(_app, "/")([]() {return "Hello World!"; });
 
-	CROW_BP_ROUTE(_blueprint, "/")([]() {return "Hello World!"; });
+	CROW_BP_ROUTE(_api_blueprint, "/")([]() {return "Hello World !"; });
 
-	CROW_BP_ROUTE(_blueprint, "/devicelist")([this]()
+	CROW_BP_ROUTE(_api_blueprint, "/devicelist")([this]()
 		{
 			auto devices = DeviceManager::GetInstance()->GetDeviceList();
 			auto doc = nlohmann::json::array();
@@ -23,7 +26,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	CROW_BP_ROUTE(_blueprint, "/device/<string>/channellist")([this](std::string device_id)
+	CROW_BP_ROUTE(_api_blueprint, "/device/<string>/channellist")([this](std::string device_id)
 		{
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
 			if (device)
@@ -45,7 +48,7 @@ HttpServer::HttpServer()
 	);
 
 
-	CROW_BP_ROUTE(_blueprint, "/device/<string>")([this](std::string device_id)
+	CROW_BP_ROUTE(_api_blueprint, "/device/<string>")([this](std::string device_id)
 		{
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
 			if (device)
@@ -59,7 +62,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	CROW_BP_ROUTE(_blueprint, "/device/<string>/channel/<string>")
+	CROW_BP_ROUTE(_api_blueprint, "/device/<string>/channel/<string>")
 		([this](std::string device_id, std::string channel_id)
 		{
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
@@ -78,7 +81,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	CROW_BP_ROUTE(_blueprint, "/streamlist")
+	CROW_BP_ROUTE(_api_blueprint, "/streamlist")
 		([this]()
 		{
 			auto streams = StreamManager::GetInstance()->GetAllStream();
@@ -91,7 +94,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	CROW_BP_ROUTE(_blueprint, "/device/<string>/channel/<string>/play")
+	CROW_BP_ROUTE(_api_blueprint, "/device/<string>/channel/<string>/play")
 		([this](std::string device_id, std::string channel_id)
 		{
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
@@ -139,7 +142,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	CROW_BP_ROUTE(_blueprint, "/device/<string>/channel/<string>/stop")
+	CROW_BP_ROUTE(_api_blueprint, "/device/<string>/channel/<string>/stop")
 		([this](std::string device_id, std::string channel_id)
 		{
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
@@ -178,7 +181,51 @@ HttpServer::HttpServer()
 		}
 	);
 
-	_app.register_blueprint(_blueprint);
+
+	//-------------------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------------------------------
+
+	CROW_BP_ROUTE(_hook_blueprint, "/")([]() {return "Hello World !"; });
+
+
+	//服务器定时上报，确认服务器是否在线
+	CROW_BP_ROUTE(_hook_blueprint, "/on_server_keepalive").methods("POST"_method)([this](const crow::request& req)
+		{
+			return "Hello World !";
+		}
+	);
+
+	//流注册或注销时触发此事件
+	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_changed").methods("POST"_method)([this](const crow::request& req)
+		{
+			return "Hello World !";
+		}
+	);
+
+	//流无人观看时事件，用户可以通过此事件选择是否关闭无人看的流
+	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_none_reader").methods("POST"_method)([this](const crow::request& req)
+		{
+			return "Hello World !";
+		}
+	);
+
+	//流未找到事件，用户可以在此事件触发时，立即去拉流，这样可以实现按需拉流
+	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_not_found").methods("POST"_method)([this](const crow::request& req)
+		{
+			return "Hello World !";
+		}
+	);
+
+	//调用openRtpServer 接口，rtp server 长时间未收到数据,执行此web hook
+	CROW_BP_ROUTE(_hook_blueprint, "/on_rtp_server_timeout").methods("POST"_method)([this](const crow::request& req)
+		{
+			return "Hello World !";
+		}
+	);
+
+	_app.register_blueprint(_api_blueprint);
+	_app.register_blueprint(_hook_blueprint);
 }
 
 

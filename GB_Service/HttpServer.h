@@ -14,8 +14,8 @@ private:
 	std::string _mk_response(int status,Type t);
 
 	crow::SimpleApp _app;
-	crow::Blueprint _blueprint;
-
+	crow::Blueprint _api_blueprint;
+	crow::Blueprint _hook_blueprint;
 };
 
 
