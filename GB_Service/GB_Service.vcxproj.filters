@@ -63,6 +63,9 @@
     <ClCompile Include="SSRC_Config.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ZlmServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -111,6 +114,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SSRC_Config.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ZlmServer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

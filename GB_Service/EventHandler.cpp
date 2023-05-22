@@ -62,6 +62,13 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 
 		osip_contact_t* contact = nullptr;
 		osip_message_get_contact(e->exosip_event->request, 0, &contact);
+		if (contact == nullptr)
+		{
+			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED);
+			LOG(WARNING) << "Device Registration Failed, Address" ;
+			return -1;
+		}
+
 		method = e->exosip_event->request->sip_method;
 
 #define SIP_STRDUP(field)  if(authorization->field) (field) = osip_strdup_without_quote(authorization->field);
@@ -302,6 +309,10 @@ bool HeartbeatHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 		device->SetStatus(1);
 		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
 		return true;
+	}
+	else
+	{
+		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED);
 	}
 	return false;
 }
