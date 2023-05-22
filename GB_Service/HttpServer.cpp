@@ -8,7 +8,7 @@
 
 HttpServer::HttpServer()
 	:_api_blueprint("v1")
-	,_hook_blueprint("index/hook")
+	, _hook_blueprint("index/hook")
 {
 	CROW_ROUTE(_app, "/")([]() {return "Hello World!"; });
 
@@ -28,11 +28,11 @@ HttpServer::HttpServer()
 
 	CROW_BP_ROUTE(_api_blueprint, "/device/<string>/channellist")([this](std::string device_id)
 		{
+			auto doc = nlohmann::json::array();
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
 			if (device)
 			{
 				auto channels = device->GetAllChannels();
-				auto doc = nlohmann::json::array();
 				for (auto&& channel : channels)
 				{
 					doc.push_back(channel->toJson());
@@ -42,7 +42,7 @@ HttpServer::HttpServer()
 			}
 			else
 			{
-				return _mk_response(1, "device not found");
+				return _mk_response(1, "", "device not found");
 			}
 		}
 	);
@@ -57,7 +57,7 @@ HttpServer::HttpServer()
 			}
 			else
 			{
-				return _mk_response(1, "device not found");
+				return _mk_response(1, "", "device not found");
 			}
 		}
 	);
@@ -68,13 +68,13 @@ HttpServer::HttpServer()
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
 			if (device == nullptr)
 			{
-				return _mk_response(1, "device not found");
+				return _mk_response(1, "", "device not found");
 			}
 
 			auto channel = device->GetChannel(channel_id);
 			if (channel == nullptr)
 			{
-				return _mk_response(1, "channel not found");
+				return _mk_response(1, "", "channel not found");
 			}
 
 			return _mk_response(0, channel->toJson());
@@ -100,13 +100,13 @@ HttpServer::HttpServer()
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
 			if (device == nullptr)
 			{
-				return _mk_response(1, "device not found");
+				return _mk_response(1, "", "device not found");
 			}
 
 			auto channel = device->GetChannel(channel_id);
 			if (channel == nullptr)
 			{
-				return _mk_response(1, "channel not found");
+				return _mk_response(1, "", "channel not found");
 			}
 			auto stream_id = fmt::format("{}_{}", device_id, channel_id);
 
@@ -117,7 +117,7 @@ HttpServer::HttpServer()
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
 				if (session->IsConnected())
 				{
-					return _mk_response(400, "already exists");
+					return _mk_response(400, "", "already exists");
 				}
 			}
 
@@ -134,11 +134,11 @@ HttpServer::HttpServer()
 
 				if (!ret)
 				{
-					return _mk_response(400, "timeout");
+					return _mk_response(400, "", "timeout");
 				}
 			}
 
-			return _mk_response(0, "ok");
+			return _mk_response(0, "", "ok");
 		}
 	);
 
@@ -148,13 +148,13 @@ HttpServer::HttpServer()
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
 			if (device == nullptr)
 			{
-				return _mk_response(1, "device not found");
+				return _mk_response(1, "", "device not found");
 			}
 
 			auto channel = device->GetChannel(channel_id);
 			if (channel == nullptr)
 			{
-				return _mk_response(1, "channel not found");
+				return _mk_response(1, "", "channel not found");
 			}
 			auto stream_id = fmt::format("{}_{}", device_id, channel_id);
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
@@ -163,7 +163,7 @@ HttpServer::HttpServer()
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
 				if (!session->IsConnected())
 				{
-					return _mk_response(400, "not play");
+					return _mk_response(400, "", "not play");
 				}
 				else
 				{
@@ -171,12 +171,12 @@ HttpServer::HttpServer()
 						session->GetCallID(), session->GetDialogID());
 					session->SetConnected(false);
 
-					return _mk_response(0, "ok");
+					return _mk_response(0, "", "ok");
 				}
 			}
 			else
 			{
-				return _mk_response(400, "not play");
+				return _mk_response(400, "", "not play");
 			}
 		}
 	);
