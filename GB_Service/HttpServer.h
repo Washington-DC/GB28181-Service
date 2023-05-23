@@ -24,8 +24,8 @@ std::string HttpServer::_mk_response(int status, Type t, std::string msg)
 {
 	return nlohmann::json
 	{
-		{"status",status},
-		{"message",msg},
+		{"code",status},
+		{"msg",msg},
 		{"data",t}
 	}.dump(4);
 }

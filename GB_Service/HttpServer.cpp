@@ -4,7 +4,8 @@
 #include "StreamManager.h"
 #include "SipRequest.h"
 #include "SipServer.h"
-
+#include "ZlmServer.h"
+#include "DTO.h"
 
 HttpServer::HttpServer()
 	:_api_blueprint("v1")
@@ -192,35 +193,64 @@ HttpServer::HttpServer()
 	//服务器定时上报，确认服务器是否在线
 	CROW_BP_ROUTE(_hook_blueprint, "/on_server_keepalive").methods("POST"_method)([this](const crow::request& req)
 		{
-			return "Hello World !";
+			ZlmServer::GetInstance()->UpdateHeartbeatTime();
+			return _mk_response(0, "", "success");
 		}
 	);
 
 	//流注册或注销时触发此事件
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_changed").methods("POST"_method)([this](const crow::request& req)
 		{
-			return "Hello World !";
+			auto info = nlohmann::json::parse(req.body).get<dto::StreamChangedInfo>();
+			if (info.Regist)
+			{
+				if (info.OriginType == 3)
+				{
+					auto stream = StreamManager::GetInstance()->GetStream(info.Stream);
+					if (stream)
+					{
+						auto session = std::dynamic_pointer_cast<CallSession>(stream);
+						session->NotifyStreamReady();
+					}
+				}
+			}
+			else
+			{
+				StreamManager::GetInstance()->RemoveStream(info.Stream);
+			}
+
+			return _mk_response(0, "", "success");
 		}
 	);
 
 	//流无人观看时事件，用户可以通过此事件选择是否关闭无人看的流
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_none_reader").methods("POST"_method)([this](const crow::request& req)
 		{
-			return "Hello World !";
+			auto info = nlohmann::json::parse(req.body).get<dto::StreamChangedInfo>();
+			LOG(INFO) << "on_stream_none_reader: " << info.Path();
+
+			return nlohmann::json{
+				{"close",true},
+				{"code",0}
+			}.dump(4);
 		}
 	);
 
 	//流未找到事件，用户可以在此事件触发时，立即去拉流，这样可以实现按需拉流
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_not_found").methods("POST"_method)([this](const crow::request& req)
 		{
-			return "Hello World !";
+			auto info = nlohmann::json::parse(req.body).get<dto::StreamChangedInfo>();
+			LOG(INFO) << "on_stream_not_found: " << info.Path();
+			return _mk_response(0, "", "success");
 		}
 	);
 
 	//调用openRtpServer 接口，rtp server 长时间未收到数据,执行此web hook
 	CROW_BP_ROUTE(_hook_blueprint, "/on_rtp_server_timeout").methods("POST"_method)([this](const crow::request& req)
 		{
-			return "Hello World !";
+			auto info = nlohmann::json::parse(req.body).get<dto::RtpServerInfo>();
+			LOG(INFO) << "on_rtp_server_timeout: " << info.StreamID;
+			return _mk_response(0, "", "success");
 		}
 	);
 

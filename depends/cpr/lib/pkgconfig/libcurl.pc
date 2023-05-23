@@ -1,0 +1,39 @@
+#***************************************************************************
+#                                  _   _ ____  _
+#  Project                     ___| | | |  _ \| |
+#                             / __| | | | |_) | |
+#                            | (__| |_| |  _ <| |___
+#                             \___|\___/|_| \_\_____|
+#
+# Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution. The terms
+# are also available at https://curl.se/docs/copyright.html.
+#
+# You may opt to use, copy, modify, merge, publish, distribute and/or sell
+# copies of the Software, and permit persons to whom the Software is
+# furnished to do so, under the terms of the COPYING file.
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+# KIND, either express or implied.
+#
+###########################################################################
+
+# This should most probably benefit from getting a "Requires:" field added
+# dynamically by configure.
+#
+prefix=D:/cpr
+exec_prefix=${prefix}
+libdir=D:/cpr/lib
+includedir=${prefix}/include
+supported_protocols="HTTP SCP SFTP"
+supported_features="IPv6 libz AsynchDNS Largefile alt-svc HSTS NTLM"
+
+Name: libcurl
+URL: https://curl.se/
+Description: Library to transfer files with ftp, http, etc.
+Version: 7.80.0
+Libs: -L${libdir} -lcurl  -lwinmm -lws2_32 D:/ProgramData/Anaconda3/Library/lib/z.lib D:/ProgramData/Anaconda3/Library/lib/libssh2.lib -ladvapi32 -lcrypt32
+Libs.private:  -lwinmm -lws2_32 D:/ProgramData/Anaconda3/Library/lib/z.lib D:/ProgramData/Anaconda3/Library/lib/libssh2.lib -ladvapi32 -lcrypt32
+Cflags: -I${includedir} 

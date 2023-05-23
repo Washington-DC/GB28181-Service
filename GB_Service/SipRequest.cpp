@@ -3,6 +3,7 @@
 #include "ConfigManager.h"
 #include "RequestPool.h"
 #include "StreamManager.h"
+#include "ZlmServer.h"
 
 BaseRequest::BaseRequest(eXosip_t* ctx, Device::Ptr device, REQUEST_MESSAGE_TYPE type)
 	:_exosip_context(ctx)
@@ -224,7 +225,13 @@ int InviteRequest::SendCall(bool needcb)
 	auto stream_id = fmt::format("{}_{}", _device->GetDeviceID(), _channel_id);
 
 	//TODO:
-	_ssrc = std::make_shared<SSRCInfo>(23045, "0123456789", stream_id);
+	_ssrc = ZlmServer::GetInstance()->OpenRtpServer(stream_id);
+
+	if (_ssrc == nullptr)
+	{
+		LOG(ERROR) << "ZLM·µ»Ø´íÎó";
+		return -1;
+	}
 
 	auto session = std::make_shared<CallSession>("rtp", stream_id, _ssrc);
 	StreamManager::GetInstance()->AddStream(session);

@@ -6,7 +6,7 @@
 #include "SipServer.h"
 #include "ConfigManager.h"
 #include "HttpServer.h"
-
+#include "ZlmServer.h"
 
 int main()
 {
@@ -21,6 +21,8 @@ int main()
 	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file);
 	if (!ret)
 		return 0;
+
+	ZlmServer::GetInstance()->Init(ConfigManager::GetInstance()->GetMediaServerInfo());
 
 	SipServer::GetInstance()->Init();
 	SipServer::GetInstance()->Start();
