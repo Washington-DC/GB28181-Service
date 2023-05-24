@@ -65,7 +65,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		if (contact == nullptr)
 		{
 			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED);
-			LOG(WARNING) << "Device Registration Failed, Address" ;
+			LOG(WARNING) << "Device Registration Failed, Address";
 			return -1;
 		}
 
@@ -342,6 +342,8 @@ bool DeviceInfoHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 int CallHandler::HandleResponseSuccess(const SipEvent::Ptr e)
 {
 	std::string device_id = e->exosip_event->request->to->url->username;
+	std::string host = e->exosip_event->request->to->url->host;
+	std::string port = e->exosip_event->request->to->url->port;
 
 	int call_id = e->exosip_event->cid;
 	int dialog_id = e->exosip_event->did;
@@ -349,7 +351,7 @@ int CallHandler::HandleResponseSuccess(const SipEvent::Ptr e)
 	LOG(INFO) << "on_exosip_call_answered DeviceID: " << device_id
 		<< "\tCallID: " << call_id << "\tDialogID: " << dialog_id;
 
-	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+	auto device = DeviceManager::GetInstance()->GetDevice(host, port);
 	if (device == nullptr)
 	{
 		LOG(WARNING) << "Device Not Exists: " << device_id;

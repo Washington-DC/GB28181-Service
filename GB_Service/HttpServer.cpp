@@ -143,6 +143,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+
 	CROW_BP_ROUTE(_api_blueprint, "/device/<string>/channel/<string>/stop")
 		([this](std::string device_id, std::string channel_id)
 		{
@@ -198,10 +199,24 @@ HttpServer::HttpServer()
 		}
 	);
 
+	CROW_BP_ROUTE(_hook_blueprint, "/on_publish").methods("POST"_method)([this](const crow::request& req)
+		{
+			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
+			LOG(INFO) << "Hook on_publish: " << info.Path() << "\tParams: " << info.Params;
+			return nlohmann::json{
+				{"code",0},
+				{"msg",""},
+				{"enable_rtsp",true},
+				{"enable_rtmp",true},
+				{"enable_hls",true}
+			}.dump();
+		}
+	);
+
 	//流注册或注销时触发此事件
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_changed").methods("POST"_method)([this](const crow::request& req)
 		{
-			auto info = nlohmann::json::parse(req.body).get<dto::StreamChangedInfo>();
+			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
 			if (info.Regist)
 			{
 				if (info.OriginType == 3)
@@ -226,7 +241,7 @@ HttpServer::HttpServer()
 	//流无人观看时事件，用户可以通过此事件选择是否关闭无人看的流
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_none_reader").methods("POST"_method)([this](const crow::request& req)
 		{
-			auto info = nlohmann::json::parse(req.body).get<dto::StreamChangedInfo>();
+			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
 			LOG(INFO) << "on_stream_none_reader: " << info.Path();
 
 			return nlohmann::json{
@@ -239,7 +254,7 @@ HttpServer::HttpServer()
 	//流未找到事件，用户可以在此事件触发时，立即去拉流，这样可以实现按需拉流
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_not_found").methods("POST"_method)([this](const crow::request& req)
 		{
-			auto info = nlohmann::json::parse(req.body).get<dto::StreamChangedInfo>();
+			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
 			LOG(INFO) << "on_stream_not_found: " << info.Path();
 			return _mk_response(0, "", "success");
 		}

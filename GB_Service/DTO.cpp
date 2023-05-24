@@ -3,7 +3,7 @@
 
 namespace dto
 {
-	void from_json(const nlohmann::json& j, StreamChangedInfo& info)
+	void from_json(const nlohmann::json& j, ZlmStreamInfo& info)
 	{
 		j.at("mediaServerId").get_to(info.MediaServerID);
 		j.at("app").get_to(info.App);
@@ -18,9 +18,21 @@ namespace dto
 		{
 			j.at("originType").get_to(info.OriginType);
 		}
+		if (j.at("port"))
+		{
+			j.at("port").get_to(info.Port);
+		}
+		if (j.at("ip"))
+		{
+			j.at("ip").get_to(info.IP);
+		}
+		if (j.at("params"))
+		{
+			j.at("params").get_to(info.Params);
+		}
 	}
 
-	void to_json(nlohmann::json& j, const StreamChangedInfo& p)
+	void to_json(nlohmann::json& j, const ZlmStreamInfo& p)
 	{
 
 	}

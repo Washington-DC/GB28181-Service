@@ -18,6 +18,19 @@ Device::Ptr DeviceManager::GetDevice(const std::string& device_id)
 	return nullptr;
 }
 
+Device::Ptr DeviceManager::GetDevice(const std::string& ip, const std::string& port)
+{
+	std::scoped_lock<std::mutex> lk(_mutex);
+	for (auto&& dev : _devices)
+	{
+		if (dev.second->GetIP() == ip && dev.second->GetPort() == port)
+		{
+			return dev.second;
+		}
+	}
+	return nullptr;
+}
+
 void DeviceManager::RemoveDevice(const std::string& device_id)
 {
 	std::scoped_lock<std::mutex> lk(_mutex);

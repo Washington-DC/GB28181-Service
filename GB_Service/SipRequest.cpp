@@ -209,7 +209,7 @@ int InviteRequest::SendCall(bool needcb)
 {
 	auto config = ConfigManager::GetInstance()->GetSipServerInfo();
 	auto from_uri = fmt::format("sip:{}@{}:{}", config->ID, config->IP, config->Port);
-	auto to_uri = fmt::format("sip:{}@{}:{}", _device->GetDeviceID(), _device->GetIP(), _device->GetPort());
+	auto to_uri = fmt::format("sip:{}@{}:{}", _channel_id, _device->GetIP(), _device->GetPort());
 
 	osip_message_t* msg = nullptr;
 

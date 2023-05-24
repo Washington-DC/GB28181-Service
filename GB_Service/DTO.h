@@ -2,7 +2,7 @@
 
 namespace dto
 {
-	struct StreamChangedInfo
+	struct ZlmStreamInfo
 	{
 		std::string MediaServerID;
 		std::string App;
@@ -11,7 +11,9 @@ namespace dto
 		std::string Vhost;
 		int	OriginType;
 		bool Regist;
-
+		uint16_t Port;
+		std::string IP;
+		std::string Params;
 		std::string Path() { return App + "/" + Stream; }
 	};
 
@@ -33,8 +35,8 @@ namespace dto
 	};
 
 
-	void from_json(const nlohmann::json& j, StreamChangedInfo& info);
-	void to_json(nlohmann::json& j, const StreamChangedInfo& p);
+	void from_json(const nlohmann::json& j, ZlmStreamInfo& info);
+	void to_json(nlohmann::json& j, const ZlmStreamInfo& p);
 	void from_json(const nlohmann::json& j, ResponseInfo& info);
 	void to_json(nlohmann::json& j, const ResponseInfo& p);
 	void from_json(const nlohmann::json& j, RtpServerInfo& info);

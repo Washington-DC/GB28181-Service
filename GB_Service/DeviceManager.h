@@ -8,6 +8,7 @@ public:
 
 	void AddDevice(Device::Ptr device);
 	Device::Ptr GetDevice(const std::string& device_id);
+	Device::Ptr GetDevice(const std::string& ip, const std::string& port);
 	void RemoveDevice(const std::string& device_id);
 
 	std::vector<Device::Ptr> GetDeviceList();
