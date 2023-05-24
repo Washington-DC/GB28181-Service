@@ -27,6 +27,24 @@ HttpServer::HttpServer()
 		}
 	);
 
+
+	CROW_BP_ROUTE(_api_blueprint, "/device/<string>")([this](std::string device_id)
+		{
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device)
+			{
+				return _mk_response(0, device->toJson());
+			}
+			else
+			{
+				return _mk_response(1, "", "device not found");
+			}
+		}
+	);
+
+
+
+
 	CROW_BP_ROUTE(_api_blueprint, "/device/<string>/channellist")([this](std::string device_id)
 		{
 			auto doc = nlohmann::json::array();
@@ -40,21 +58,6 @@ HttpServer::HttpServer()
 				}
 
 				return _mk_response(0, doc);
-			}
-			else
-			{
-				return _mk_response(1, "", "device not found");
-			}
-		}
-	);
-
-
-	CROW_BP_ROUTE(_api_blueprint, "/device/<string>")([this](std::string device_id)
-		{
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-			if (device)
-			{
-				return _mk_response(0, device->toJson());
 			}
 			else
 			{
@@ -131,6 +134,140 @@ HttpServer::HttpServer()
 		}
 	);
 
+
+	CROW_BP_ROUTE(_api_blueprint, "/device")([this](const crow::request& req)
+		{
+			auto device_id = req.url_params.get("device_id");
+			if (device_id)
+			{
+				auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+				if (device)
+				{
+					return _mk_response(0, device->toJson());
+				}
+			}
+			return _mk_response(1, "", "device not found");
+		}
+	);
+
+	CROW_BP_ROUTE(_api_blueprint, "/channellist")([this](const crow::request& req)
+		{
+			auto device_id = req.url_params.get("device_id");
+			if (device_id)
+			{
+				auto doc = nlohmann::json::array();
+				auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+				if (device)
+				{
+					auto channels = device->GetAllChannels();
+					for (auto&& channel : channels)
+					{
+						doc.push_back(channel->toJson());
+					}
+
+					return _mk_response(0, doc);
+				}
+			}
+			return _mk_response(1, "", "deviceid not exists");
+		}
+	);
+
+	CROW_BP_ROUTE(_api_blueprint, "/channel")([this](const crow::request& req)
+		{
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+			if (device_id)
+			{
+				if (channel_id)
+				{
+					auto doc = nlohmann::json::array();
+					auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+					if (device)
+					{
+						auto channel = device->GetChannel(channel_id);
+						if (channel == nullptr)
+						{
+							return _mk_response(1, "", "channel not found");
+						}
+
+						return _mk_response(0, channel->toJson());
+					}
+					else
+					{
+						return _mk_response(1, "", "device not found");
+					}
+				}
+				return _mk_response(1, "", "channelid not exists");
+			}
+			return _mk_response(1, "", "deviceid not exists");
+		}
+	);
+
+	CROW_BP_ROUTE(_api_blueprint, "/play")([this](const crow::request& req)
+		{
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+			if (device_id)
+			{
+				if (channel_id)
+				{
+					return Play(device_id, channel_id);
+				}
+				return _mk_response(1, "", "channelid not exists");
+			}
+			return _mk_response(1, "", "deviceid not exists");
+		}
+	);
+
+	CROW_BP_ROUTE(_api_blueprint, "/stop")([this](const crow::request& req)
+		{
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+			if (device_id)
+			{
+				if (channel_id)
+				{
+					auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+					if (device == nullptr)
+					{
+						return _mk_response(1, "", "device not found");
+					}
+
+					auto channel = device->GetChannel(channel_id);
+					if (channel == nullptr)
+					{
+						return _mk_response(1, "", "channel not found");
+					}
+					auto stream_id = fmt::format("{}_{}", device_id, channel_id);
+					auto stream = StreamManager::GetInstance()->GetStream(stream_id);
+					if (stream)
+					{
+						auto session = std::dynamic_pointer_cast<CallSession>(stream);
+						if (!session->IsConnected())
+						{
+							return _mk_response(400, "", "not play");
+						}
+						else
+						{
+							eXosip_call_terminate(SipServer::GetInstance()->GetSipContext(),
+								session->GetCallID(), session->GetDialogID());
+							session->SetConnected(false);
+
+							return _mk_response(0, "", "ok");
+						}
+					}
+					else
+					{
+						return _mk_response(400, "", "not play");
+					}
+				}
+				return _mk_response(1, "", "channelid not exists");
+			}
+			return _mk_response(1, "", "deviceid not exists");
+		}
+	);
+
+
 	CROW_BP_ROUTE(_api_blueprint, "/streamlist")
 		([this]()
 		{
@@ -144,10 +281,30 @@ HttpServer::HttpServer()
 		}
 	);
 
+
 	CROW_BP_ROUTE(_api_blueprint, "/rtpserverlist")
 		([this]()
 		{
 			return ZlmServer::GetInstance()->ListRtpServer();
+		}
+	);
+
+
+	CROW_BP_ROUTE(_api_blueprint, "/closeall")
+		([this]()
+		{
+			auto streams = StreamManager::GetInstance()->GetStreamByType(STREAM_TYPE_GB);
+			for (auto&& stream : streams)
+			{
+				auto session = std::dynamic_pointer_cast<CallSession>(stream);
+				if (session->IsConnected())
+				{
+					eXosip_call_terminate(SipServer::GetInstance()->GetSipContext(),
+						session->GetCallID(), session->GetDialogID());
+					session->SetConnected(false);
+				}
+			}
+			return _mk_response(0, "", "ok");
 		}
 	);
 

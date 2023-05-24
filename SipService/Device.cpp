@@ -251,7 +251,7 @@ nlohmann::json Channel::toJson()
 	return nlohmann::json
 	{
 		{"id",_channel_id},
-		{"name",_name},
+		{"name",nbase::win32::MBCSToUtf8(_name)},
 		{"manufacturer",_manufacturer},
 		{"model",_model},
 		{"status",_status},

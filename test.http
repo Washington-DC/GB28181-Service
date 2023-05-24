@@ -32,17 +32,72 @@ GET {{base_zlm_url}}/index/api/addStreamProxy
 # @name HelloWorld
 GET http://127.0.0.1:8000/v1/
 
-###
-# @name devicelist
-GET {{local_servre_url}}/v1/devicelist
 
 ###
 # @name rtp_servers
 GET {{local_servre_url}}/v1/rtpserverlist
 
+
+
+###
+# @name close
+GET {{local_servre_url}}/v1/closeall
+
 ###
 # @name streamlist
 GET {{local_servre_url}}/v1/streamlist
+
+
+###
+# @name devicelist
+GET {{local_servre_url}}/v1/devicelist
+
+###
+# @name device_mock
+GET {{local_servre_url}}/v1/device?device_id=34020000002000011111
+
+###
+# @name device_dahua
+GET {{local_servre_url}}/v1/device?device_id=34020000001320000103
+
+###
+# @name channellist_mock
+GET {{local_servre_url}}/v1/channellist?device_id=34020000002000011111
+
+
+###
+# @name channellist_dahua
+GET {{local_servre_url}}/v1/channellist?device_id=34020000001320000103
+
+###
+# @name channel
+GET {{local_servre_url}}/v1/channel
+    ?device_id=34020000002000011111
+    &channel_id=34020000002000000002
+
+###
+# @name play_34020000002000000001
+GET {{local_servre_url}}/v1/play
+    ?device_id=34020000002000011111
+    &channel_id=34020000002000000002
+
+###
+# @name stop_34020000002000000001
+GET {{local_servre_url}}/v1/stop
+    ?device_id=34020000002000011111
+    &channel_id=34020000002000000002
+
+
+###
+# @name play_dahua
+GET {{local_servre_url}}/v1/play
+    ?device_id=34020000001320000103
+    &channel_id=34020000001310000001
+
+
+
+
+
 
 
 ###
@@ -52,7 +107,7 @@ GET {{local_servre_url}}/v1/device/34020000002000011111/channellist
 
 ###
 # @name channellist_Hikvision
-GET {{local_servre_url}}/v1/device/34020000001321234567/channellist
+GET {{local_servre_url}}/v1/device/34020000001320000103/channellist
 
 
 ###
