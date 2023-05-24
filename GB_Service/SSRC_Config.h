@@ -31,13 +31,13 @@ class SSRCConfig
 	};
 public:
 	typedef std::shared_ptr<SSRCConfig> Ptr;
-
-	SSRCConfig() = default;
+	SINGLETON_DEFINE(SSRCConfig);
 
 	void SetPrefix(const std::string& pre);
 	std::string GenerateSSRC(Mode m = Mode::Realtime);
 
 private:
+	SSRCConfig() = default;
 	std::string _prefix = "";
 
 };

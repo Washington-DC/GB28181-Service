@@ -7,6 +7,7 @@
 #include "ConfigManager.h"
 #include "HttpServer.h"
 #include "ZlmServer.h"
+#include "SSRC_Config.h"
 
 int main()
 {
@@ -24,7 +25,10 @@ int main()
 
 	ZlmServer::GetInstance()->Init(ConfigManager::GetInstance()->GetMediaServerInfo());
 
-	SipServer::GetInstance()->Init();
+	auto config = ConfigManager::GetInstance()->GetSipServerInfo();
+	SSRCConfig::GetInstance()->SetPrefix(config->ID.substr(3, 5));
+
+	SipServer::GetInstance()->Init(config->ID, config->Port);
 	SipServer::GetInstance()->Start();
 	HttpServer::GetInstance()->Start(8000);
 

@@ -23,11 +23,7 @@
 void ZlmServer::Init(std::shared_ptr<MediaServerInfo> info)
 {
 	_info = info;
-	_ssrc_config = std::make_shared<SSRCConfig>();
-
-	auto config = ConfigManager::GetInstance()->GetSipServerInfo();
-
-	_ssrc_config->SetPrefix(config->ID.substr(3, 5));
+	
 	_base_url = fmt::format("http://{}:{}", _info->IP, _info->Port);
 }
 
@@ -65,7 +61,7 @@ bool ZlmServer::IsConnected()
 }
 
 
-SSRCInfo::Ptr ZlmServer::OpenRtpServer(const std::string& stream_id)
+int ZlmServer::OpenRtpServer(const std::string& stream_id)
 {
 	auto uri = _base_url + "/index/api/openRtpServer";
 	cpr::Response res = cpr::Get(cpr::Url{ uri },
@@ -82,11 +78,10 @@ SSRCInfo::Ptr ZlmServer::OpenRtpServer(const std::string& stream_id)
 		auto info = nlohmann::json::parse(res.text).get<dto::ResponseInfo>();
 		if (info.Code == 0)
 		{
-			auto ssrc = std::make_shared<SSRCInfo>(info.Port, _ssrc_config->GenerateSSRC(), stream_id);
-			return ssrc;
+			return info.Port;
 		}
 	}
-	return nullptr;
+	return -1;
 	//try {
 	//	http_client_config config;
 	//	config.set_timeout(6000ms);
@@ -117,7 +112,6 @@ SSRCInfo::Ptr ZlmServer::OpenRtpServer(const std::string& stream_id)
 	//catch (const std::exception& e) {
 	//	LOG(ERROR) << e.what();
 	//}
-	return nullptr;
 }
 
 

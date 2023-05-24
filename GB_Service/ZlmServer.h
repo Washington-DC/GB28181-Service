@@ -9,7 +9,7 @@ public:
 
 	void Init(std::shared_ptr<MediaServerInfo> info);
 
-	SSRCInfo::Ptr OpenRtpServer(const std::string& stream_id);
+	int OpenRtpServer(const std::string& stream_id);
 	void CloseRtpServer(const std::string& stream_id);
 	std::string ListRtpServer();
 
@@ -23,7 +23,6 @@ private:
 	std::shared_ptr<MediaServerInfo> _info = nullptr;
 	time_t _last_heartbeat_time = 0;
 	bool _connected = false;
-	SSRCConfig::Ptr _ssrc_config = nullptr;
 	std::mutex _mutex;
 	std::string _base_url ;
 	toolkit::EventPoller::DelayTask::Ptr _delay_task = nullptr;

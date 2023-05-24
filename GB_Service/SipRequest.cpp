@@ -201,7 +201,7 @@ y={}
 f=)";
 
 	auto server = ConfigManager::GetInstance()->GetSipServerInfo();
-	return fmt::format(text, server->ID, server->IP, server->IP, _ssrc->GetPort(), _ssrc->GetSSRC());
+	return fmt::format(text, server->ID, server->IP, server->IP, _ssrc_info->GetPort(), _ssrc_info->GetSSRC());
 }
 
 
@@ -212,8 +212,14 @@ int InviteRequest::SendCall(bool needcb)
 	auto to_uri = fmt::format("sip:{}@{}:{}", _device->GetDeviceID(), _device->GetIP(), _device->GetPort());
 
 	osip_message_t* msg = nullptr;
+
+	auto ssrc = SSRCConfig::GetInstance()->GenerateSSRC();
+	auto subject = fmt::format("{}:{},{}:0", _channel_id, ssrc, config->ID);
+
+	LOG(INFO) << "subject: " << subject;
+
 	eXosip_lock(_exosip_context);
-	auto ret = eXosip_call_build_initial_invite(_exosip_context, &msg, to_uri.c_str(), from_uri.c_str(), nullptr, nullptr);
+	auto ret = eXosip_call_build_initial_invite(_exosip_context, &msg, to_uri.c_str(), from_uri.c_str(), nullptr, subject.c_str());
 	eXosip_unlock(_exosip_context);
 
 	if (ret != OSIP_SUCCESS)
@@ -225,15 +231,16 @@ int InviteRequest::SendCall(bool needcb)
 	auto stream_id = fmt::format("{}_{}", _device->GetDeviceID(), _channel_id);
 
 	//TODO:
-	_ssrc = ZlmServer::GetInstance()->OpenRtpServer(stream_id);
+	auto port = ZlmServer::GetInstance()->OpenRtpServer(stream_id);
+	_ssrc_info = std::make_shared<SSRCInfo>(port, ssrc, stream_id);
 
-	if (_ssrc == nullptr)
+	if (port == -1)
 	{
-		LOG(ERROR) << "ZLM返回错误";
+		LOG(ERROR) << "创建RTP服务器失败";
 		return -1;
 	}
 
-	auto session = std::make_shared<CallSession>("rtp", stream_id, _ssrc);
+	auto session = std::make_shared<CallSession>("rtp", stream_id, _ssrc_info);
 	StreamManager::GetInstance()->AddStream(session);
 
 	auto sdp_body = make_sdp_body();

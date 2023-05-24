@@ -102,12 +102,12 @@ public:
 	{
 	};
 
-	virtual int SendCall(bool needcb = true);
+	virtual int SendCall( bool needcb = true);
 
 protected:
 	virtual const std::string make_sdp_body();
 
 private:
-	SSRCInfo::Ptr _ssrc;
+	SSRCInfo::Ptr _ssrc_info = nullptr;
 	std::string _channel_id;
 };
