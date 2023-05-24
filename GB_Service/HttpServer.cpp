@@ -82,18 +82,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	CROW_BP_ROUTE(_api_blueprint, "/streamlist")
-		([this]()
-		{
-			auto streams = StreamManager::GetInstance()->GetAllStream();
-			auto doc = nlohmann::json::array();
-			for (auto&& s : streams)
-			{
-				doc.push_back(s->toJson());
-			}
-			return _mk_response(0, doc);
-		}
-	);
+
 
 	CROW_BP_ROUTE(_api_blueprint, "/device/<string>/channel/<string>/play")
 		([this](std::string device_id, std::string channel_id)
@@ -180,6 +169,26 @@ HttpServer::HttpServer()
 			{
 				return _mk_response(400, "", "not play");
 			}
+		}
+	);
+
+	CROW_BP_ROUTE(_api_blueprint, "/streamlist")
+		([this]()
+		{
+			auto streams = StreamManager::GetInstance()->GetAllStream();
+			auto doc = nlohmann::json::array();
+			for (auto&& s : streams)
+			{
+				doc.push_back(s->toJson());
+			}
+			return _mk_response(0, doc);
+		}
+	);
+
+	CROW_BP_ROUTE(_api_blueprint, "/rtpserverlist")
+		([this]()
+		{
+			return ZlmServer::GetInstance()->ListRtpServer();
 		}
 	);
 
