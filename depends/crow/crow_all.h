@@ -12554,7 +12554,7 @@ namespace crow
         uint16_t port_ = 80;
         uint16_t concurrency_ = 2;
         bool validated_ = false;
-        std::string server_name_ = std::string("Crow/") + VERSION;
+        std::string server_name_ = std::string("TY/") + VERSION;
         std::string bindaddr_ = "0.0.0.0";
         size_t res_stream_threshold_ = 1048576;
         Router router_;

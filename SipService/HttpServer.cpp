@@ -87,48 +87,7 @@ HttpServer::HttpServer()
 	CROW_BP_ROUTE(_api_blueprint, "/device/<string>/channel/<string>/play")
 		([this](std::string device_id, std::string channel_id)
 		{
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-			if (device == nullptr)
-			{
-				return _mk_response(1, "", "device not found");
-			}
-
-			auto channel = device->GetChannel(channel_id);
-			if (channel == nullptr)
-			{
-				return _mk_response(1, "", "channel not found");
-			}
-			auto stream_id = fmt::format("{}_{}", device_id, channel_id);
-
-			InviteRequest::Ptr request = nullptr;
-			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
-			if (stream)
-			{
-				auto session = std::dynamic_pointer_cast<CallSession>(stream);
-				if (session->IsConnected())
-				{
-					return _mk_response(400, "", "already exists");
-				}
-			}
-
-			request = std::make_shared<InviteRequest>(
-				SipServer::GetInstance()->GetSipContext(), device, channel_id);
-
-			request->SendCall();
-
-			stream = StreamManager::GetInstance()->GetStream(stream_id);
-			if (stream)
-			{
-				auto session = std::dynamic_pointer_cast<CallSession>(stream);
-				auto ret = session->WaitForStreamReady();
-
-				if (!ret)
-				{
-					return _mk_response(400, "", "timeout");
-				}
-			}
-
-			return _mk_response(0, "", "ok");
+			return Play(device_id, channel_id);
 		}
 	);
 
@@ -265,6 +224,19 @@ HttpServer::HttpServer()
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
 			LOG(INFO) << "on_stream_not_found: " << info.Path();
+
+			if (info.App == "rtp")
+			{
+				auto pos = info.Stream.find_first_of('_');
+				if (pos != std::string::npos)
+				{
+					auto device_id = info.Stream.substr(0, pos);
+					auto channel_id = info.Stream.substr(pos + 1);
+					auto ret = Play(device_id, channel_id);
+					LOG(INFO) << "Play: " << ret;
+				}
+			}
+
 			return _mk_response(0, "", "success");
 		}
 	);
@@ -280,6 +252,52 @@ HttpServer::HttpServer()
 
 	_app.register_blueprint(_api_blueprint);
 	_app.register_blueprint(_hook_blueprint);
+}
+
+std::string HttpServer::Play(const std::string& device_id, const std::string& channel_id)
+{
+	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+	if (device == nullptr)
+	{
+		return _mk_response(1, "", "device not found");
+	}
+
+	auto channel = device->GetChannel(channel_id);
+	if (channel == nullptr)
+	{
+		return _mk_response(1, "", "channel not found");
+	}
+	auto stream_id = fmt::format("{}_{}", device_id, channel_id);
+
+	InviteRequest::Ptr request = nullptr;
+	auto stream = StreamManager::GetInstance()->GetStream(stream_id);
+	if (stream)
+	{
+		auto session = std::dynamic_pointer_cast<CallSession>(stream);
+		if (session->IsConnected())
+		{
+			return _mk_response(400, "", "already exists");
+		}
+	}
+
+	request = std::make_shared<InviteRequest>(
+		SipServer::GetInstance()->GetSipContext(), device, channel_id);
+
+	request->SendCall();
+
+	stream = StreamManager::GetInstance()->GetStream(stream_id);
+	if (stream)
+	{
+		auto session = std::dynamic_pointer_cast<CallSession>(stream);
+		auto ret = session->WaitForStreamReady();
+
+		if (!ret)
+		{
+			return _mk_response(400, "", "timeout");
+		}
+	}
+
+	return _mk_response(0, "", "ok");
 }
 
 

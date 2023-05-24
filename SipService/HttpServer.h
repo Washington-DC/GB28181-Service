@@ -10,6 +10,8 @@ public:
 private:
 	HttpServer();
 
+	std::string Play(const std::string& device_id,const std::string& channel_id);
+
 	template<typename Type>
 	std::string _mk_response(int status, Type t, std::string msg = "ok");
 

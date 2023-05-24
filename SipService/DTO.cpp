@@ -10,23 +10,25 @@ namespace dto
 		j.at("stream").get_to(info.Stream);
 		j.at("schema").get_to(info.Schema);
 		j.at("vhost").get_to(info.Vhost);
-		if (j.at("regist"))
+		if (j.contains("regist"))
 		{
 			j.at("regist").get_to(info.Regist);
+
+			if (j.contains("originType"))
+			{
+				j.at("originType").get_to(info.OriginType);
+			}
 		}
-		if (info.Regist)
-		{
-			j.at("originType").get_to(info.OriginType);
-		}
-		if (j.at("port"))
+		
+		if (j.contains("port"))
 		{
 			j.at("port").get_to(info.Port);
 		}
-		if (j.at("ip"))
+		if (j.contains("ip"))
 		{
 			j.at("ip").get_to(info.IP);
 		}
-		if (j.at("params"))
+		if (j.contains("params"))
 		{
 			j.at("params").get_to(info.Params);
 		}
