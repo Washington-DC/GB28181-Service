@@ -54,7 +54,7 @@ GET {{local_servre_url}}/v1/devicelist
 
 ###
 # @name device_mock
-GET {{local_servre_url}}/v1/device?device_id=34020000002000011111
+GET {{local_servre_url}}/v1/device
 
 ###
 # @name device_dahua
@@ -68,6 +68,11 @@ GET {{local_servre_url}}/v1/channellist?device_id=34020000002000011111
 ###
 # @name channellist_dahua
 GET {{local_servre_url}}/v1/channellist?device_id=34020000001320000103
+
+
+###
+# @name channellist_livegbs
+GET {{local_servre_url}}/v1/channellist?device_id=34020000002000000789
 
 ###
 # @name channel
@@ -95,36 +100,10 @@ GET {{local_servre_url}}/v1/play
     &channel_id=34020000001310000001
 
 
-
-
-
-
-
 ###
-# @name channellist_mock
-GET {{local_servre_url}}/v1/device/34020000002000011111/channellist
+# @name play_livegbs
+GET {{local_servre_url}}/v1/play
+    ?device_id=34020000002000000789
+    &channel_id=34020000002000000001
 
 
-###
-# @name channellist_Hikvision
-GET {{local_servre_url}}/v1/device/34020000001320000103/channellist
-
-
-###
-# @name play_34020000002000000001
-GET {{local_servre_url}}/v1/device/34020000002000011111/channel/34020000002000000001/play
-
-
-###
-# @name stop_34020000002000000001
-GET {{local_servre_url}}/v1/device/34020000002000011111/channel/34020000002000000001/stop
-
-
-###
-# @name play_34020000002000000002
-GET {{local_servre_url}}/v1/device/34020000002000011111/channel/34020000002000000002/play
-
-
-###
-# @name stop_34020000002000000002
-GET {{local_servre_url}}/v1/device/34020000002000011111/channel/34020000002000000002/stop

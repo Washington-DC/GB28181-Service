@@ -1,6 +1,22 @@
 #pragma once
 #include <crow_all.h>
 
+template<typename Req, typename First>
+bool checkArgs(Req& req, const First& first) {
+	return req.url_params.get(first);
+}
+
+template<typename Args, typename First, typename ...KeyTypes>
+bool checkArgs(Args& args, const First& first, const KeyTypes &...keys) {
+	return checkArgs(args, first) && checkArgs(args, keys...);
+}
+
+#define CHECK_ARGS(...)  \
+    if(!checkArgs(req,##__VA_ARGS__)){ \
+		return _mk_response(100,"","parameter not found: " #__VA_ARGS__);\
+    }
+
+
 class HttpServer
 {
 public:
@@ -10,7 +26,7 @@ public:
 private:
 	HttpServer();
 
-	std::string Play(const std::string& device_id,const std::string& channel_id);
+	std::string Play(const std::string& device_id, const std::string& channel_id);
 
 	template<typename Type>
 	std::string _mk_response(int status, Type t, std::string msg = "ok");

@@ -85,7 +85,7 @@ int RequestPool::HandleResponse(const std::string& req_id, int status_code)
 		{
 			toolkit::EventPollerPool::Instance().getExecutor()->async([request, status_code]()
 				{
-					request->HadnleResponse(status_code);
+					request->HandleResponse(status_code);
 					request->Finish();
 				});
 		}

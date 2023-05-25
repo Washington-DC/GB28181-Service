@@ -4,6 +4,7 @@
 #include "RequestPool.h"
 #include "StreamManager.h"
 #include "ZlmServer.h"
+#include "PtzCmd.h"
 
 BaseRequest::BaseRequest(eXosip_t* ctx, Device::Ptr device, REQUEST_MESSAGE_TYPE type)
 	:_exosip_context(ctx)
@@ -17,7 +18,7 @@ BaseRequest::~BaseRequest()
 {
 }
 
-int BaseRequest::HadnleResponse(int status_code)
+int BaseRequest::HandleResponse(int status_code)
 {
 	return 0;
 }
@@ -154,6 +155,10 @@ const std::string MessageRequest::make_manscdp_body()
 	return std::string();
 }
 
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
 const std::string CatalogRequest::make_manscdp_body()
 {
 	auto text = R"(<?xml version="1.0"?>
@@ -167,7 +172,9 @@ const std::string CatalogRequest::make_manscdp_body()
 	return fmt::format(text, _request_sn, _device->GetDeviceID());
 }
 
-
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
 const std::string DeviceInfoRequest::make_manscdp_body()
 {
 	auto text = R"(<?xml version="1.0"?>
@@ -182,7 +189,9 @@ const std::string DeviceInfoRequest::make_manscdp_body()
 }
 
 
-
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
 const std::string InviteRequest::make_sdp_body()
 {
 	auto text = R"(v=0
@@ -274,3 +283,84 @@ int InviteRequest::SendCall(bool needcb)
 }
 
 
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+const std::string PresetRequest::make_manscdp_body()
+{
+	auto text = R"(<?xml version="1.0"?>
+					<Query>
+						<CmdType>PresetQuery</CmdType>
+						<SN>{}</SN>
+						<DeviceID>{}</DeviceID>
+					</Query>
+					)";
+
+	return fmt::format(text, _request_sn, _channel_id);
+}
+
+void PresetRequest::InsertPreset(const std::string& preset_id, const std::string& preset_name)
+{
+	_presets.push_back({ preset_id ,preset_name });
+}
+
+const std::vector<std::pair<std::string, std::string>> PresetRequest::GetPresetList()
+{
+	return _presets;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+const std::string PresetCtlRequest::make_manscdp_body()
+{
+	auto text = R"(<?xml version="1.0"?>
+					<Control>
+						<CmdType>DeviceControl</CmdType>
+						<SN>{}</SN>
+						<DeviceID>{}</DeviceID>
+						<PTZCmd>{}</PTZCmd>
+						<Info>
+							<ControlPriority>5</ControlPriority>
+						</Info>
+					</Control>
+					)";
+
+	return fmt::format(text, _request_sn, _channel_id, PtzCmd::cmdCode(_byte4, _byte5, _byte6, _byte7));
+}
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+const std::string PtzCtlRequest::make_manscdp_body()
+{
+	auto text = R"(<?xml version="1.0"?>
+					<Control>
+						<CmdType>DeviceControl</CmdType>
+						<SN>{}</SN>
+						<DeviceID>{}</DeviceID>
+						<PTZCmd>{}</PTZCmd>
+					</Control>
+					)";
+
+	return fmt::format(text, _request_sn, _channel_id, PtzCmd::cmdString(_leftRight, _upDown, _inOut, _moveSpeed, _zoomSpeed));
+
+}
+
+inline int PtzCtlRequest::HandleResponse(int statcode)
+{
+	_leftRight = 0;
+	_upDown = 0;
+	_inOut = 0;
+	_moveSpeed = 0;
+	_zoomSpeed = 0;
+
+	// 收到相机回复后，立即停止云台转动
+	InfoL << "PtzControlRequest HandleResponse statuscode = " << statcode;
+	// send_message(false);
+	return 0;
+}

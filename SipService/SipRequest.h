@@ -9,7 +9,7 @@ public:
 	BaseRequest(eXosip_t* ctx, Device::Ptr device, REQUEST_MESSAGE_TYPE type);
 	virtual ~BaseRequest();
 
-	virtual int HadnleResponse(int status_code);
+	virtual int HandleResponse(int status_code);
 	void SetWait(bool bwait = true);
 	void WaitResult();
 	void Finish();
@@ -102,12 +102,99 @@ public:
 	{
 	};
 
-	virtual int SendCall( bool needcb = true);
+	virtual int SendCall(bool needcb = true);
 
 protected:
 	virtual const std::string make_sdp_body();
 
 private:
 	SSRCInfo::Ptr _ssrc_info = nullptr;
+	std::string _channel_id;
+};
+
+
+
+class PresetRequest :public MessageRequest
+{
+public:
+	typedef std::shared_ptr<PresetRequest> Ptr;
+
+	PresetRequest(eXosip_t* ctx, Device::Ptr device, const std::string& channel_id)
+		:MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_QUIER_PRESET)
+		, _channel_id(channel_id)
+	{
+
+	};
+	virtual const std::string make_manscdp_body();
+
+	void InsertPreset(const std::string& preset_id, const std::string& preset_name);
+
+	const std::vector<std::pair<std::string, std::string>> GetPresetList();
+
+private:
+	std::string _channel_id;
+
+	std::vector<std::pair<std::string, std::string>> _presets;
+};
+
+
+
+
+class PresetCtlRequest :public MessageRequest
+{
+public:
+	typedef std::shared_ptr<PresetCtlRequest> Ptr;
+
+	PresetCtlRequest(eXosip_t* ctx, Device::Ptr device, const std::string& channel_id, int byte4, int byte5, int byte6, int byte7)
+		:MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_CONTROL_PRESET)
+		, _channel_id(channel_id)
+		, _byte4(byte4)
+		, _byte5(byte5)
+		, _byte6(byte6)
+		, _byte7(byte7)
+	{
+
+	};
+	virtual const std::string make_manscdp_body();
+
+private:
+	std::string _channel_id;
+	int _byte4 = 0;
+	int _byte5 = 0;
+	int _byte6 = 0;
+	int _byte7 = 0;
+};
+
+
+class PtzCtlRequest :public MessageRequest
+{
+public:
+	typedef std::shared_ptr<PtzCtlRequest> Ptr;
+
+	PtzCtlRequest(eXosip_t* ctx, Device::Ptr device,
+		const std::string& channelId,
+		int                leftRight,
+		int                upDown,
+		int                inOut,
+		int                moveSpeed,
+		int                zoomSpeed)
+		: MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_CONTROL_PTZ),
+		_leftRight(leftRight),
+		_upDown(upDown),
+		_inOut(inOut),
+		_moveSpeed(moveSpeed),
+		_zoomSpeed(zoomSpeed),
+		_channel_id(channelId) {}
+
+	virtual const std::string make_manscdp_body() override;
+
+	virtual int HandleResponse(int statcode) override;
+
+private:
+	int _leftRight = 0;
+	int _upDown = 0;
+	int _inOut = 0;
+	int _moveSpeed = 0;
+	int _zoomSpeed = 0;
 	std::string _channel_id;
 };
