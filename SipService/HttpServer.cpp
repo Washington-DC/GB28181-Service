@@ -67,22 +67,19 @@ HttpServer::HttpServer()
 			auto device_id = req.url_params.get("device_id");
 			auto channel_id = req.url_params.get("channel_id");
 
-			auto doc = nlohmann::json::array();
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-			if (device)
-			{
-				auto channel = device->GetChannel(channel_id);
-				if (channel == nullptr)
-				{
-					return _mk_response(1, "", "channel not found");
-				}
-
-				return _mk_response(0, channel->toJson());
-			}
-			else
+			if (device == nullptr)
 			{
 				return _mk_response(1, "", "device not found");
 			}
+
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "", "channel not found");
+			}
+
+			return _mk_response(0, channel->toJson());
 		}
 	);
 
@@ -177,7 +174,143 @@ HttpServer::HttpServer()
 		}
 	);
 
+	CROW_BP_ROUTE(_api_blueprint, "/preset")
+		([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "channel_id", "command", "preset");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+			auto command = req.url_params.get("command");
+			auto preset = std::stoi(req.url_params.get("preset"));
 
+			auto cmd = -1;
+			if (strcmp(command, "set") == 0) cmd = 129;
+			else if (strcmp(command, "goto") == 0) cmd = 130;
+			else if (strcmp(command, "del") == 0) cmd = 131;
+			else return _mk_response(2, "", "command not suppport");
+
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
+
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "", "channel not found");
+			}
+
+			auto ctx = SipServer::GetInstance()->GetSipContext();
+			auto request = std::make_shared<PresetCtlRequest>(ctx, device, channel_id, cmd, 0, preset, 0);
+
+			request->SendMessage();
+
+			return _mk_response(0, "");
+		}
+	);
+
+
+	CROW_BP_ROUTE(_api_blueprint, "/preset/query")
+		([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "channel_id");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
+
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "", "channel not found");
+			}
+
+			auto ctx = SipServer::GetInstance()->GetSipContext();
+			auto request = std::make_shared<PresetRequest>(ctx, device, channel_id);
+			request->SendMessage();
+
+			request->SetWait();
+			request->WaitResult();
+
+			if (!request->IsFinished())
+			{
+				return _mk_response(400, "", "query timeout");
+			}
+			else
+			{
+				auto preset_list = request->GetPresetList();
+				auto doc = nlohmann::json::array();
+				for (auto&& p : preset_list)
+				{
+					doc.push_back({
+						{"name",nbase::win32::MBCSToUtf8(p.second)},
+						{"id",p.first}
+						});
+				}
+
+				return _mk_response(0, doc, "ok");
+			}
+
+			return _mk_response(0, "");
+		}
+	);
+
+	CROW_BP_ROUTE(_api_blueprint, "/ptz")
+		([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "channel_id", "command", "speed");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+			auto command = req.url_params.get("command");
+			auto speed = std::stoi(req.url_params.get("speed"));
+
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
+
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "", "channel not found");
+			}
+
+			auto ctx = SipServer::GetInstance()->GetSipContext();
+			std::shared_ptr<PtzCtlRequest> request = nullptr;
+			if (strcmp(command, "left") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 1, 0, 0, speed, 0);
+			else if (strcmp(command, "right") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 2, 0, 0, speed, 0);
+			else if (strcmp(command, "up") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 1, 0, speed, 0);
+			else if (strcmp(command, "down") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 2, 0, speed, 0);
+			else if (strcmp(command, "upleft") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 1, 1, 0, speed, 0);
+			else if (strcmp(command, "upright") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 2, 1, 0, speed, 0);
+			else if (strcmp(command, "downleft") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 1, 2, 0, speed, 0);
+			else if (strcmp(command, "downright") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 2, 2, 0, speed, 0);
+			else if (strcmp(command, "zoomin") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 0, 1, 0, speed);
+			else if (strcmp(command, "zoomout") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 0, 2, 0, speed);
+			else if (strcmp(command, "stop") == 0)
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 0, 0, 0, 0);
+			else  return _mk_response(2, "", "command not suppport");
+
+			request->SendMessage();
+			return _mk_response(0, "");
+		}
+	);
 
 
 

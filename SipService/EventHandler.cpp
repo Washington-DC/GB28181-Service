@@ -7,6 +7,7 @@
 #include "SipRequest.h"
 #include "XmlParser.h"
 #include "StreamManager.h"
+#include "RequestPool.h"
 
 bool BaseEventHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 {
@@ -230,9 +231,9 @@ int MessageHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			}
 			else if (header.cmd_type == MANSCDP_QUERY_CMD_PRESET_QUERY)
 			{
-
+				PresetQueryHandler h;
+				h.Handle(e, doc);
 			}
-
 
 			break;
 		default:
@@ -413,4 +414,49 @@ int CallHandler::HandleClose(const SipEvent::Ptr e)
 	}
 	LOG(WARNING) << "CallID not found: " << call_id;
 	return -1;
+}
+
+
+
+bool PresetQueryHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
+{
+	auto root = doc.first_child();
+	auto sn = root.child("SN").text().as_string();;
+	auto device_id = root.child("DeviceID").text().as_string();
+
+	auto req = RequestPool::GetInstance()->GetMessageRequestBySN(sn, DEVICE_QUERY_PRESET);
+	if (req == nullptr)
+	{
+		LOG(ERROR) << "PresetQueryHandler can not find request by sn: " << sn;
+		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_INTERNAL_SERVER_ERROR);
+		return false;
+	}
+
+	auto node = root.child("PresetList");
+	auto num = node.attribute("Num").as_int();
+	LOG(INFO) << "DeviceID: " << device_id << "\tPreset: " << num;
+	//auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+	//if (device)
+	//{
+	//	device->SetName(root.child("DeviceName").text().as_string());
+	//	device->SetManufacturer(root.child("Manufacturer").text().as_string());
+	//	device->SetModel(root.child("Model").text().as_string());
+
+	//	LOG(INFO) << "\n" << device->toString();
+
+	//	SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
+	//	return true;
+	//}
+	auto request = std::dynamic_pointer_cast<PresetRequest>(req);
+	auto children = node.children("Item");
+	for (auto&& child : children)
+	{
+		auto id = child.child("PresetID").text().as_string();
+		auto name = child.child("PresetName").text().as_string();
+
+		request->InsertPreset(id,name);
+	}
+	request->OnRequestFinished();
+	SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
+	return true;
 }

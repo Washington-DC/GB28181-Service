@@ -344,6 +344,9 @@ const std::string PtzCtlRequest::make_manscdp_body()
 						<SN>{}</SN>
 						<DeviceID>{}</DeviceID>
 						<PTZCmd>{}</PTZCmd>
+						<Info>
+							<ControlPriority>5</ControlPriority>
+						</Info>
 					</Control>
 					)";
 
@@ -351,7 +354,7 @@ const std::string PtzCtlRequest::make_manscdp_body()
 
 }
 
-inline int PtzCtlRequest::HandleResponse(int statcode)
+int PtzCtlRequest::HandleResponse(int statcode)
 {
 	_leftRight = 0;
 	_upDown = 0;

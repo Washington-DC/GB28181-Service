@@ -35,22 +35,22 @@ GET http://127.0.0.1:8000/v1/
 
 ###
 # @name rtp_servers
-GET {{local_servre_url}}/v1/rtpserverlist
+GET {{local_servre_url}}/v1/rtpserver/list
 
 
 
 ###
 # @name close
-GET {{local_servre_url}}/v1/closeall
+GET {{local_servre_url}}/v1/play/stopall
 
 ###
 # @name streamlist
-GET {{local_servre_url}}/v1/streamlist
+GET {{local_servre_url}}/v1/stream/list
 
 
 ###
 # @name devicelist
-GET {{local_servre_url}}/v1/devicelist
+GET {{local_servre_url}}/v1/device/list
 
 ###
 # @name device_mock
@@ -61,18 +61,54 @@ GET {{local_servre_url}}/v1/device
 GET {{local_servre_url}}/v1/device?device_id=34020000001320000103
 
 ###
+# @name device_hikvision
+GET {{local_servre_url}}/v1/device?device_id=34020000002000000123
+
+###
 # @name channellist_mock
-GET {{local_servre_url}}/v1/channellist?device_id=34020000002000011111
+GET {{local_servre_url}}/v1/channel/list?device_id=34020000002000011111
 
 
 ###
 # @name channellist_dahua
-GET {{local_servre_url}}/v1/channellist?device_id=34020000001320000103
+GET {{local_servre_url}}/v1/channel/list?device_id=34020000001320000103
+
+###
+# @name channellist_hikvision
+GET {{local_servre_url}}/v1/channel/list?device_id=34020000002000000123
 
 
 ###
 # @name channellist_livegbs
-GET {{local_servre_url}}/v1/channellist?device_id=34020000002000000789
+GET {{local_servre_url}}/v1/channel/list?device_id=34020000002000000789
+
+
+### 
+# @name query_preset
+GET {{local_servre_url}}/v1/preset/query
+?device_id=34020000001320000100
+&channel_id=34020000001320000100
+
+
+
+### 
+# @name command_preset
+GET {{local_servre_url}}/v1/preset
+?device_id=34020000001320000100
+&channel_id=34020000001320000100
+&preset=2
+&command=goto
+
+
+### 
+# @name command_ptz
+GET {{local_servre_url}}/v1/ptz
+?device_id=34020000001320000100
+&channel_id=34020000001320000100
+&speed=20
+&command=left
+
+
 
 ###
 # @name channel

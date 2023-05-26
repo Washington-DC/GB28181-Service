@@ -120,7 +120,7 @@ public:
 	typedef std::shared_ptr<PresetRequest> Ptr;
 
 	PresetRequest(eXosip_t* ctx, Device::Ptr device, const std::string& channel_id)
-		:MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_QUIER_PRESET)
+		:MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_QUERY_PRESET)
 		, _channel_id(channel_id)
 	{
 
