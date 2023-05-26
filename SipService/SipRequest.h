@@ -198,3 +198,35 @@ private:
 	int _zoomSpeed = 0;
 	std::string _channel_id;
 };
+
+
+
+class LensCtlRequest :public MessageRequest
+{
+public:
+	typedef std::shared_ptr<LensCtlRequest> Ptr;
+
+	LensCtlRequest(eXosip_t* ctx, Device::Ptr device,
+		const std::string& channelId,
+		int                iris,
+		int                focus,
+		int                iris_speed,
+		int                focus_speed)
+		: MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_CONTROL_PTZ),
+		_iris(iris),
+		_focus(focus),
+		_iris_speed(iris_speed),
+		_focus_speed(focus_speed),
+		_channel_id(channelId) {}
+
+	virtual const std::string make_manscdp_body() override;
+
+	virtual int HandleResponse(int statcode) override;
+
+private:
+	int _iris = 0;
+	int _focus = 0;
+	int _iris_speed = 0;
+	int _focus_speed = 0;
+	std::string _channel_id;
+};

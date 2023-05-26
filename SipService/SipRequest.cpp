@@ -367,3 +367,25 @@ int PtzCtlRequest::HandleResponse(int statcode)
 	// send_message(false);
 	return 0;
 }
+
+const std::string LensCtlRequest::make_manscdp_body()
+{
+	auto text = R"(<?xml version="1.0"?>
+					<Control>
+						<CmdType>DeviceControl</CmdType>
+						<SN>{}</SN>
+						<DeviceID>{}</DeviceID>
+						<PTZCmd>{}</PTZCmd>
+						<Info>
+							<ControlPriority>5</ControlPriority>
+						</Info>
+					</Control>
+					)";
+
+	return fmt::format(text, _request_sn, _channel_id, PtzCmd::cmdLens(_iris, _focus, _iris_speed, _focus_speed));
+}
+
+int LensCtlRequest::HandleResponse(int statcode)
+{
+	return 0;
+}

@@ -96,7 +96,7 @@ GET {{local_servre_url}}/v1/preset/query
 GET {{local_servre_url}}/v1/preset
 ?device_id=34020000001320000100
 &channel_id=34020000001320000100
-&preset=2
+&preset=1
 &command=goto
 
 
@@ -105,8 +105,8 @@ GET {{local_servre_url}}/v1/preset
 GET {{local_servre_url}}/v1/ptz
 ?device_id=34020000001320000100
 &channel_id=34020000001320000100
-&speed=20
-&command=left
+&speed=1
+&command=focusnear
 
 
 

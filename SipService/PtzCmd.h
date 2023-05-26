@@ -30,6 +30,10 @@ public:
     static std::string cmdCode(int fourthByte, int fifthByte, int sixthByte, int seventhByte);
 
 
+
+
+
+    static std::string cmdLens(int iris,int focus,int iris_speed,int focus_speed);
 };
 
 

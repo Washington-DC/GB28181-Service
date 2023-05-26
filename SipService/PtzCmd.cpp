@@ -71,6 +71,43 @@ std::string PtzCmd::cmdCode(int fourthByte, int fifthByte, int sixthByte, int se
 	return ss.str();
 }
 
+std::string PtzCmd::cmdLens(int iris, int focus, int iris_speed, int focus_speed)
+{
+	int cmdCode = 0;
+	if (iris == 1)
+		cmdCode = 0b01001000;  //缩小
+	else if(iris == 2)
+		cmdCode = 0b01000100;  //放大
+
+	if (focus == 1)
+		cmdCode |= 0b00000010;   //近
+	else if(focus == 2)
+		cmdCode |= 0b00000001;   //远
+
+
+	LOG(INFO) << "BYTE: " << fmt::format("{:08b}", cmdCode);
+
+	std::stringstream ss;
+	// 前三字节
+	ss << "A50F01";
+	// 字节4 指令码
+	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << cmdCode;
+	// 字节5 水平控制速度
+	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << iris_speed;
+	// 字节6 垂直控制速度
+	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << focus_speed;
+	// 字节7 
+	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << 0;
+	
+	// 字节8 校验码  字节8=(字节1+字节2+字节3+字节4+字节5+字节6+字节7)%256
+	int checkCode =
+		(0xA5 + 0x0F + 0x01 + cmdCode + iris_speed + focus_speed + 0x00) % 0x100;
+	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << checkCode;
+
+	LOG(INFO) << "Code: " << ss.str();
+	return ss.str();
+}
+
 
 
 

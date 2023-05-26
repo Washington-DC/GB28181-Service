@@ -184,9 +184,9 @@ HttpServer::HttpServer()
 			auto preset = std::stoi(req.url_params.get("preset"));
 
 			auto cmd = -1;
-			if (strcmp(command, "set") == 0) cmd = 129;
-			else if (strcmp(command, "goto") == 0) cmd = 130;
-			else if (strcmp(command, "del") == 0) cmd = 131;
+			if (strcmp(command, "set") == 0) cmd = 0x81;
+			else if (strcmp(command, "goto") == 0) cmd = 0x82;
+			else if (strcmp(command, "del") == 0) cmd = 0x83;
 			else return _mk_response(2, "", "command not suppport");
 
 			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
@@ -282,7 +282,7 @@ HttpServer::HttpServer()
 			}
 
 			auto ctx = SipServer::GetInstance()->GetSipContext();
-			std::shared_ptr<PtzCtlRequest> request = nullptr;
+			std::shared_ptr<MessageRequest> request = nullptr;
 			if (strcmp(command, "left") == 0)
 				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 1, 0, 0, speed, 0);
 			else if (strcmp(command, "right") == 0)
@@ -300,19 +300,25 @@ HttpServer::HttpServer()
 			else if (strcmp(command, "downright") == 0)
 				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 2, 2, 0, speed, 0);
 			else if (strcmp(command, "zoomin") == 0)
-				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 0, 1, 0, speed);
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 0, 1, 0, 1);
 			else if (strcmp(command, "zoomout") == 0)
-				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 0, 2, 0, speed);
+				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 0, 2, 0, 1);
 			else if (strcmp(command, "stop") == 0)
 				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 0, 0, 0, 0, 0);
+			//else if (strcmp(command, "irisopen") == 0)
+			//	request = std::make_shared<LensCtlRequest>(ctx, device, channel_id, 2, 0, speed, 0);
+			//else if (strcmp(command, "irisclose") == 0)
+			//	request = std::make_shared<LensCtlRequest>(ctx, device, channel_id, 1, 0, speed, 0);
+			//else if (strcmp(command, "focusnear") == 0)
+			//	request = std::make_shared<LensCtlRequest>(ctx, device, channel_id, 0, 1, 0, speed);
+			//else if (strcmp(command, "focusfar") == 0)
+			//	request = std::make_shared<LensCtlRequest>(ctx, device, channel_id, 0, 2, 0, speed);
 			else  return _mk_response(2, "", "command not suppport");
 
 			request->SendMessage();
 			return _mk_response(0, "");
 		}
 	);
-
-
 
 
 	//-------------------------------------------------------------------------------------------------------

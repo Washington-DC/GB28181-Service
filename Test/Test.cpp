@@ -10,11 +10,8 @@
 
 int main()
 {
-	//  <PTZCmd>A50F0120000010E5</PTZCmd>\r\n
-	//  <PTZCmd>A50F0120000010E5</PTZCmd>\r\n
-	std::string hexStr = "A50F0120000010E5"; // 16进制字符串
-	std::string hexStr = "A50F0120000010D5"; // 16进制字符串
-	//std::string hexStr = "A50F0120000010E5"; // 16进制字符串
+	
+	std::string hexStr = "A50F0102000100B8"; // 16进制字符串
 	std::vector<unsigned char> byteArr; // 存储byte数组的vector
 
 	// 将16进制字符串转为byte数组
@@ -41,7 +38,6 @@ int main()
 	std::cout << "垂直速度:" << (int)byteArr[5] << std::endl;
 	std::cout << "变倍速度:" << (int)(byteArr[6] >> 4) << std::endl;
 
-	
 	return 0;
 }
 
