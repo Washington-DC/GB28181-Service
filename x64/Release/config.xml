@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Config>
+	<SipServer>
+		<IP>192.168.116.125</IP>
+		<Port>15060</Port>
+		<Password>12345678</Password>
+		<ID>34020000002000000001</ID>
+	</SipServer>
+	<MediaServer>
+		<IP>192.168.116.125</IP>
+		<Port>82</Port>
+		<Secret>035c73f7-bb6b-4889-a715-d9eb2d1925cc</Secret>
+	</MediaServer>
+	<DeviceList>
+		<Device>
+			<IP>192.168.116.125</IP>
+			<Port>5017</Port>
+			<ID>34020000002000000111</ID>
+			<Protocol>TCP</Protocol>
+			<Name>IP Camera</Name>
+			<Manufacturer>Cdtye</Manufacturer>
+			<HeartbeatInterval>60</HeartbeatInterval>
+			<Catalog>
+				<Channel>
+					<Name>Channel_1</Name>
+					<ID>34020000002000011101</ID>
+					<URI>h265/ch1/sub/av_stream</URI>
+				</Channel>
+			</Catalog>
+		</Device>
+	</DeviceList>
+</Config>
