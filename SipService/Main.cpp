@@ -32,7 +32,17 @@ int main()
 	SipServer::GetInstance()->Start();
 	HttpServer::GetInstance()->Start(8000);
 
+#ifdef _DEBUG
 	getchar();
+#else
+	static std::promise<void> s_exit;
+	signal(SIGINT, [](int signal)
+		{
+			LOG(INFO) << "Catch Signal: " << signal;
+			s_exit.set_value();
+		});
+	s_exit.get_future().wait();
+#endif
 
 	SipServer::GetInstance()->Stop();
 
