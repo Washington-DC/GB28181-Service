@@ -8,7 +8,7 @@ public:
 
 	void Start();
 	void AddRequest(const std::string& req_id, BaseRequest::Ptr request);
-	void DeleteRequest(const std::string& req_id);
+	void RemoveRequest(const std::string& req_id);
 	MessageRequest::Ptr GetMessageRequestBySN(const std::string& sn,REQUEST_MESSAGE_TYPE type);
 	int HandleMessageRequest(const std::string& req_id,int status_code);
 

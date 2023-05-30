@@ -92,15 +92,19 @@ void DeviceManager::Start()
 void DeviceManager::CheckDeviceStatus()
 {
 	_check_timer.reset(new toolkit::Timer(
-		3 * 60,
+		60,
 		[this]()
 		{
 			std::scoped_lock<std::mutex> lk(_mutex);
+			time_t now = time(nullptr);
 
 			//TODO£º ÐÄÌø³¬Ê±ÅÐ¶Ï
 			for (auto&& dev : _devices)
 			{
-				
+				if (now - dev.second->GetLastTime() > 60 * 3)
+				{
+					dev.second->SetStatus(0);
+				}
 			}
 
 			return true;

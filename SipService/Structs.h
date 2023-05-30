@@ -8,6 +8,7 @@ struct SipServerInfo {
 	std::string Realm;
 	std::string Password;
 	std::string Nonce;
+	std::string ExternIP;
 };
 
 struct MediaServerInfo {

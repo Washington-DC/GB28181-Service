@@ -187,7 +187,6 @@ int MessageHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 	LOG(INFO) << "============================================";
 	LOG(INFO) << "\n" << std::string(body->body);
 
-
 	XmlParser parser;
 	pugi::xml_document doc;
 	auto ret = parser.Parse(body->body, body->length, doc);
@@ -240,7 +239,25 @@ int MessageHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			break;
 	}
 
+	return 0;
+}
 
+int MessageHandler::HandleResponseSuccess(const SipEvent::Ptr& e)
+{
+	int code = GetStatusCodeFromResponse(e->exosip_event->response);
+	auto id = GetMsgIDFromRequest(e->exosip_event->request);
+
+	RequestPool::GetInstance()->HandleMessageRequest(id,code);
+
+	return 0;
+}
+
+int MessageHandler::HandleResponseFailure(const SipEvent::Ptr& e)
+{
+	int code = GetStatusCodeFromResponse(e->exosip_event->response);
+	auto id = GetMsgIDFromRequest(e->exosip_event->request);
+
+	RequestPool::GetInstance()->HandleMessageRequest(id, code);
 	return 0;
 }
 

@@ -21,7 +21,7 @@ void RequestPool::AddRequest(const std::string& req_id, BaseRequest::Ptr request
 	}
 }
 
-void RequestPool::DeleteRequest(const std::string& req_id)
+void RequestPool::RemoveRequest(const std::string& req_id)
 {
 	std::scoped_lock<std::mutex> lk(_mutex);
 	_requests.erase(req_id);
@@ -60,17 +60,24 @@ void RequestPool::CheckRequestTimeout(double timeout)
 			std::scoped_lock<std::mutex> lk(_mutex);
 			time_t now = time(nullptr);
 
-			for (auto&& req : _requests)
+			for (auto iter = _requests.begin(); iter != _requests.end(); )
 			{
-				if (now - req.second->GetRequestTime() > 6)
+				if (now - iter->second->GetRequestTime() > 6)
 				{
 					//TODO:
+					iter->second->HandleResponse(-1);
+					iter->second->Finish();
+					iter = _requests.erase(iter);
+				}
+				else
+				{
+					++iter;
 				}
 			}
-
 			return true;
 		},
-		nullptr));
+		nullptr)
+	);
 }
 
 int RequestPool::HandleResponse(const std::string& req_id, int status_code)
@@ -81,7 +88,7 @@ int RequestPool::HandleResponse(const std::string& req_id, int status_code)
 	if (iter != _requests.end())
 	{
 		auto request = iter->second;
-		if (status_code != SIP_OK)
+		//if (status_code != SIP_OK)
 		{
 			toolkit::EventPollerPool::Instance().getExecutor()->async([request, status_code]()
 				{

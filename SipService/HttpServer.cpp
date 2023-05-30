@@ -313,7 +313,7 @@ HttpServer::HttpServer()
 			//	request = std::make_shared<LensCtlRequest>(ctx, device, channel_id, 0, 1, 0, speed);
 			//else if (strcmp(command, "focusfar") == 0)
 			//	request = std::make_shared<LensCtlRequest>(ctx, device, channel_id, 0, 2, 0, speed);
-			else  return _mk_response(2, "", "command not suppport");
+			else return _mk_response(2, "", "command not suppport");
 
 			request->SendMessage();
 			return _mk_response(0, "");

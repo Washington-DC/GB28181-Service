@@ -23,10 +23,12 @@ bool ConfigManager::LoadConfig(std::wstring filepath) {
 		server_info->ID = sip_server_node.child_value("ID");
 		server_info->Realm = server_info->ID.substr(0, 10);
 		server_info->Nonce = GenerateRandomString(16);
-
 		LOG(INFO) << server_info->Nonce;
 		// SIP 服务器固定密码
 		server_info->Password = sip_server_node.child_value("Password");
+
+		//流媒体服务器公网IP
+		server_info->ExternIP = sip_server_node.child_value("ExternIP");
 	}
 	else {
 		LOG(ERROR) << "SipServer节点错误";

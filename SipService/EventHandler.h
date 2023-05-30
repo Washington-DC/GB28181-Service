@@ -57,6 +57,9 @@ class MessageHandler :public BaseEventHandler
 {
 public:
     int HandleIncomingRequest(const SipEvent::Ptr& e);
+
+    int HandleResponseSuccess(const SipEvent::Ptr& e);
+    int HandleResponseFailure(const SipEvent::Ptr& e);
 };
 
 

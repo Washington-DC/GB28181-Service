@@ -158,7 +158,7 @@ int EventHandlerManager::on_exosip_call_message_new(const SipEvent::Ptr& event)
     }
     reqid = (const char*)tag->gvalue;
 
-    InfoL << "on_exosip_call_message_new response reqid = " << reqid;
+    LOG(INFO) << "on_exosip_call_message_new response reqid = " << reqid;
 
     if (!strncmp(event->exosip_event->request->sip_method, "MESSAGE", strlen("MESSAGE")))
     {
@@ -237,6 +237,7 @@ int EventHandlerManager::on_exosip_message_proceeding(const SipEvent::Ptr& event
 
 int EventHandlerManager::on_exosip_message_answered(const SipEvent::Ptr& event)
 {
+    _msg_handler.HandleResponseSuccess(event);
     return 0;
 }
 
@@ -247,6 +248,7 @@ int EventHandlerManager::on_exosip_message_redirected(const SipEvent::Ptr& event
 
 int EventHandlerManager::on_exosip_message_requestfailure(const SipEvent::Ptr& event)
 {
+    _msg_handler.HandleResponseFailure(event);
     return 0;
 }
 
