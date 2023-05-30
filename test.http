@@ -105,8 +105,8 @@ GET {{local_servre_url}}/v1/preset
 GET {{local_servre_url}}/v1/ptz
 ?device_id=34020000001320000100
 &channel_id=34020000001320000100
-&speed=255
-&command=left
+&speed=1
+&command=stop
 
 
 

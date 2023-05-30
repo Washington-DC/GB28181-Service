@@ -1,84 +1,60 @@
 #include "pch.h"
 #include "HttpClient.h"
 
+#include <cpr/cpr.h>
+
+#ifdef _DEBUG
+#pragma comment(lib,"libcurl-d_imp.lib")
+#pragma comment(lib,"cpr-d.lib")
+#else
+#pragma comment(lib,"libcurl_imp.lib")
+#pragma comment(lib,"cpr.lib")
+#endif
+
 void HttpClient::Init(std::shared_ptr<MediaServerInfo> info) {
 	this->_server_info = info;
-	_base_url = fmt::format(L"http://{}:{}", nbase::win32::MBCSToUnicode(_server_info->IP), _server_info->Port);
+	_base_url = fmt::format("http://{}:{}", _server_info->IP, _server_info->Port);
 }
 
 bool HttpClient::StartSendRtp(
-	std::shared_ptr<ChannelInfo> channel_info, std::string ssrc, std::string dst_ip, int dst_port, int local_port, bool use_tcp) {
+	std::shared_ptr<ChannelInfo> channel_info, std::string ssrc,
+	std::string dst_ip, int dst_port, int local_port, bool use_tcp)
+{
+	cpr::Response res = cpr::Get(
+		cpr::Url{ _base_url,"/index/api/startSendRtp" },
+		cpr::Parameters{
+			{"secret",_server_info->Secret},
+			{"vhost","__defaultVhost__"},
+			{"app", channel_info->App},
+			{"stream",channel_info->Stream},
+			{"ssrc",ssrc},
+			{"dst_url",dst_ip},
+			{"dst_port",std::to_string(dst_port)},
+			{"src_port",std::to_string(local_port)},
+			{"is_udp",use_tcp ? "0" : "1"}
+		},
+		cpr::Timeout{ 3s }
+	);
 
-	stringstreambuf buffer;
-	pplx::task<void> request_task = buffer.sync()
-		.then([this, channel_info, ssrc, dst_ip, dst_port, local_port, use_tcp]()
-			  {
-				  http_client_config config;
-				  config.set_timeout(3000ms);
-				  http_client client(_base_url, config);
-				  uri_builder builder(L"/index/api/startSendRtp");
-
-				  builder.append_query(L"secret", nbase::win32::MBCSToUnicode(_server_info->Secret));
-				  builder.append_query(L"vhost", L"__defaultVhost__");
-				  builder.append_query(L"app", nbase::win32::MBCSToUnicode(channel_info->App));
-				  builder.append_query(L"stream", nbase::win32::MBCSToUnicode(channel_info->Stream));
-				  builder.append_query(L"ssrc", nbase::win32::MBCSToUnicode(ssrc));
-				  builder.append_query(L"dst_url", nbase::win32::MBCSToUnicode(dst_ip));
-				  builder.append_query(L"dst_port", std::to_wstring(dst_port));
-				  builder.append_query(L"src_port", std::to_wstring(local_port));
-				  builder.append_query(L"is_udp", use_tcp ? L"0" : L"1");
-
-				  LOG(INFO) << "发送请求: " << nbase::win32::UnicodeToMBCS(builder.to_string());
-				  return client.request(methods::GET, builder.to_string());
-			  })
-		.then([this, buffer](http_response response)
-			  {
-				  return response.body().read_to_end(buffer);
-			  })
-				  .then([this, buffer](size_t size)
-						{
-							auto text = buffer.collection();
-							LOG(INFO) << "返回:" << text;
-							/*if (!text.empty()) {
-								auto doc = nlohmann::json::parse(text);
-								if (!doc["code"].empty()) {
-									auto status = doc["code"].get<int>();
-									if (status == 0) {
-										return true;
-									}
-								}
-							}*/
-						});
-
-			  try
-			  {
-				  request_task.wait();
-				  return true;
-			  }
-			  catch (const std::exception& e)
-			  {
-				  LOG(ERROR) << e.what();
-			  }
-			  return false;
+	if (res.status_code == 200)
+	{
+		LOG(INFO) << "返回: " << res.text;
+		return true;
+	}
+	return false;
 }
 
 bool HttpClient::StopSendRtp(std::shared_ptr<ChannelInfo> channel_info) {
-	try {
-		http_client_config config;
-		config.set_timeout(3000ms);
-		http_client client(_base_url, config);
-		uri_builder builder(L"/index/api/stopSendRtp");
-		builder.append_query(L"secret", nbase::win32::MBCSToUnicode(_server_info->Secret));
-		builder.append_query(L"vhost", L"__defaultVhost__");
-		builder.append_query(L"app", nbase::win32::MBCSToUnicode(channel_info->App));
-		builder.append_query(L"stream", nbase::win32::MBCSToUnicode(channel_info->Stream));
+	cpr::Response res = cpr::Get(
+		cpr::Url{ _base_url,"/index/api/stopSendRtp" },
+		cpr::Parameters{
+			{"secret",_server_info->Secret},
+			{"vhost","__defaultVhost__"},
+			{"app", channel_info->App},
+			{"stream",channel_info->Stream}
+		},
+		cpr::Timeout{ 3s }
+	);
 
-		stringstreambuf buffer;
-		http_response response = client.request(methods::GET, builder.to_string()).get();
-
-		return true;
-	}
-	catch (const std::exception&) {
-	}
-	return false;
+	return true;
 }

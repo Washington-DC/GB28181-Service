@@ -14,7 +14,8 @@ public:
 
 private:
     std::shared_ptr<MediaServerInfo> _server_info = nullptr;
-    std::wstring _base_url = L"http://127.0.0.1:8000";
+    //std::wstring _base_url = L"http://127.0.0.1:8000";
+    std::string _base_url = "http://127.0.0.1:8000";
 
 private:
     HttpClient() = default;

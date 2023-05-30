@@ -21,7 +21,6 @@
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #define GOOGLE_GLOG_DLL_DECL
 #include <base/base.h>
-#include <cpprest/http_client.h>
 #include <eXosip2/eXosip.h>
 #include <fmt/format.h>
 #include <glog/logging.h>
@@ -30,13 +29,6 @@
 #include <pugixml.hpp>
 
 using namespace std::string_literals;
-using namespace std::chrono_literals;
-
-using namespace web;
-using namespace utility;
-using namespace web::http;
-using namespace web::http::client;
-using namespace concurrency::streams;
 using namespace std::chrono_literals;
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -59,12 +51,6 @@ using namespace std::chrono_literals;
 #pragma comment(lib, "pugixml.lib")
 #pragma comment(lib, "glog.lib")
 #pragma comment(lib, "fmt.lib")
-#endif
-
-#ifdef _DEBUG
-#pragma comment(lib, "cpprest142_2_10d.lib")
-#else
-#pragma comment(lib, "cpprest142_2_10.lib")
 #endif
 
 #endif // PCH_H

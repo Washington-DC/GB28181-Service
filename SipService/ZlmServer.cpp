@@ -4,8 +4,13 @@
 #include "ConfigManager.h"
 #include <cpr/cpr.h>
 
+#ifdef _DEBUG
 #pragma comment(lib,"libcurl-d_imp.lib")
 #pragma comment(lib,"cpr-d.lib")
+#else
+#pragma comment(lib,"libcurl_imp.lib")
+#pragma comment(lib,"cpr.lib")
+#endif
 
 void ZlmServer::Init(std::shared_ptr<MediaServerInfo> info)
 {
