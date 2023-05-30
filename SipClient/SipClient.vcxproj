@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\depends\json;..\depends\boost-1.75\include;..;..\depends\cpprestsdk\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\boost-1.75\lib;..\depends\cpprestsdk\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\depends\cpr\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
