@@ -183,7 +183,7 @@ void SipDevice::on_response() {
 			continue;
 
 		switch (event->type) {
-			case EXOSIP_IN_SUBSCRIPTION_NEW: 
+			case EXOSIP_IN_SUBSCRIPTION_NEW:
 				break;
 			case EXOSIP_MESSAGE_NEW: //查询目录
 				on_message_new(event);
@@ -204,9 +204,9 @@ void SipDevice::on_response() {
 				on_call_closed(event);
 				break;
 			case EXOSIP_CALL_INVITE: //请求会话
-				on_call_invite(event); 
+				on_call_invite(event);
 				break;
-			default: 
+			default:
 				break;
 		}
 
@@ -233,11 +233,12 @@ void SipDevice::on_registration_failure(eXosip_event_t* event) {
 		_heartbeat_thread = nullptr;
 	}
 
-	if (event->response->status_code == 401) {
+	if (event->response->status_code == 401 || event->response->status_code == 403) {
 		osip_www_authenticate_t* www_authenticate_header = nullptr;
 		osip_message_get_www_authenticate(event->response, 0, &www_authenticate_header);
 		if (www_authenticate_header)
 		{
+			_sip_server_domain = osip_strdup_without_quote(www_authenticate_header->realm);
 			eXosip_add_authentication_info(
 				_sip_context, this->ID.c_str(), this->ID.c_str(), _sip_server_info->Password.c_str(), "md5",
 				www_authenticate_header->realm);
@@ -310,8 +311,8 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 			}
 			//设备信息查询，发送设备信息,主要包括设备id，设备名称，厂家，版本，channel数量等
 			else if (cmd == "DeviceInfo") {
-				auto text = 
-R"(<?xml version="1.0" encoding="GB2312"?>
+				auto text =
+					R"(<?xml version="1.0" encoding="GB2312"?>
 <Response>
 	<CmdType>DeviceInfo</CmdType>
 	<SN>{}</SN>
@@ -342,6 +343,91 @@ R"(<?xml version="1.0" encoding="GB2312"?>
 				eXosip_lock(_sip_context);
 				eXosip_message_send_request(_sip_context, request);
 				eXosip_unlock(_sip_context);
+			}
+			//配置下载
+			else if (cmd == "ConfigDownload") {
+				auto type_node = root.child("ConfigType");
+				if (type_node.empty())
+					return;
+				std::string type = type_node.child_value();
+				if (type == "BasicParam")
+				{
+					auto text =
+						R"(<?xml version="1.0" encoding="GB2312"?>
+<Response>
+	<CmdType>ConfigDownload</CmdType>
+	<SN>{}</SN>
+	<DeviceID>{}</DeviceID>
+
+	<Result>OK</Result>
+	<BasicParam>
+		<Name>{}</Name>
+		<DeviceID>{}</DeviceID>
+		<SIPServerID>{}</SIPServerID>
+		<SIPServerIP>{}</SIPServerIP>
+		<SIPServerPort>{}</SIPServerPort>
+		<DomainName>{}</DomainName>
+		<Expiration>3600</Expiration>
+		<Password>{}</Password>
+		<HeartBeatInterval>{}</HeartBeatInterval>
+		<HeartBeatCount>60</HeartBeatCount>
+	</BasicParam>
+</Response>
+)"s;
+
+					auto xml = fmt::format(text, sn, this->ID, this->Name, this->ID, _sip_server_info->ID, _sip_server_info->IP,
+						_sip_server_info->Port, _sip_server_domain, _sip_server_info->Password, this->HeartbeatInterval);
+
+					osip_message_t* request = nullptr;
+					auto ret = eXosip_message_build_request(
+						_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
+					if (ret != OSIP_SUCCESS) {
+						LOG(ERROR) << "eXosip_message_build_request failed";
+						return;
+					}
+
+					osip_message_set_content_type(request, "Application/MANSCDP+xml");
+					osip_message_set_body(request, xml.c_str(), xml.length());
+
+					eXosip_lock(_sip_context);
+					eXosip_message_send_request(_sip_context, request);
+					eXosip_unlock(_sip_context);
+				}
+
+				if (type == "VideoParamOpt")
+				{
+					auto text =
+						R"(<?xml version="1.0" encoding="GB2312"?>
+<Response>
+    <CmdType>ConfigDownload</CmdType>
+    <SN>{}</SN>
+    <DeviceID>{}</DeviceID>
+    <Result>OK</Result>
+    <VideoParamOpt>
+        <DownloadSpeed>1</DownloadSpeed>
+        <Resolution>5/6</Resolution>
+    </VideoParamOpt>
+</Response>
+
+)"s;
+					auto xml = fmt::format(text, sn, this->ID);
+
+					osip_message_t* request = nullptr;
+					auto ret = eXosip_message_build_request(
+						_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
+					if (ret != OSIP_SUCCESS) {
+						LOG(ERROR) << "eXosip_message_build_request failed";
+						return;
+					}
+
+					osip_message_set_content_type(request, "Application/MANSCDP+xml");
+					osip_message_set_body(request, xml.c_str(), xml.length());
+
+					eXosip_lock(_sip_context);
+					eXosip_message_send_request(_sip_context, request);
+					eXosip_unlock(_sip_context);
+				}
+
 			}
 			else if (cmd == "RecordInfo") {
 			}
@@ -519,8 +605,8 @@ void SipDevice::send_response_ok(eXosip_event_t* event) {
 /// @brief 心跳
 void SipDevice::heartbeat_task() {
 	while (_is_running && _register_success && _is_heartbeat_running) {
-		auto text = 
-R"(<?xml version="1.0"?>
+		auto text =
+			R"(<?xml version="1.0"?>
 <Notify>
 	<CmdType>Keepalive</CmdType>
 	<SN>{}</SN>
@@ -556,8 +642,8 @@ R"(<?xml version="1.0"?>
 /// @param sn 
 /// @return 
 std::string SipDevice::generate_catalog_xml(const std::string& sn) {
-	auto text = 
-R"(<?xml version="1.0" encoding="GB2312"?>
+	auto text =
+		R"(<?xml version="1.0" encoding="GB2312"?>
 <Response>
 	<CmdType>Catalog</CmdType>
 	<SN>{}</SN>
@@ -603,7 +689,7 @@ std::string SipDevice::parse_ssrc(std::string text) {
 			return result;
 		}
 	}
-	
+
 	return std::string();
 }
 

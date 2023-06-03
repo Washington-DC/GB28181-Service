@@ -41,6 +41,8 @@ private:
     std::string _contact_url = "";
     std::string _proxy_uri = "";
 
+    std::string _sip_server_domain = "";
+
     int _register_id = -1;
     int _call_id = -1;
     int _dialog_id = -1;

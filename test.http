@@ -1,5 +1,6 @@
 
 @base_zlm_url=http://192.168.116.126:10080
+@iot_zlm_url=http://192.168.117.48:82
 
 @local_servre_url=http://127.0.0.1:8000
 
@@ -36,6 +37,16 @@ GET {{base_zlm_url}}/index/api/addStreamProxy
 GET {{base_zlm_url}}/index/api/getMediaList
     ?{{base_params}}
 
+###
+# @name iot_getMediaList
+GET {{iot_zlm_url}}/index/api/getMediaList
+    ?{{base_params}}
+
+
+###
+# @name iot_getMediaList_2
+GET http://192.168.117.48:82/index/api/getMediaList
+    ?secret=035c73f7-bb6b-4889-a715-d9eb2d1925cc
 
 
 ###
