@@ -281,6 +281,7 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 
 		auto root = doc.first_child();
 		std::string root_name = root.name();
+		std::string response_body = "";
 
 		if (root_name == "Query") {
 			auto cmd_node = root.child("CmdType");
@@ -292,22 +293,7 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 			LOG(INFO) << "SN: " << sn;
 			//目录查询，返回channels信息
 			if (cmd == "Catalog") {
-				auto text = generate_catalog_xml(sn);
-
-				osip_message_t* request = nullptr;
-				auto ret = eXosip_message_build_request(
-					_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-				if (ret != OSIP_SUCCESS) {
-					LOG(ERROR) << "eXosip_message_build_request failed";
-					return;
-				}
-
-				osip_message_set_content_type(request, "Application/MANSCDP+xml");
-				osip_message_set_body(request, text.c_str(), text.length());
-
-				eXosip_lock(_sip_context);
-				eXosip_message_send_request(_sip_context, request);
-				eXosip_unlock(_sip_context);
+				response_body = generate_catalog_xml(sn);
 			}
 			//设备信息查询，发送设备信息,主要包括设备id，设备名称，厂家，版本，channel数量等
 			else if (cmd == "DeviceInfo") {
@@ -328,21 +314,7 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 </Response>
 )"s;
 
-				auto xml = fmt::format(text, sn, this->ID, this->Name, this->Manufacturer, this->Channels.size());
-				osip_message_t* request = nullptr;
-				auto ret = eXosip_message_build_request(
-					_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-				if (ret != OSIP_SUCCESS) {
-					LOG(ERROR) << "eXosip_message_build_request failed";
-					return;
-				}
-
-				osip_message_set_content_type(request, "Application/MANSCDP+xml");
-				osip_message_set_body(request, xml.c_str(), xml.length());
-
-				eXosip_lock(_sip_context);
-				eXosip_message_send_request(_sip_context, request);
-				eXosip_unlock(_sip_context);
+				response_body = fmt::format(text, sn, this->ID, this->Name, this->Manufacturer, this->Channels.size());
 			}
 			//配置下载
 			else if (cmd == "ConfigDownload") {
@@ -375,23 +347,8 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 </Response>
 )"s;
 
-					auto xml = fmt::format(text, sn, this->ID, this->Name, this->ID, _sip_server_info->ID, _sip_server_info->IP,
+					response_body = fmt::format(text, sn, this->ID, this->Name, this->ID, _sip_server_info->ID, _sip_server_info->IP,
 						_sip_server_info->Port, _sip_server_domain, _sip_server_info->Password, this->HeartbeatInterval);
-
-					osip_message_t* request = nullptr;
-					auto ret = eXosip_message_build_request(
-						_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-					if (ret != OSIP_SUCCESS) {
-						LOG(ERROR) << "eXosip_message_build_request failed";
-						return;
-					}
-
-					osip_message_set_content_type(request, "Application/MANSCDP+xml");
-					osip_message_set_body(request, xml.c_str(), xml.length());
-
-					eXosip_lock(_sip_context);
-					eXosip_message_send_request(_sip_context, request);
-					eXosip_unlock(_sip_context);
 				}
 
 				if (type == "VideoParamOpt")
@@ -410,26 +367,29 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 </Response>
 
 )"s;
-					auto xml = fmt::format(text, sn, this->ID);
-
-					osip_message_t* request = nullptr;
-					auto ret = eXosip_message_build_request(
-						_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-					if (ret != OSIP_SUCCESS) {
-						LOG(ERROR) << "eXosip_message_build_request failed";
-						return;
-					}
-
-					osip_message_set_content_type(request, "Application/MANSCDP+xml");
-					osip_message_set_body(request, xml.c_str(), xml.length());
-
-					eXosip_lock(_sip_context);
-					eXosip_message_send_request(_sip_context, request);
-					eXosip_unlock(_sip_context);
+					response_body = fmt::format(text, sn, this->ID);
 				}
 
 			}
 			else if (cmd == "RecordInfo") {
+			}
+
+			if (!response_body.empty())
+			{
+				osip_message_t* request = nullptr;
+				auto ret = eXosip_message_build_request(
+					_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
+				if (ret != OSIP_SUCCESS) {
+					LOG(ERROR) << "eXosip_message_build_request failed";
+					return;
+				}
+
+				osip_message_set_content_type(request, "Application/MANSCDP+xml");
+				osip_message_set_body(request, response_body.c_str(), response_body.length());
+
+				eXosip_lock(_sip_context);
+				eXosip_message_send_request(_sip_context, request);
+				eXosip_unlock(_sip_context);
 			}
 		}
 	}

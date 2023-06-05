@@ -7,8 +7,8 @@
 		<ID>34020000002000000001</ID>
 	</SipServer>
 	<MediaServer>
-		<IP>192.168.116.125</IP>
-		<Port>10070</Port>
+		<IP>192.168.116.126</IP>
+		<Port>10080</Port>
 		<Secret>035c73f7-bb6b-4889-a715-d9eb2d1925cc</Secret>
 	</MediaServer>
 	<DeviceList>
