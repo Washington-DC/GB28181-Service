@@ -97,11 +97,30 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			LOG(INFO) << "Device Registration Success, Address:" << client_host << ":" << client_port << "   ID: " << client_device_id;
 
 			//TOOD:
-			auto device = std::make_shared<Device>(client_device_id, client_host, client_port);
-			device->SetStatus(1);
-			device->UpdateRegistTime();
-			//device
-			DeviceManager::GetInstance()->AddDevice(device);
+			auto device = DeviceManager::GetInstance()->GetDevice(client_device_id);
+			if (device == nullptr)
+			{
+				device = std::make_shared<Device>(client_device_id, client_host, client_port);
+				device->SetStatus(1);
+				device->UpdateRegistTime();
+				device->UpdateLastTime();
+				device->SetStreamIP(config->ExternIP);
+				DeviceManager::GetInstance()->AddDevice(device);
+			}
+			else
+			{
+				//如果设备已经存在的话，就只更新在线状态和注册时间
+				device->SetStatus(1);
+				device->UpdateRegistTime();
+				device->UpdateLastTime();
+
+				if (device->GetIP() != client_host)
+				{
+					LOG(WARNING) << "设备IP变化: " << client_device_id << "\t" << device->GetIP() << " -> " << client_host;
+					device->SetIP(client_host);
+					device->SetPort(client_port);
+				}
+			}
 
 			{
 				auto request = std::make_shared<DeviceInfoRequest>(e->exosip_context, device);
@@ -247,7 +266,7 @@ int MessageHandler::HandleResponseSuccess(const SipEvent::Ptr& e)
 	int code = GetStatusCodeFromResponse(e->exosip_event->response);
 	auto id = GetMsgIDFromRequest(e->exosip_event->request);
 
-	RequestPool::GetInstance()->HandleMessageRequest(id,code);
+	RequestPool::GetInstance()->HandleMessageRequest(id, code);
 
 	return 0;
 }
@@ -452,18 +471,7 @@ bool PresetQueryHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	auto node = root.child("PresetList");
 	auto num = node.attribute("Num").as_int();
 	LOG(INFO) << "DeviceID: " << device_id << "\tPreset: " << num;
-	//auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-	//if (device)
-	//{
-	//	device->SetName(root.child("DeviceName").text().as_string());
-	//	device->SetManufacturer(root.child("Manufacturer").text().as_string());
-	//	device->SetModel(root.child("Model").text().as_string());
 
-	//	LOG(INFO) << "\n" << device->toString();
-
-	//	SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
-	//	return true;
-	//}
 	auto request = std::dynamic_pointer_cast<PresetRequest>(req);
 	auto children = node.children("Item");
 	for (auto&& child : children)
@@ -471,7 +479,7 @@ bool PresetQueryHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 		auto id = child.child("PresetID").text().as_string();
 		auto name = child.child("PresetName").text().as_string();
 
-		request->InsertPreset(id,name);
+		request->InsertPreset(id, name);
 	}
 	request->OnRequestFinished();
 	SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);

@@ -24,8 +24,8 @@ bool XmlParser::Parse(const char* data, int len, pugi::xml_document& doc)
 bool XmlParser::ParseHeader(manscdp_msgbody_header_t& header, pugi::xml_document& doc)
 {
 	auto root = doc.first_child();
-	
-	if (strcmp(root.name(),"Control") == 0)
+
+	if (strcmp(root.name(), "Control") == 0)
 		header.cmd_category = MANSCDP_CMD_CATEGORY_CONTROL;
 	else if (strcmp(root.name(), "Query") == 0)
 		header.cmd_category = MANSCDP_CMD_CATEGORY_QUERY;
@@ -45,7 +45,7 @@ bool XmlParser::ParseHeader(manscdp_msgbody_header_t& header, pugi::xml_document
 		return false;
 	}
 	auto value = node.text().as_string();
-	if (strcmp(value,"DeviceControl") == 0)
+	if (strcmp(value, "DeviceControl") == 0)
 	{
 		header.cmd_type = MANSCDP_CONTROL_CMD_DEVICE_CONTROL;
 	}

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Device.h"
+#include "Utils.h"
 
 void Channel::InsertSubChannel(const std::string parent_id, const std::string& channel_id, Channel::Ptr channel)
 {
@@ -450,6 +451,16 @@ void Device::SetParentID(const std::string& parent_id)
 	_parent_id = parent_id;
 }
 
+std::string Device::GetStreamIP() const
+{
+	return _stream_ip;
+}
+
+void Device::SetStreamIP(const std::string& stream_ip)
+{
+	_stream_ip = stream_ip;
+}
+
 
 nlohmann::json Device::toJson()
 {
@@ -462,9 +473,10 @@ nlohmann::json Device::toJson()
 		{"channel_count",_channel_count},
 		{"protocol",_transport},
 		{"status",_status},
-		{"last_time",_last_time},
-		{"regist_time",_regist_time},
-		{"manufacturer",_manufacturer}
+		{"last_time",LocalTime(_last_time)},
+		{"regist_time",LocalTime(_regist_time)},
+		{"manufacturer",_manufacturer},
+		{"stream_ip",_stream_ip}
 	};
 }
 

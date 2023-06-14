@@ -54,7 +54,6 @@ HttpServer::HttpServer()
 				{
 					doc.push_back(channel->toJson());
 				}
-
 				return _mk_response(0, doc);
 			}
 			return _mk_response(1, "", "deviceid not exists");
@@ -134,8 +133,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	CROW_BP_ROUTE(_api_blueprint, "/play/stopall")
-		([this]()
+	CROW_BP_ROUTE(_api_blueprint, "/play/stopall")([this]()
 		{
 			auto streams = StreamManager::GetInstance()->GetAllStream();
 			for (auto&& stream : streams)
@@ -153,29 +151,8 @@ HttpServer::HttpServer()
 	);
 
 
-	CROW_BP_ROUTE(_api_blueprint, "/stream/list")
-		([this]()
-		{
-			auto streams = StreamManager::GetInstance()->GetAllStream();
-			auto doc = nlohmann::json::array();
-			for (auto&& s : streams)
-			{
-				doc.push_back(s->toJson());
-			}
-			return _mk_response(0, doc);
-		}
-	);
 
-
-	CROW_BP_ROUTE(_api_blueprint, "/rtpserver/list")
-		([this]()
-		{
-			return ZlmServer::GetInstance()->ListRtpServer();
-		}
-	);
-
-	CROW_BP_ROUTE(_api_blueprint, "/preset")
-		([this](const crow::request& req)
+	CROW_BP_ROUTE(_api_blueprint, "/preset")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id", "command", "preset");
 			auto device_id = req.url_params.get("device_id");
@@ -211,8 +188,7 @@ HttpServer::HttpServer()
 	);
 
 
-	CROW_BP_ROUTE(_api_blueprint, "/preset/query")
-		([this](const crow::request& req)
+	CROW_BP_ROUTE(_api_blueprint, "/preset/query")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id");
 			auto device_id = req.url_params.get("device_id");
@@ -260,8 +236,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	CROW_BP_ROUTE(_api_blueprint, "/ptz")
-		([this](const crow::request& req)
+	CROW_BP_ROUTE(_api_blueprint, "/ptz")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id", "command", "speed");
 			auto device_id = req.url_params.get("device_id");
@@ -320,6 +295,44 @@ HttpServer::HttpServer()
 		}
 	);
 
+
+
+	CROW_BP_ROUTE(_api_blueprint, "/stream/list")([this]()
+		{
+			auto streams = StreamManager::GetInstance()->GetAllStream();
+			auto doc = nlohmann::json::array();
+			for (auto&& s : streams)
+			{
+				doc.push_back(s->toJson());
+			}
+			return _mk_response(0, doc);
+		}
+	);
+
+
+	CROW_BP_ROUTE(_api_blueprint, "/rtpserver/list")([this]()
+		{
+			return ZlmServer::GetInstance()->ListRtpServer();
+		}
+	);
+
+
+	CROW_BP_ROUTE(_api_blueprint, "/reset/streamip")([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "ip");
+			auto device_id = req.url_params.get("device_id");
+			auto ip = req.url_params.get("ip");
+
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
+
+			device->SetStreamIP(ip);
+			return _mk_response(0, "");
+		}
+	);
 
 	//-------------------------------------------------------------------------------------------------------
 	//-------------------------------------------------------------------------------------------------------

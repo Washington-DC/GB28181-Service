@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "SipServer.h"
 
-bool SipServer::Init(const std::string& sip_id,  uint16_t port)
+bool SipServer::Init(const std::string& sip_id, uint16_t port)
 {
 	_sip_id = sip_id;
 	_sip_port = port;

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Config>
 	<SipServer>
-		<IP>192.168.116.125</IP>
-		<Port>5060</Port>
+		<IP>172.20.5.38</IP>
+		<Port>10000</Port>
 		<Password>12345678</Password>
 		<ID>34020000002000000001</ID>
 	</SipServer>

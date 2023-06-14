@@ -210,7 +210,7 @@ y={}
 f=)";
 
 	auto server = ConfigManager::GetInstance()->GetSipServerInfo();
-	return fmt::format(text, server->ID, server->IP, server->ExternIP, _ssrc_info->GetPort(), _ssrc_info->GetSSRC());
+	return fmt::format(text, server->ID, _device->GetStreamIP(), _device->GetStreamIP(), _ssrc_info->GetPort(), _ssrc_info->GetSSRC());
 }
 
 

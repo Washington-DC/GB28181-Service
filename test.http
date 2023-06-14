@@ -121,6 +121,14 @@ GET {{local_servre_url}}/v1/preset
 &command=goto
 
 
+
+### 
+# @name modify_stream_ip
+GET {{local_servre_url}}/v1/reset/streamip
+?device_id=34020000001320000100
+&channel_id=34020000001320000100
+&ip=192.168.116.126
+
 ### 
 # @name command_ptz
 GET {{local_servre_url}}/v1/ptz

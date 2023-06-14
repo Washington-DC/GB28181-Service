@@ -25,6 +25,10 @@
 
 #ifdef _WIN32
 #define strdup _strdup
+
+#undef min
+#undef max
+
 #else
 
 #endif

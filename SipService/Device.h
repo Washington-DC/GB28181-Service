@@ -144,6 +144,9 @@ public:
 	std::string GetParentID() const;
 	void SetParentID(const std::string& parent_id);
 
+	std::string GetStreamIP() const;
+	void SetStreamIP(const std::string& stream_ip);
+
 	nlohmann::json toJson();
 	std::string toString();
 
@@ -157,6 +160,8 @@ private:
 	std::string _manufacturer;
 	std::string _model;
 	int _status = 0;
+
+	std::string _stream_ip;//ÊÕÁ÷IP
 
 	time_t _regist_time = 0;
 	time_t _last_time = 0;

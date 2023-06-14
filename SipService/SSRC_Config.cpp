@@ -49,5 +49,5 @@ std::string SSRCConfig::GenerateSSRC(SSRCConfig::Mode m)
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(1, 9999);
-	return fmt::format("{:01d}{}{:04d}",m,_prefix, dis(gen));
+	return fmt::format("{:01d}{}{:04d}", m, _prefix, dis(gen));
 }

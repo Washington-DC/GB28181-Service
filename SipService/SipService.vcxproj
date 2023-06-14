@@ -170,6 +170,7 @@
     <ClCompile Include="SipServer.cpp" />
     <ClCompile Include="SSRC_Config.cpp" />
     <ClCompile Include="StreamManager.cpp" />
+    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="XmlParser.cpp" />
     <ClCompile Include="ZlmServer.cpp" />
   </ItemGroup>
@@ -191,6 +192,7 @@
     <ClInclude Include="SSRC_Config.h" />
     <ClInclude Include="StreamManager.h" />
     <ClInclude Include="Structs.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="XmlParser.h" />
     <ClInclude Include="ZlmServer.h" />
   </ItemGroup>
