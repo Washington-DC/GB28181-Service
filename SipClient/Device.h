@@ -32,6 +32,8 @@ private:
 private:
     std::shared_ptr<SipServerInfo> _sip_server_info = nullptr;
 
+    std::string format_xml(std::string& text);
+
 private:
     eXosip_t *_sip_context = nullptr;
     int _local_port = 50000;

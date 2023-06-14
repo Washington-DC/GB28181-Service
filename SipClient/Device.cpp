@@ -298,21 +298,21 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 			//设备信息查询，发送设备信息,主要包括设备id，设备名称，厂家，版本，channel数量等
 			else if (cmd == "DeviceInfo") {
 				auto text =
-					R"(<?xml version="1.0" encoding="GB2312"?>
-<Response>
-	<CmdType>DeviceInfo</CmdType>
-	<SN>{}</SN>
-	<DeviceID>{}</DeviceID>
+					R"( <?xml version="1.0" encoding="GB2312"?>
+						<Response>
+							<CmdType>DeviceInfo</CmdType>
+							<SN>{}</SN>
+							<DeviceID>{}</DeviceID>
 
-	<Result>OK</Result>
-	<DeviceName>{}</DeviceName>
-	<Manufacturer>{}</Manufacturer>
+							<Result>OK</Result>
+							<DeviceName>{}</DeviceName>
+							<Manufacturer>{}</Manufacturer>
 
-	<Model>SipServer</Model>
-	<Firmware>V1.0.0</Firmware>
-	<Channel>{}</Channel>
-</Response>
-)"s;
+							<Model>SipServer</Model>
+							<Firmware>V1.0.0</Firmware>
+							<Channel>{}</Channel>
+						</Response>
+						)"s;
 
 				response_body = fmt::format(text, sn, this->ID, this->Name, this->Manufacturer, this->Channels.size());
 			}
@@ -325,27 +325,27 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 				if (type == "BasicParam")
 				{
 					auto text =
-						R"(<?xml version="1.0" encoding="GB2312"?>
-<Response>
-	<CmdType>ConfigDownload</CmdType>
-	<SN>{}</SN>
-	<DeviceID>{}</DeviceID>
+						R"( <?xml version="1.0" encoding="GB2312"?>
+							<Response>
+								<CmdType>ConfigDownload</CmdType>
+								<SN>{}</SN>
+								<DeviceID>{}</DeviceID>
 
-	<Result>OK</Result>
-	<BasicParam>
-		<Name>{}</Name>
-		<DeviceID>{}</DeviceID>
-		<SIPServerID>{}</SIPServerID>
-		<SIPServerIP>{}</SIPServerIP>
-		<SIPServerPort>{}</SIPServerPort>
-		<DomainName>{}</DomainName>
-		<Expiration>3600</Expiration>
-		<Password>{}</Password>
-		<HeartBeatInterval>{}</HeartBeatInterval>
-		<HeartBeatCount>60</HeartBeatCount>
-	</BasicParam>
-</Response>
-)"s;
+								<Result>OK</Result>
+								<BasicParam>
+									<Name>{}</Name>
+									<DeviceID>{}</DeviceID>
+									<SIPServerID>{}</SIPServerID>
+									<SIPServerIP>{}</SIPServerIP>
+									<SIPServerPort>{}</SIPServerPort>
+									<DomainName>{}</DomainName>
+									<Expiration>3600</Expiration>
+									<Password>{}</Password>
+									<HeartBeatInterval>{}</HeartBeatInterval>
+									<HeartBeatCount>60</HeartBeatCount>
+								</BasicParam>
+							</Response>
+							)"s;
 
 					response_body = fmt::format(text, sn, this->ID, this->Name, this->ID, _sip_server_info->ID, _sip_server_info->IP,
 						_sip_server_info->Port, _sip_server_domain, _sip_server_info->Password, this->HeartbeatInterval);
@@ -354,19 +354,18 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 				if (type == "VideoParamOpt")
 				{
 					auto text =
-						R"(<?xml version="1.0" encoding="GB2312"?>
-<Response>
-    <CmdType>ConfigDownload</CmdType>
-    <SN>{}</SN>
-    <DeviceID>{}</DeviceID>
-    <Result>OK</Result>
-    <VideoParamOpt>
-        <DownloadSpeed>1</DownloadSpeed>
-        <Resolution>5/6</Resolution>
-    </VideoParamOpt>
-</Response>
-
-)"s;
+						R"( <?xml version="1.0" encoding="GB2312"?>
+							<Response>
+								<CmdType>ConfigDownload</CmdType>
+								<SN>{}</SN>
+								<DeviceID>{}</DeviceID>
+								<Result>OK</Result>
+								<VideoParamOpt>
+									<DownloadSpeed>1</DownloadSpeed>
+									<Resolution>5/6</Resolution>
+								</VideoParamOpt>
+							</Response>
+							)"s;
 					response_body = fmt::format(text, sn, this->ID);
 				}
 
@@ -376,6 +375,8 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 
 			if (!response_body.empty())
 			{
+				auto body = format_xml(response_body);
+
 				osip_message_t* request = nullptr;
 				auto ret = eXosip_message_build_request(
 					_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
@@ -385,7 +386,7 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 				}
 
 				osip_message_set_content_type(request, "Application/MANSCDP+xml");
-				osip_message_set_body(request, response_body.c_str(), response_body.length());
+				osip_message_set_body(request, body.c_str(), body.length());
 
 				eXosip_lock(_sip_context);
 				eXosip_message_send_request(_sip_context, request);
@@ -567,13 +568,13 @@ void SipDevice::heartbeat_task() {
 	while (_is_running && _register_success && _is_heartbeat_running) {
 		auto text =
 			R"(<?xml version="1.0"?>
-<Notify>
-	<CmdType>Keepalive</CmdType>
-	<SN>{}</SN>
-	<DeviceID>{}</DeviceID>
-	<Status>OK</Status>
-</Notify>
-)"s;
+				<Notify>
+					<CmdType>Keepalive</CmdType>
+					<SN>{}</SN>
+					<DeviceID>{}</DeviceID>
+					<Status>OK</Status>
+				</Notify>
+				)"s;
 		auto info = fmt::format(text, get_sn(), this->ID);
 
 		osip_message_t* request = nullptr;
@@ -603,16 +604,16 @@ void SipDevice::heartbeat_task() {
 /// @return 
 std::string SipDevice::generate_catalog_xml(const std::string& sn) {
 	auto text =
-		R"(<?xml version="1.0" encoding="GB2312"?>
-<Response>
-	<CmdType>Catalog</CmdType>
-	<SN>{}</SN>
-	<DeviceID>{}</DeviceID>
-	<SumNum>{}</SumNum>
-	<DeviceList Num="{}">
-	</DeviceList>
-</Response>
-)"s;
+		R"( <?xml version="1.0" encoding="GB2312"?>
+			<Response>
+				<CmdType>Catalog</CmdType>
+				<SN>{}</SN>
+				<DeviceID>{}</DeviceID>
+				<SumNum>{}</SumNum>
+				<DeviceList Num="{}">
+				</DeviceList>
+			</Response>
+			)"s;
 
 	auto xml = fmt::format(text, sn, this->ID, this->Channels.size(), this->Channels.size());
 	pugi::xml_document doc;
@@ -663,4 +664,18 @@ std::shared_ptr<ChannelInfo> SipDevice::find_channel(std::string id) {
 	}
 
 	return channel_info;
+}
+
+std::string SipDevice::format_xml(std::string& xml)
+{
+	pugi::xml_document doc;
+	auto ret = doc.load_string(xml.c_str());
+	if (ret.status != pugi::status_ok) {
+		return xml;
+	}
+
+	std::stringstream ss;
+	doc.save(ss);
+
+	return ss.str();
 }

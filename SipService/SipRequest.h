@@ -51,11 +51,15 @@ public:
 protected:
 	virtual const std::string make_manscdp_body() = 0;
 
+
 protected:
 	uint64_t _request_sn;
 
 private:
 	static std::atomic_uint64_t _sn;
+
+	std::string format_xml(const std::string& xml);
+
 };
 
 

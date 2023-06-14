@@ -121,6 +121,8 @@ int MessageRequest::SendMessage(bool needcb)
 	}
 
 	auto body = make_manscdp_body();
+	body = format_xml(body);
+
 	osip_message_set_body(msg, body.c_str(), body.length());
 	osip_message_set_content_type(msg, "Application/MANSCDP+xml");
 
@@ -153,6 +155,20 @@ const std::string MessageRequest::GetRequestSN()
 const std::string MessageRequest::make_manscdp_body()
 {
 	return std::string();
+}
+
+std::string MessageRequest::format_xml(const std::string& xml)
+{
+	pugi::xml_document doc;
+	auto ret = doc.load_string(xml.c_str());
+	if (ret.status != pugi::status_ok) {
+		return xml;
+	}
+
+	std::stringstream ss;
+	doc.save(ss);
+
+	return ss.str();
 }
 
 
