@@ -16,25 +16,7 @@ int main()
 	FLAGS_logbufsecs = 1;
 	FLAGS_colorlogtostderr = true;
 
-	auto text = R"(
-
-                     .----.          __          .----.          __       
-       .-''-.       / .--. \    ...-'  |`.      / .--. \    ...-'  |`.    
-     .' .-.  )     ' '    ' '   |      |  |    ' '    ' '   |      |  |   
-    / .'  / /      \ \    / /   ....   |  |    \ \    / /   ....   |  |   
-   (_/   / /        `.`'--.'      -|   |  |     `.`'--.'      -|   |  |   
-        / /         / `'-. `.      |   |  |     / `'-. `.      |   |  |   
-       / /         ' /    `. \  ...'   `--'    ' /    `. \  ...'   `--'   
-      . '         / /       \ ' |         |`. / /       \ ' |         |`. 
-     / /    _.-')| |         | |` --------\ || |         | |` --------\ | 
-   .' '  _.'.-'' | |         | | `---------' | |         | | `---------'  
-  /  /.-'_.'      \ \       / /               \ \       / /               
- /    _.'          `.'-...-'.'                 `.'-...-'.'                
-( _.-'                `-...-'                     `-...-'                 
-
-)"s;
-
-	std::cout << text << std::endl;
+	std::cout << logo_text << std::endl;
 
 	auto root = nbase::win32::GetCurrentModuleDirectory();
 	auto config_file = root + L"server.xml";
@@ -50,7 +32,7 @@ int main()
 
 	SipServer::GetInstance()->Init(config->ID, config->Port);
 	SipServer::GetInstance()->Start();
-	HttpServer::GetInstance()->Start(8000);
+	HttpServer::GetInstance()->Start(ConfigManager::GetInstance()->GetHttpPort());
 
 #ifdef _DEBUG
 	getchar();

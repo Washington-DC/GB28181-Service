@@ -12,4 +12,7 @@
 		<Port>10070</Port>
 		<Secret>035c73f7-bb6b-4889-a715-d9eb2d1925cc</Secret>
 	</MediaServer>
+	<Http>
+		<Port>8000</Port>
+	</Http>
 </Config>

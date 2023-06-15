@@ -25,14 +25,14 @@
 
 #ifdef _WIN32
 #define strdup _strdup
-
 #undef min
 #undef max
-
 #else
 
 #endif
 
+
+#define USE_SQLITE
 
 
 #define GLOG_NO_ABBREVIATED_SEVERITIES
@@ -73,9 +73,9 @@ using namespace std::chrono_literals;
 #pragma comment(lib, "glog.lib")
 #pragma comment(lib, "fmt.lib")
 #endif
-static uint64_t g_sn = 0;
 
-std::string GenerateRandomString(int n);
+
+extern const std::string logo_text;
 
 
 #endif //PCH_H
