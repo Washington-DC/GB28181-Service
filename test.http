@@ -120,15 +120,6 @@ GET {{local_servre_url}}/v1/preset
 &preset=1
 &command=goto
 
-
-
-### 
-# @name modify_stream_ip
-GET {{local_servre_url}}/v1/reset/streamip
-?device_id=34020000001320000100
-&channel_id=34020000001320000100
-&ip=192.168.116.126
-
 ### 
 # @name command_ptz
 GET {{local_servre_url}}/v1/ptz
@@ -142,8 +133,8 @@ GET {{local_servre_url}}/v1/ptz
 ###
 # @name channel
 GET {{local_servre_url}}/v1/channel
-    ?device_id=34020000002000011111
-    &channel_id=34020000002000000002
+    ?device_id=34020000001320000100
+    &channel_id=34020000001320000100
 
 ###
 # @name play_34020000002000000001
@@ -172,3 +163,31 @@ GET {{local_servre_url}}/v1/play
     &channel_id=34020000002000000001
 
 
+
+
+
+### 
+# @name modify_stream_ip
+GET {{local_servre_url}}/v1/set/device/streamip
+?device_id=34020000001320000100
+&channel_id=34020000001320000100
+&ip=192.168.116.126
+
+
+
+
+
+### 
+# @name modify_device_nickname
+GET {{local_servre_url}}/v1/set/device/nickname
+?device_id=34020000001320000100
+&channel_id=34020000001320000100
+&nickname=test123333
+
+
+### 
+# @name modify_channel_nickname
+GET {{local_servre_url}}/v1/set/channel/nickname
+?device_id=34020000001320000100
+&channel_id=34020000001320000100
+&nickname=测试测试

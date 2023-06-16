@@ -16,7 +16,7 @@ int main()
 	FLAGS_logbufsecs = 1;
 	FLAGS_colorlogtostderr = true;
 
-	std::cout << logo_text << std::endl;
+	//std::cout << logo_text << std::endl;
 
 	auto root = nbase::win32::GetCurrentModuleDirectory();
 	auto config_file = root + L"server.xml";

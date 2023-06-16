@@ -16,7 +16,6 @@ public:
 	void AddChannelCount();
 	void SubChannelCount();
 
-
 	void SetParentID(const std::string& parent_id);
 	std::string GetParentID() const;
 
@@ -25,6 +24,9 @@ public:
 
 	void SetName(const std::string& name);
 	std::string GetName() const;
+
+	void SetNickName(const std::string& name);
+	std::string GetNickName() const;
 
 	void SetManufacturer(const std::string& manufacturer);
 	std::string GetManufacturer() const;
@@ -83,6 +85,7 @@ private:
 	std::string _stream_num;
 	std::string _ip;
 	std::string _status;
+	std::string _nickname;
 
 	int _sub_channel_count = 0;
 	std::string _ptz_type;
@@ -113,6 +116,9 @@ public:
 
 	std::string GetName() const;
 	void SetName(const std::string& name);
+
+	std::string GetNickName() const;
+	void SetNickName(const std::string& name);
 
 	std::string GetIP() const;
 	void SetIP(const std::string& ip);
@@ -154,6 +160,7 @@ private:
 
 	std::string _device_id;
 	std::string _name;
+	std::string _nickname;
 	std::string _ip;
 	std::string _port;
 	std::string _transport = "UDP";

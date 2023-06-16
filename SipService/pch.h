@@ -8,6 +8,7 @@
 #define PCH_H
 
 // 添加要在此处预编译的标头
+#define WIN32_LEAN_AND_MEAN 
 
 #include <iostream>
 #include <thread>

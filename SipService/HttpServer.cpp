@@ -317,7 +317,7 @@ HttpServer::HttpServer()
 	);
 
 
-	CROW_BP_ROUTE(_api_blueprint, "/reset/streamip")([this](const crow::request& req)
+	CROW_BP_ROUTE(_api_blueprint, "/set/device/streamip")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "ip");
 			auto device_id = req.url_params.get("device_id");
@@ -330,6 +330,47 @@ HttpServer::HttpServer()
 			}
 
 			device->SetStreamIP(ip);
+			return _mk_response(0, "");
+		}
+	);
+
+	CROW_BP_ROUTE(_api_blueprint, "/set/device/nickname")([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "nickname");
+			auto device_id = req.url_params.get("device_id");
+			auto nickname = req.url_params.get("nickname");
+
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
+
+			device->SetNickName(nickname);
+			return _mk_response(0, "");
+		}
+	);
+
+	CROW_BP_ROUTE(_api_blueprint, "/set/channel/nickname")([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "channel_id", "nickname");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+			auto nickname = req.url_params.get("nickname");
+
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
+
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "", "channel not found");
+			}
+
+			channel->SetNickName(nickname);
 			return _mk_response(0, "");
 		}
 	);

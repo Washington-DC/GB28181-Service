@@ -109,6 +109,16 @@ std::string Channel::GetName() const
 	return _name;
 }
 
+void Channel::SetNickName(const std::string& name)
+{
+	_nickname = name;
+}
+
+std::string Channel::GetNickName() const
+{
+	return _nickname;
+}
+
 void Channel::SetManufacturer(const std::string& manufacturer)
 {
 	_manufacturer = manufacturer;
@@ -253,6 +263,7 @@ nlohmann::json Channel::toJson()
 	{
 		{"id",_channel_id},
 		{"name",nbase::win32::MBCSToUtf8(_name)},
+		{"nickname",nbase::win32::MBCSToUtf8(_nickname.empty() ? _name : _nickname)},
 		{"manufacturer",_manufacturer},
 		{"model",_model},
 		{"status",_status},
@@ -349,6 +360,16 @@ std::string Device::GetName() const
 void Device::SetName(const std::string& name)
 {
 	_name = name;
+}
+
+std::string Device::GetNickName() const
+{
+	return _nickname;
+}
+
+void Device::SetNickName(const std::string& name)
+{
+	_nickname = name;
 }
 
 std::string Device::GetIP() const
@@ -467,7 +488,8 @@ nlohmann::json Device::toJson()
 	return nlohmann::json
 	{
 		{"id",_device_id},
-		{"name",_name},
+		{"name",nbase::win32::MBCSToUtf8(_name)},
+		{"nickname",nbase::win32::MBCSToUtf8(_nickname.empty() ? _name : _nickname)},
 		{"ip",_ip},
 		{"port",_port},
 		{"channel_count",_channel_count},
