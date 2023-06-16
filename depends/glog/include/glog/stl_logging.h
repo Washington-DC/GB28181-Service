@@ -47,35 +47,15 @@
 #ifndef UTIL_GTL_STL_LOGGING_INL_H_
 #define UTIL_GTL_STL_LOGGING_INL_H_
 
-#if !1
-# error We do not support stl_logging for this compiler
-#endif
-
 #include <deque>
 #include <list>
 #include <map>
 #include <ostream>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
-
-#ifdef GLOG_STL_LOGGING_FOR_UNORDERED
-# include <unordered_map>
-# include <unordered_set>
-#endif
-
-#ifdef GLOG_STL_LOGGING_FOR_TR1_UNORDERED
-# include <tr1/unordered_map>
-# include <tr1/unordered_set>
-#endif
-
-#ifdef GLOG_STL_LOGGING_FOR_EXT_HASH
-# include <ext/hash_set>
-# include <ext/hash_map>
-#endif
-#ifdef GLOG_STL_LOGGING_FOR_EXT_SLIST
-# include <ext/slist>
-#endif
 
 // Forward declare these two, and define them after all the container streams
 // operators so that we can recurse from pair -> container -> container -> pair
@@ -89,7 +69,6 @@ template<class Iter>
 void PrintSequence(std::ostream& out, Iter begin, Iter end);
 
 }
-
 #define OUTPUT_TWO_ARG_CONTAINER(Sequence) \
 template<class T1, class T2> \
 inline std::ostream& operator<<(std::ostream& out, \
@@ -98,12 +77,8 @@ inline std::ostream& operator<<(std::ostream& out, \
   return out; \
 }
 
-OUTPUT_TWO_ARG_CONTAINER(std::vector)
-OUTPUT_TWO_ARG_CONTAINER(std::deque)
-OUTPUT_TWO_ARG_CONTAINER(std::list)
-#ifdef GLOG_STL_LOGGING_FOR_EXT_SLIST
-OUTPUT_TWO_ARG_CONTAINER(__gnu_cxx::slist)
-#endif
+    OUTPUT_TWO_ARG_CONTAINER(std::vector) OUTPUT_TWO_ARG_CONTAINER(std::deque)
+        OUTPUT_TWO_ARG_CONTAINER(std::list)
 
 #undef OUTPUT_TWO_ARG_CONTAINER
 
@@ -115,8 +90,8 @@ inline std::ostream& operator<<(std::ostream& out, \
   return out; \
 }
 
-OUTPUT_THREE_ARG_CONTAINER(std::set)
-OUTPUT_THREE_ARG_CONTAINER(std::multiset)
+            OUTPUT_THREE_ARG_CONTAINER(std::set) OUTPUT_THREE_ARG_CONTAINER(
+                std::multiset)
 
 #undef OUTPUT_THREE_ARG_CONTAINER
 
@@ -128,20 +103,9 @@ inline std::ostream& operator<<(std::ostream& out, \
   return out; \
 }
 
-OUTPUT_FOUR_ARG_CONTAINER(std::map)
-OUTPUT_FOUR_ARG_CONTAINER(std::multimap)
-#ifdef GLOG_STL_LOGGING_FOR_UNORDERED
-OUTPUT_FOUR_ARG_CONTAINER(std::unordered_set)
-OUTPUT_FOUR_ARG_CONTAINER(std::unordered_multiset)
-#endif
-#ifdef GLOG_STL_LOGGING_FOR_TR1_UNORDERED
-OUTPUT_FOUR_ARG_CONTAINER(std::tr1::unordered_set)
-OUTPUT_FOUR_ARG_CONTAINER(std::tr1::unordered_multiset)
-#endif
-#ifdef GLOG_STL_LOGGING_FOR_EXT_HASH
-OUTPUT_FOUR_ARG_CONTAINER(__gnu_cxx::hash_set)
-OUTPUT_FOUR_ARG_CONTAINER(__gnu_cxx::hash_multiset)
-#endif
+                OUTPUT_FOUR_ARG_CONTAINER(std::map) OUTPUT_FOUR_ARG_CONTAINER(
+                    std::multimap) OUTPUT_FOUR_ARG_CONTAINER(std::unordered_set)
+                    OUTPUT_FOUR_ARG_CONTAINER(std::unordered_multiset)
 
 #undef OUTPUT_FOUR_ARG_CONTAINER
 
@@ -153,24 +117,17 @@ inline std::ostream& operator<<(std::ostream& out, \
   return out; \
 }
 
-#ifdef GLOG_STL_LOGGING_FOR_UNORDERED
-OUTPUT_FIVE_ARG_CONTAINER(std::unordered_map)
-OUTPUT_FIVE_ARG_CONTAINER(std::unordered_multimap)
-#endif
-#ifdef GLOG_STL_LOGGING_FOR_TR1_UNORDERED
-OUTPUT_FIVE_ARG_CONTAINER(std::tr1::unordered_map)
-OUTPUT_FIVE_ARG_CONTAINER(std::tr1::unordered_multimap)
-#endif
-#ifdef GLOG_STL_LOGGING_FOR_EXT_HASH
-OUTPUT_FIVE_ARG_CONTAINER(__gnu_cxx::hash_map)
-OUTPUT_FIVE_ARG_CONTAINER(__gnu_cxx::hash_multimap)
+#if defined(GLOG_STL_LOGGING_FOR_UNORDERED) && __cplusplus >= 201103L
+                        OUTPUT_FIVE_ARG_CONTAINER(std::unordered_map)
+                            OUTPUT_FIVE_ARG_CONTAINER(std::unordered_multimap)
 #endif
 
 #undef OUTPUT_FIVE_ARG_CONTAINER
 
-template<class First, class Second>
-inline std::ostream& operator<<(std::ostream& out,
-                                const std::pair<First, Second>& p) {
+                                template <class First, class Second>
+                                inline std::ostream& operator<<(
+                                    std::ostream& out,
+                                    const std::pair<First, Second>& p) {
   out << '(' << p.first << ", " << p.second << ')';
   return out;
 }

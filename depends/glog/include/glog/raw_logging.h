@@ -33,23 +33,20 @@
 // acquire any locks, and can therefore be used by low-level memory
 // allocation and synchronization code.
 
-#ifndef BASE_RAW_LOGGING_H_
-#define BASE_RAW_LOGGING_H_
+#ifndef GLOG_RAW_LOGGING_H
+#define GLOG_RAW_LOGGING_H
 
-#include <time.h>
+#include <ctime>
 
 namespace google {
 
-#include "glog/log_severity.h"
-#include "glog/vlog_is_on.h"
+#include <glog/log_severity.h>
+#include <glog/logging.h>
+#include <glog/vlog_is_on.h>
 
-// Annoying stuff for windows -- makes sure clients can import these functions
-#ifndef GOOGLE_GLOG_DLL_DECL
-# if defined(_WIN32) && !defined(__CYGWIN__)
-#   define GOOGLE_GLOG_DLL_DECL  __declspec(dllimport)
-# else
-#   define GOOGLE_GLOG_DLL_DECL
-# endif
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvariadic-macros"
 #endif
 
 // This is similar to LOG(severity) << format... and VLOG(level) << format..,
@@ -64,8 +61,8 @@ namespace google {
 //   RAW_LOG(ERROR, "Failed foo with %i: %s", status, error);
 //   RAW_VLOG(3, "status is %i", status);
 // These will print an almost standard log lines like this to stderr only:
-//   E0821 211317 file.cc:123] RAW: Failed foo with 22: bad_file
-//   I0821 211317 file.cc:142] RAW: status is 20
+//   E20200821 211317 file.cc:123] RAW: Failed foo with 22: bad_file
+//   I20200821 211317 file.cc:142] RAW: status is 20
 #define RAW_LOG(severity, ...) \
   do { \
     switch (google::GLOG_ ## severity) {  \
@@ -88,7 +85,7 @@ namespace google {
 
 // The following STRIP_LOG testing is performed in the header file so that it's
 // possible to completely compile out the logging code and the log messages.
-#if STRIP_LOG == 0
+#if !defined(STRIP_LOG) || STRIP_LOG == 0
 #define RAW_VLOG(verboselevel, ...) \
   do { \
     if (VLOG_IS_ON(verboselevel)) { \
@@ -99,35 +96,35 @@ namespace google {
 #define RAW_VLOG(verboselevel, ...) RawLogStub__(0, __VA_ARGS__)
 #endif // STRIP_LOG == 0
 
-#if STRIP_LOG == 0
+#if !defined(STRIP_LOG) || STRIP_LOG == 0
 #define RAW_LOG_INFO(...) google::RawLog__(google::GLOG_INFO, \
                                    __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define RAW_LOG_INFO(...) google::RawLogStub__(0, __VA_ARGS__)
 #endif // STRIP_LOG == 0
 
-#if STRIP_LOG <= 1
+#if !defined(STRIP_LOG) || STRIP_LOG <= 1
 #define RAW_LOG_WARNING(...) google::RawLog__(google::GLOG_WARNING,   \
                                       __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define RAW_LOG_WARNING(...) google::RawLogStub__(0, __VA_ARGS__)
 #endif // STRIP_LOG <= 1
 
-#if STRIP_LOG <= 2
+#if !defined(STRIP_LOG) || STRIP_LOG <= 2
 #define RAW_LOG_ERROR(...) google::RawLog__(google::GLOG_ERROR,       \
                                     __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define RAW_LOG_ERROR(...) google::RawLogStub__(0, __VA_ARGS__)
 #endif // STRIP_LOG <= 2
 
-#if STRIP_LOG <= 3
+#if !defined(STRIP_LOG) || STRIP_LOG <= 3
 #define RAW_LOG_FATAL(...) google::RawLog__(google::GLOG_FATAL,       \
                                     __FILE__, __LINE__, __VA_ARGS__)
 #else
 #define RAW_LOG_FATAL(...) \
   do { \
     google::RawLogStub__(0, __VA_ARGS__);        \
-    exit(1); \
+    exit(EXIT_FAILURE); \
   } while (0)
 #endif // STRIP_LOG <= 3
 
@@ -160,6 +157,10 @@ namespace google {
 
 #endif  // NDEBUG
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 // Stub log function used to work around for unused variable warnings when
 // building with STRIP_LOG > 0.
 static inline void RawLogStub__(int /* ignored */, ...) {
@@ -169,12 +170,10 @@ static inline void RawLogStub__(int /* ignored */, ...) {
 // Logs format... at "severity" level, reporting it
 // as called from file:line.
 // This does not allocate memory or acquire locks.
-GOOGLE_GLOG_DLL_DECL void RawLog__(LogSeverity severity,
-                                   const char* file,
-                                   int line,
-                                   const char* format, ...)
-   ;
+GLOG_EXPORT void RawLog__(LogSeverity severity, const char* file, int line,
+                          const char* format, ...)
+    ;
 
 }
 
-#endif  // BASE_RAW_LOGGING_H_
+#endif  // GLOG_RAW_LOGGING_H

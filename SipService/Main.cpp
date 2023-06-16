@@ -13,8 +13,15 @@ int main()
 {
 	google::InitGoogleLogging("");
 	google::SetStderrLogging(google::GLOG_INFO);
+	auto path = nbase::win32::GetCurrentModuleDirectoryA() + "logs";
+	nbase::win32::CreateDirectoryRecursively(nbase::win32::MBCSToUnicode(path).c_str());
+	google::SetLogDestination(google::GLOG_INFO, path.append("\\").c_str());
+	google::SetLogFilenameExtension(".log");
+
 	FLAGS_logbufsecs = 1;
-	FLAGS_colorlogtostderr = true;
+	FLAGS_colorlogtostderr = true; 
+	google::EnableLogCleaner(3);
+	
 
 	//std::cout << logo_text << std::endl;
 

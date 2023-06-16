@@ -6,7 +6,6 @@
 #include "Device.h"
 #include "HttpClient.h"
 
-
 int main() {
     google::InitGoogleLogging("");
     google::SetStderrLogging(google::GLOG_INFO);
