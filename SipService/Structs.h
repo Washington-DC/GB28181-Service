@@ -14,7 +14,9 @@ struct SipServerInfo {
 struct MediaServerInfo {
 	std::string IP;
 	int Port;
+	int RtpPort;
 	std::string Secret;
+	bool SinglePortMode = false;
 };
 
 

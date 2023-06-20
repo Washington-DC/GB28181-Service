@@ -10,6 +10,8 @@
 	<MediaServer>
 		<IP>127.0.0.1</IP>
 		<Port>10070</Port>
+		<RtpPort>10000</RtpPort>
+		<SinglePortMode>true</SinglePortMode>
 		<Secret>035c73f7-bb6b-4889-a715-d9eb2d1925cc</Secret>
 	</MediaServer>
 	<Http>

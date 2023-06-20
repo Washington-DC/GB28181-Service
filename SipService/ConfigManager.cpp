@@ -22,7 +22,7 @@ bool ConfigManager::LoadConfig(std::wstring filepath)
 		// SIP 服务器IP
 		server_info->IP = sip_server_node.child_value("IP");
 		// SIP 服务器固定端口
-		nbase::StringToInt(sip_server_node.child_value("Port"), &server_info->Port);
+		server_info->Port = sip_server_node.child("Port").text().as_int();
 		// SIP 服务器ID
 		server_info->ID = sip_server_node.child_value("ID");
 		// 取ID的前10位
@@ -50,9 +50,13 @@ bool ConfigManager::LoadConfig(std::wstring filepath)
 		//流媒体服务 IP
 		media_server_info->IP = media_server_node.child_value("IP");
 		//流媒体服务 端口
-		nbase::StringToInt(media_server_node.child_value("Port"), &media_server_info->Port);
+		media_server_info->Port = media_server_node.child("Port").text().as_int();
 		//流媒体服务 如果不是127.0.0.1的话，需要校验Secret字段
 		media_server_info->Secret = media_server_node.child_value("Secret");
+
+		media_server_info->SinglePortMode = media_server_node.child("SinglePortMode").text().as_bool();
+
+		media_server_info->RtpPort = media_server_node.child("RtpPort").text().as_int();
 	}
 	else
 	{
@@ -66,7 +70,7 @@ bool ConfigManager::LoadConfig(std::wstring filepath)
 	if (http_node)
 	{
 		//流媒体服务 端口
-		nbase::StringToInt(http_node.child_value("Port"), &http_port);
+		http_port = http_node.child("Port").text().as_int();
 	}
 	else
 	{

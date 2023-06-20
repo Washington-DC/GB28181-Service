@@ -11,20 +11,19 @@
 
 int main()
 {
-	google::InitGoogleLogging("");
-	google::SetStderrLogging(google::GLOG_INFO);
 	auto path = nbase::win32::GetCurrentModuleDirectoryA() + "logs";
 	nbase::win32::CreateDirectoryRecursively(nbase::win32::MBCSToUnicode(path).c_str());
+	
+	google::InitGoogleLogging("");
+	google::SetStderrLogging(google::GLOG_INFO);
 	google::SetLogDestination(google::GLOG_INFO, path.append("\\").c_str());
 	google::SetLogFilenameExtension(".log");
+	google::EnableLogCleaner(3);
 
 	FLAGS_logbufsecs = 1;
-	FLAGS_colorlogtostderr = true; 
-	google::EnableLogCleaner(3);
-	
+	FLAGS_colorlogtostderr = true;
 
 	//std::cout << logo_text << std::endl;
-
 	auto root = nbase::win32::GetCurrentModuleDirectory();
 	auto config_file = root + L"server.xml";
 
