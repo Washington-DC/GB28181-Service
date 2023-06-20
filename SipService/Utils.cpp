@@ -29,3 +29,8 @@ std::string GenerateRandomString(int n)
 
 	return text;
 }
+
+std::string SSRC_Hex(std::string ssrc)
+{
+	return fmt::format("{:08X}", std::stol(ssrc));
+}

@@ -5,6 +5,7 @@
 #include "StreamManager.h"
 #include "ZlmServer.h"
 #include "PtzCmd.h"
+#include "Utils.h"
 
 BaseRequest::BaseRequest(eXosip_t* ctx, Device::Ptr device, REQUEST_MESSAGE_TYPE type)
 	:_exosip_context(ctx)
@@ -253,17 +254,19 @@ int InviteRequest::SendCall(bool needcb)
 		return -1;
 	}
 
-	auto stream_id = fmt::format("{}_{}", _device->GetDeviceID(), _channel_id);
+	std::string stream_id = "";
 
-	//TODO:
-
+	//单端口模式时，使用ZLM的固定端口
+	//多端口模式时，使用OpenRtpServer创建RTP接收端口
 	int rtp_port = -1;
 	if (ZlmServer::GetInstance()->SinglePortMode())
 	{
+		stream_id = SSRC_Hex(ssrc);
 		rtp_port = ZlmServer::GetInstance()->FixedRtpPort();
 	}
 	else
 	{
+		stream_id = fmt::format("{}_{}", _device->GetDeviceID(), _channel_id);
 		rtp_port = ZlmServer::GetInstance()->OpenRtpServer(stream_id);
 	}
 
@@ -273,8 +276,12 @@ int InviteRequest::SendCall(bool needcb)
 		return -1;
 	}
 
-	_ssrc_info = std::make_shared<SSRCInfo>(rtp_port, ssrc, stream_id);
+	LOG(INFO) << "Invite: " << stream_id;
 
+	auto channel = _device->GetChannel(_channel_id);
+	channel->SetStreamID(stream_id);
+
+	_ssrc_info = std::make_shared<SSRCInfo>(rtp_port, ssrc, stream_id);
 	auto session = std::make_shared<CallSession>("rtp", stream_id, _ssrc_info);
 	StreamManager::GetInstance()->AddStream(session);
 

@@ -249,6 +249,16 @@ std::string Channel::GetDownloadSpeed() const
 	return _download_speed;
 }
 
+void Channel::SetStreamID(const std::string& id)
+{
+	_stream_id = id;
+}
+
+std::string Channel::GetStreamID() const
+{
+	return _stream_id;
+}
+
 
 
 std::string Channel::toString()

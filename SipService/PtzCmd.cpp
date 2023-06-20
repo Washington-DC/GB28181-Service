@@ -109,11 +109,6 @@ std::string PtzCmd::cmdLens(int iris, int focus, int iris_speed, int focus_speed
 }
 
 
-
-
-
-
-
 int PtzParser::ParseControlCmd(control_cmd_t& ctrlcmd, const std::string& cmdstr)
 {
 	///parse control type
@@ -152,6 +147,7 @@ int PtzParser::ParseControlCmd(control_cmd_t& ctrlcmd, const std::string& cmdstr
 
 	return 0;
 }
+
 
 void PtzParser::parse_ptz(const char* b, control_cmd_t& ctrlcmd)
 {

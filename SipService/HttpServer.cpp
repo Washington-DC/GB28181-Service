@@ -108,7 +108,13 @@ HttpServer::HttpServer()
 			{
 				return _mk_response(1, "", "channel not found");
 			}
-			auto stream_id = fmt::format("{}_{}", device_id, channel_id);
+
+			std::string stream_id = channel->GetStreamID();
+			if (stream_id.empty())
+			{
+				return _mk_response(400, "", "not play");
+			}
+
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
 			if (stream)
 			{
@@ -296,7 +302,6 @@ HttpServer::HttpServer()
 	);
 
 
-
 	CROW_BP_ROUTE(_api_blueprint, "/stream/list")([this]()
 		{
 			auto streams = StreamManager::GetInstance()->GetAllStream();
@@ -375,6 +380,27 @@ HttpServer::HttpServer()
 		}
 	);
 
+	CROW_BP_ROUTE(_api_blueprint, "/ssrc")([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "channel_id");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+
+			auto stream_id = fmt::format("{}_{}", device_id, channel_id);
+			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
+
+			if (stream)
+			{
+				auto session = std::dynamic_pointer_cast<CallSession>(stream);
+				return _mk_response(0, nlohmann::json{ {"ssrc",session->GetSSRCInfo()->GetSSRC()} }, "ok");
+			}
+			else
+			{
+				return _mk_response(401, "", "stream not found");
+			}
+		}
+	);
+
 	//-------------------------------------------------------------------------------------------------------
 	//-------------------------------------------------------------------------------------------------------
 	//-------------------------------------------------------------------------------------------------------
@@ -430,6 +456,10 @@ HttpServer::HttpServer()
 	);
 
 	//流无人观看时事件，用户可以通过此事件选择是否关闭无人看的流
+	//TODO: 这里存在一个问题，在单端口模式下，如果这个流不存在，播放端使用device_id和channel_id去播放，和ssrc作为streamid冲突
+	//可以开率如下解决方案:
+	// 1、在设备注册时，即生成每个channel对应的ssrc，播放前查询此ssrc作为stream_id去播放
+	// 2、在ZLM端做映射，将device_id和channel_id映射到对应ssrc的数据
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_none_reader").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
@@ -499,16 +529,20 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 	{
 		return _mk_response(1, "", "channel not found");
 	}
-	auto stream_id = fmt::format("{}_{}", device_id, channel_id);
 
 	InviteRequest::Ptr request = nullptr;
-	auto stream = StreamManager::GetInstance()->GetStream(stream_id);
-	if (stream)
+
+	std::string stream_id = channel->GetStreamID();
+	if (!stream_id.empty())
 	{
-		auto session = std::dynamic_pointer_cast<CallSession>(stream);
-		if (session->IsConnected())
+		auto stream = StreamManager::GetInstance()->GetStream(stream_id);
+		if (stream)
 		{
-			return _mk_response(400, "", "already exists");
+			auto session = std::dynamic_pointer_cast<CallSession>(stream);
+			if (session->IsConnected())
+			{
+				return _mk_response(400, "", "already exists");
+			}
 		}
 	}
 
@@ -517,7 +551,8 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 
 	request->SendCall();
 
-	stream = StreamManager::GetInstance()->GetStream(stream_id);
+	stream_id = channel->GetStreamID();
+	auto stream = StreamManager::GetInstance()->GetStream(stream_id);
 	if (stream)
 	{
 		auto session = std::dynamic_pointer_cast<CallSession>(stream);
@@ -527,9 +562,11 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 		{
 			return _mk_response(400, "", "timeout");
 		}
+
+		return _mk_response(0, nlohmann::json{ {"ssrc",session->GetSSRCInfo()->GetSSRC()} }, "ok");
 	}
 
-	return _mk_response(0, "", "ok");
+	return _mk_response(401, "", "unknow error");
 }
 
 

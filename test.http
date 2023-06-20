@@ -137,16 +137,23 @@ GET {{local_servre_url}}/v1/channel
     &channel_id=34020000001320000100
 
 ###
-# @name play_34020000002000000001
-GET {{local_servre_url}}/v1/play
-    ?device_id=34020000002000011111
-    &channel_id=34020000002000000002
+# @name play_34020000001320000100
+GET {{local_servre_url}}/v1/play/start
+    ?device_id=34020000001320000100
+    &channel_id=34020000001320000100
 
 ###
-# @name stop_34020000002000000001
-GET {{local_servre_url}}/v1/stop
-    ?device_id=34020000002000011111
-    &channel_id=34020000002000000002
+# @name stop_34020000001320000100
+GET {{local_servre_url}}/v1/play/stop
+    ?device_id=34020000001320000100
+    &channel_id=34020000001320000100
+
+
+###
+# @name SSRC_34020000001320000100
+GET {{local_servre_url}}/v1/ssrc
+    ?device_id=34020000001320000100
+    &channel_id=34020000001320000100
 
 
 ###
