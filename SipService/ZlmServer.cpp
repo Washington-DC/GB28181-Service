@@ -53,16 +53,15 @@ bool ZlmServer::IsConnected()
 }
 
 
-
+//单端口模式时，使用固定的端口接收rtp数据，通过SSRC区分不同的流
+//多端口模式时，调用OpenRtpServer，创建RTP数据接收端口，端口由zlm分配，通过设备和通道ID标识不同的流
 int ZlmServer::OpenRtpServer(const std::string& stream_id)
 {
 	cpr::Response res = cpr::Get(
 		cpr::Url{ _base_url,"/index/api/openRtpServer" },
 		cpr::Parameters{
 			{"secret",_info->Secret},
-			//单端口模式时，使用固定的端口接收rtp数据，通过SSRC区分不同的流
-			//多端口模式时，端口由zlm分配，通过设备和通道ID标识不同的流
-			{"port", std::to_string(_info->SinglePortMode ? _info->RtpPort : 0)},
+			{"port","0"},
 			{"tcp_mode", "0"},
 			{"stream_id",stream_id}
 		},
@@ -113,4 +112,14 @@ std::string ZlmServer::ListRtpServer()
 	}
 
 	return "";
+}
+
+bool ZlmServer::SinglePortMode()
+{
+	return _info->SinglePortMode;
+}
+
+int ZlmServer::FixedRtpPort()
+{
+	return _info->SinglePortMode ? _info->RtpPort : -1;
 }

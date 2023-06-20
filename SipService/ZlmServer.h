@@ -13,6 +13,9 @@ public:
 	void CloseRtpServer(const std::string& stream_id);
 	std::string ListRtpServer();
 
+	bool SinglePortMode();
+	int FixedRtpPort();
+
 	void UpdateHeartbeatTime(time_t t = time(nullptr));
 	void UpdateStatus(bool flag = true);
 	bool IsConnected();

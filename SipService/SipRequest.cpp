@@ -256,14 +256,24 @@ int InviteRequest::SendCall(bool needcb)
 	auto stream_id = fmt::format("{}_{}", _device->GetDeviceID(), _channel_id);
 
 	//TODO:
-	auto port = ZlmServer::GetInstance()->OpenRtpServer(stream_id);
-	_ssrc_info = std::make_shared<SSRCInfo>(port, ssrc, stream_id);
 
-	if (port == -1)
+	int rtp_port = -1;
+	if (ZlmServer::GetInstance()->SinglePortMode())
+	{
+		rtp_port = ZlmServer::GetInstance()->FixedRtpPort();
+	}
+	else
+	{
+		rtp_port = ZlmServer::GetInstance()->OpenRtpServer(stream_id);
+	}
+
+	if (rtp_port == -1)
 	{
 		LOG(ERROR) << "创建RTP服务器失败";
 		return -1;
 	}
+
+	_ssrc_info = std::make_shared<SSRCInfo>(rtp_port, ssrc, stream_id);
 
 	auto session = std::make_shared<CallSession>("rtp", stream_id, _ssrc_info);
 	StreamManager::GetInstance()->AddStream(session);
