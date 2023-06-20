@@ -67,8 +67,8 @@ public:
 	void SetDownloadSpeed(const std::string& speed);
 	std::string GetDownloadSpeed() const;
 
-	void SetStreamID(const std::string& id);
-	std::string GetStreamID() const;
+	void SetDefaultSSRC(const std::string& id);
+	std::string GetDefaultSSRC() const;
 
 	std::string toString();
 	nlohmann::json toJson();
@@ -90,7 +90,7 @@ private:
 	std::string _status;
 	std::string _nickname;
 
-	std::string _stream_id;
+	std::string _ssrc;
 
 	int _sub_channel_count = 0;
 	std::string _ptz_type;

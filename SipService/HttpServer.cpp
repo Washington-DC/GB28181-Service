@@ -6,6 +6,7 @@
 #include "SipServer.h"
 #include "ZlmServer.h"
 #include "DTO.h"
+#include "Utils.h"
 
 
 HttpServer::HttpServer()
@@ -109,7 +110,16 @@ HttpServer::HttpServer()
 				return _mk_response(1, "", "channel not found");
 			}
 
-			std::string stream_id = channel->GetStreamID();
+			std::string stream_id = "";
+			if (ZlmServer::GetInstance()->SinglePortMode())
+			{
+				stream_id = SSRC_Hex(channel->GetDefaultSSRC());
+			}
+			else
+			{
+				stream_id = fmt::format("{}_{}", device_id, channel_id);
+			}
+
 			if (stream_id.empty())
 			{
 				return _mk_response(400, "", "not play");
@@ -457,7 +467,7 @@ HttpServer::HttpServer()
 
 	//流无人观看时事件，用户可以通过此事件选择是否关闭无人看的流
 	//TODO: 这里存在一个问题，在单端口模式下，如果这个流不存在，播放端使用device_id和channel_id去播放，和ssrc作为streamid冲突
-	//可以开率如下解决方案:
+	//可以考虑如下解决方案:
 	// 1、在设备注册时，即生成每个channel对应的ssrc，播放前查询此ssrc作为stream_id去播放
 	// 2、在ZLM端做映射，将device_id和channel_id映射到对应ssrc的数据
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_none_reader").methods("POST"_method)([this](const crow::request& req)
@@ -532,7 +542,16 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 
 	InviteRequest::Ptr request = nullptr;
 
-	std::string stream_id = channel->GetStreamID();
+	std::string stream_id = "";
+	if (ZlmServer::GetInstance()->SinglePortMode())
+	{
+		stream_id = SSRC_Hex(channel->GetDefaultSSRC());
+	}
+	else
+	{
+		stream_id = fmt::format("{}_{}", device_id, channel_id);
+	}
+
 	if (!stream_id.empty())
 	{
 		auto stream = StreamManager::GetInstance()->GetStream(stream_id);
@@ -551,7 +570,6 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 
 	request->SendCall();
 
-	stream_id = channel->GetStreamID();
 	auto stream = StreamManager::GetInstance()->GetStream(stream_id);
 	if (stream)
 	{

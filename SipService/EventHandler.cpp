@@ -301,7 +301,17 @@ bool CatalogHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	auto children = node.children("Item");
 	for (auto&& child : children)
 	{
-		auto channel = std::make_shared<Channel>();
+		auto channel_id = child.child("DeviceID").text().as_string();
+
+		std::shared_ptr<Channel> channel = nullptr;
+		channel = device->GetChannel(channel_id);
+		if (channel == nullptr)
+		{
+			channel = std::make_shared<Channel>();
+			channel->SetDefaultSSRC(SSRCConfig::GetInstance()->GenerateSSRC());
+			device->InsertChannel(device_id, channel->GetChannelID(), channel);
+		}
+
 		channel->SetChannelID(child.child("DeviceID").text().as_string());
 		channel->SetName(child.child("Name").text().as_string());
 		channel->SetManufacturer(child.child("Manufacturer").text().as_string());
@@ -326,8 +336,6 @@ bool CatalogHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 		{
 			channel->SetDownloadSpeed(info.child("DownloadSpeed").text().as_string());
 		}
-
-		device->InsertChannel(device_id, channel->GetChannelID(), channel);
 	}
 
 	SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);

@@ -44,10 +44,10 @@ void SSRCConfig::SetPrefix(const std::string& pre)
 	_prefix = pre;
 }
 
-std::string SSRCConfig::GenerateSSRC(SSRCConfig::Mode m)
+std::string SSRCConfig::GenerateSSRC(SSRCConfig::Mode mode)
 {
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(1, 9999);
-	return fmt::format("{:01d}{}{:04d}", m, _prefix, dis(gen));
+	return fmt::format("{:01d}{}{:04d}", mode, _prefix, dis(gen));
 }

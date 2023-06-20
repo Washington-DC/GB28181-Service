@@ -238,8 +238,17 @@ int InviteRequest::SendCall(bool needcb)
 	auto to_uri = fmt::format("sip:{}@{}:{}", _channel_id, _device->GetIP(), _device->GetPort());
 
 	osip_message_t* msg = nullptr;
+	auto channel = _device->GetChannel(_channel_id);
+	std::string ssrc = "";
+	if (ZlmServer::GetInstance()->SinglePortMode())
+	{
+		ssrc = channel->GetDefaultSSRC();
+	}
+	else
+	{
+		ssrc = SSRCConfig::GetInstance()->GenerateSSRC();
+	}
 
-	auto ssrc = SSRCConfig::GetInstance()->GenerateSSRC();
 	auto subject = fmt::format("{}:{},{}:0", _channel_id, ssrc, config->ID);
 
 	LOG(INFO) << "subject: " << subject;
@@ -277,9 +286,6 @@ int InviteRequest::SendCall(bool needcb)
 	}
 
 	LOG(INFO) << "Invite: " << stream_id;
-
-	auto channel = _device->GetChannel(_channel_id);
-	channel->SetStreamID(stream_id);
 
 	_ssrc_info = std::make_shared<SSRCInfo>(rtp_port, ssrc, stream_id);
 	auto session = std::make_shared<CallSession>("rtp", stream_id, _ssrc_info);

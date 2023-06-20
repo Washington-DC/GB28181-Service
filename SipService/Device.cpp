@@ -249,17 +249,15 @@ std::string Channel::GetDownloadSpeed() const
 	return _download_speed;
 }
 
-void Channel::SetStreamID(const std::string& id)
+void Channel::SetDefaultSSRC(const std::string& id)
 {
-	_stream_id = id;
+	_ssrc = id;
 }
 
-std::string Channel::GetStreamID() const
+std::string Channel::GetDefaultSSRC() const
 {
-	return _stream_id;
+	return _ssrc;
 }
-
-
 
 std::string Channel::toString()
 {
@@ -278,6 +276,7 @@ nlohmann::json Channel::toJson()
 		{"model",_model},
 		{"status",_status},
 		{"ptz_type",_ptz_type},
+		{"ssrc",_ssrc},
 		{"sub_channel_count",_sub_channels.size()}
 	};
 }
@@ -300,6 +299,10 @@ void Device::InsertChannel(const std::string& parent_id, const std::string& chan
 	std::scoped_lock<std::mutex> lk(_mutex);
 	if (_device_id == parent_id)
 	{
+		if (_channels.find(channel_id) != _channels.end())
+		{
+			auto channel = _channels[channel_id];
+		}
 		_channels[channel_id] = channel;
 		_channel_count++;
 	}
