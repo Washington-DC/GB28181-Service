@@ -40,4 +40,5 @@ private:
 	SSRCConfig() = default;
 	std::string _prefix = "";
 
+	std::atomic_uint16_t _ssrc_idx = {0};
 };
