@@ -69,6 +69,7 @@ public:
 
 	void SetDefaultSSRC(const std::string& id);
 	std::string GetDefaultSSRC() const;
+	std::string GetDefaultStreamID() const;
 
 	std::string toString();
 	nlohmann::json toJson();
@@ -91,6 +92,7 @@ private:
 	std::string _nickname;
 
 	std::string _ssrc;
+	std::string _stream_id;
 
 	int _sub_channel_count = 0;
 	std::string _ptz_type;

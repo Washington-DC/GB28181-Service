@@ -506,10 +506,27 @@ HttpServer::HttpServer()
 					auto channel_id = info.Stream.substr(pos + 1);
 					auto ret = Play(device_id, channel_id);
 					LOG(INFO) << "Play: " << ret;
+					return _mk_response(0, "", "success");
+				}
+				else
+				{
+					auto&& devices = DeviceManager::GetInstance()->GetDeviceList();
+					for (auto&& device : devices)
+					{
+						auto&& channels = device->GetAllChannels();
+						for (auto&& channel : channels)
+						{
+							if (channel->GetDefaultStreamID() == info.Stream)
+							{
+								auto ret = Play(device->GetDeviceID(), channel->GetChannelID());
+								LOG(INFO) << "Play: " << ret;
+								return _mk_response(0, "", "success");
+							}
+						}
+					}
 				}
 			}
-
-			return _mk_response(0, "", "success");
+			return _mk_response(2, "", "stream app not supported");
 		}
 	);
 

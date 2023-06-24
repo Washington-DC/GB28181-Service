@@ -309,7 +309,7 @@ bool CatalogHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 		{
 			channel = std::make_shared<Channel>();
 			channel->SetDefaultSSRC(SSRCConfig::GetInstance()->GenerateSSRC());
-			device->InsertChannel(device_id, channel->GetChannelID(), channel);
+			device->InsertChannel(device_id, channel_id, channel);
 		}
 
 		channel->SetChannelID(child.child("DeviceID").text().as_string());

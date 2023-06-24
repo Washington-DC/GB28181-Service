@@ -252,11 +252,17 @@ std::string Channel::GetDownloadSpeed() const
 void Channel::SetDefaultSSRC(const std::string& id)
 {
 	_ssrc = id;
+	_stream_id = SSRC_Hex(_ssrc);
 }
 
 std::string Channel::GetDefaultSSRC() const
 {
 	return _ssrc;
+}
+
+std::string Channel::GetDefaultStreamID() const
+{
+	return _stream_id;
 }
 
 std::string Channel::toString()
@@ -277,6 +283,7 @@ nlohmann::json Channel::toJson()
 		{"status",_status},
 		{"ptz_type",_ptz_type},
 		{"ssrc",_ssrc},
+		{"stream_id",_stream_id},
 		{"sub_channel_count",_sub_channels.size()}
 	};
 }
