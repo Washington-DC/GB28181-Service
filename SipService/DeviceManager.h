@@ -6,6 +6,7 @@ class DeviceManager
 public:
 	SINGLETON_DEFINE(DeviceManager);
 
+	void Init();
 	void AddDevice(Device::Ptr device);
 	Device::Ptr GetDevice(const std::string& device_id);
 	Device::Ptr GetDevice(const std::string& ip, const std::string& port);

@@ -1,5 +1,21 @@
 #include "pch.h"
 #include "DeviceManager.h"
+#include "DbManager.h"
+
+void DeviceManager::Init()
+{
+	std::scoped_lock<std::mutex> lk(_mutex);
+	auto&& devices = DbManager::GetInstance()->GetDeviceList();
+	for (auto&& dev : devices)
+	{
+		_devices[dev->GetDeviceID()] = dev;
+		auto&& channels = DbManager::GetInstance()->GetChannelList(dev->GetDeviceID());
+		for (auto&& ch : channels)
+		{
+			dev->InsertChannel(dev->GetDeviceID(), ch->GetChannelID(), ch);
+		}
+	}
+}
 
 void DeviceManager::AddDevice(Device::Ptr device)
 {

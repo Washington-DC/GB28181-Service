@@ -101,7 +101,7 @@ std::string Channel::GetChannelID() const
 
 void Channel::SetName(const std::string& name)
 {
-	_name = name;
+	_name = nbase::win32::Utf8ToMBCS(name);
 }
 
 std::string Channel::GetName() const
@@ -116,12 +116,12 @@ void Channel::SetNickName(const std::string& name)
 
 std::string Channel::GetNickName() const
 {
-	return _nickname;
+	return _nickname.empty() ? _name : _nickname;
 }
 
 void Channel::SetManufacturer(const std::string& manufacturer)
 {
-	_manufacturer = manufacturer;
+	_manufacturer = nbase::win32::Utf8ToMBCS(manufacturer);
 }
 
 std::string Channel::GetManufacturer() const
@@ -161,7 +161,7 @@ std::string Channel::GetCivilCode() const
 
 void Channel::SetAddress(const std::string& address)
 {
-	_address = address;
+	_address = nbase::win32::Utf8ToMBCS(address);
 }
 
 std::string Channel::GetAddress() const
@@ -379,12 +379,12 @@ std::string Device::GetName() const
 
 void Device::SetName(const std::string& name)
 {
-	_name = name;
+	_name = nbase::win32::Utf8ToMBCS(name);
 }
 
 std::string Device::GetNickName() const
 {
-	return _nickname;
+	return _nickname.empty() ? _name : _nickname;
 }
 
 void Device::SetNickName(const std::string& name)
@@ -424,7 +424,7 @@ void Device::SetTransport(const std::string& transport)
 
 void Device::SetManufacturer(const std::string& manufacturer)
 {
-	_manufacturer = manufacturer;
+	_manufacturer = nbase::win32::Utf8ToMBCS(manufacturer);
 }
 
 std::string Device::GetManufacturer() const

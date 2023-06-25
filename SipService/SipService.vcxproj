@@ -72,8 +72,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\depends\cpr\include;..;..\depends\crow;E:\OpenSource\Repository_x64\boost182\include\boost-1_82;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\cpprestsdk\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\cpr\lib;E:\OpenSource\Repository_x64\boost182\lib;..\depends\oatpp\lib\oatpp-1.3.0\debug;..\depends\curl\lib;..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\cpprestsdk\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\depends\sqlite\include;..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\cpr\lib;..\depends\sqlite\lib;..\depends\oatpp\lib\oatpp-1.3.0\debug;..\depends\curl\lib;..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="DbManager.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DeviceManager.cpp" />
     <ClCompile Include="DTO.cpp" />
@@ -176,6 +177,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="DbManager.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="DeviceManager.h" />
     <ClInclude Include="DTO.h" />

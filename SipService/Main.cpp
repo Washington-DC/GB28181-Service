@@ -8,31 +8,35 @@
 #include "HttpServer.h"
 #include "ZlmServer.h"
 #include "SSRC_Config.h"
+#include "DbManager.h"
+#include "DeviceManager.h"
 
 int main()
 {
-	auto path = nbase::win32::GetCurrentModuleDirectoryA() + "logs";
-	nbase::win32::CreateDirectoryRecursively(nbase::win32::MBCSToUnicode(path).c_str());
-	
+	auto root = nbase::win32::GetCurrentModuleDirectoryA();
+	std::string log_path = root + "logs";
+	std::string db_path = root + "record.db";
+	std::string config_file = root + "server.xml";
+
+	nbase::win32::CreateDirectoryRecursively(nbase::win32::MBCSToUnicode(log_path).c_str());
+
 	google::InitGoogleLogging("");
 	google::SetStderrLogging(google::GLOG_INFO);
-	google::SetLogDestination(google::GLOG_INFO, path.append("\\").c_str());
+	google::SetLogDestination(google::GLOG_INFO, log_path.append("\\").c_str());
 	google::SetLogFilenameExtension(".log");
 	google::EnableLogCleaner(3);
 
 	FLAGS_logbufsecs = 1;
 	FLAGS_colorlogtostderr = true;
 
-	//std::cout << logo_text << std::endl;
-	auto root = nbase::win32::GetCurrentModuleDirectory();
-	auto config_file = root + L"server.xml";
-
 	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file);
 	if (!ret)
 		return 0;
 
+	DbManager::GetInstance()->Init(db_path);
 	ZlmServer::GetInstance()->Init(ConfigManager::GetInstance()->GetMediaServerInfo());
 
+	DeviceManager::GetInstance()->Init();
 	auto config = ConfigManager::GetInstance()->GetSipServerInfo();
 	SSRCConfig::GetInstance()->SetPrefix(config->ID.substr(3, 5));
 
@@ -48,12 +52,11 @@ int main()
 		{
 			LOG(INFO) << "Catch Signal: " << signal;
 			s_exit.set_value();
-		});
+});
 	s_exit.get_future().wait();
 #endif
 
 	SipServer::GetInstance()->Stop();
-
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

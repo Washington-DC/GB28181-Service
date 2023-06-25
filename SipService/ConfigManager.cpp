@@ -2,7 +2,7 @@
 #include "ConfigManager.h"
 #include "Utils.h"
 
-bool ConfigManager::LoadConfig(std::wstring filepath)
+bool ConfigManager::LoadConfig(std::string filepath)
 {
 	LOG(INFO) << "ÅäÖÃÎÄ¼þ½âÎö...";
 	pugi::xml_document doc;

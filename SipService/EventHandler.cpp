@@ -8,6 +8,7 @@
 #include "XmlParser.h"
 #include "StreamManager.h"
 #include "RequestPool.h"
+#include "DbManager.h"
 
 bool BaseEventHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 {
@@ -97,6 +98,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			LOG(INFO) << "Device Registration Success, Address:" << client_host << ":" << client_port << "   ID: " << client_device_id;
 
 			//TOOD:
+			bool find = false;
 			auto device = DeviceManager::GetInstance()->GetDevice(client_device_id);
 			if (device == nullptr)
 			{
@@ -113,6 +115,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 				device->SetStatus(1);
 				device->UpdateRegistTime();
 				device->UpdateLastTime();
+				find = true;
 
 				if (device->GetIP() != client_host)
 				{
@@ -121,6 +124,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 					device->SetPort(client_port);
 				}
 			}
+			DbManager::GetInstance()->AddOrUpdateDevice(device, find);
 
 			{
 				auto request = std::make_shared<DeviceInfoRequest>(e->exosip_context, device);
@@ -303,6 +307,7 @@ bool CatalogHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	{
 		auto channel_id = child.child("DeviceID").text().as_string();
 
+		bool find = false;
 		std::shared_ptr<Channel> channel = nullptr;
 		channel = device->GetChannel(channel_id);
 		if (channel == nullptr)
@@ -310,6 +315,10 @@ bool CatalogHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 			channel = std::make_shared<Channel>();
 			channel->SetDefaultSSRC(SSRCConfig::GetInstance()->GenerateSSRC());
 			device->InsertChannel(device_id, channel_id, channel);
+		}
+		else
+		{
+			find = true;
 		}
 
 		channel->SetChannelID(child.child("DeviceID").text().as_string());
@@ -336,6 +345,8 @@ bool CatalogHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 		{
 			channel->SetDownloadSpeed(info.child("DownloadSpeed").text().as_string());
 		}
+
+		DbManager::GetInstance()->AddOrUpdateChannel(device_id, channel, find);
 	}
 
 	SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
@@ -352,6 +363,7 @@ bool HeartbeatHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	{
 		device->UpdateLastTime();
 		device->SetStatus(1);
+		DbManager::GetInstance()->AddOrUpdateDevice(device, true);
 		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
 		return true;
 	}
@@ -375,7 +387,7 @@ bool DeviceInfoHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 		device->SetModel(root.child("Model").text().as_string());
 
 		LOG(INFO) << "\n" << device->toString();
-
+		DbManager::GetInstance()->AddOrUpdateDevice(device, true);
 		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
 		return true;
 	}

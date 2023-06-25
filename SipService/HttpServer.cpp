@@ -7,7 +7,7 @@
 #include "ZlmServer.h"
 #include "DTO.h"
 #include "Utils.h"
-
+#include "DbManager.h"
 
 HttpServer::HttpServer()
 	:_api_blueprint("v1")
@@ -362,6 +362,7 @@ HttpServer::HttpServer()
 			}
 
 			device->SetNickName(nickname);
+			DbManager::GetInstance()->AddOrUpdateDevice(device, true);
 			return _mk_response(0, "");
 		}
 	);
@@ -386,6 +387,7 @@ HttpServer::HttpServer()
 			}
 
 			channel->SetNickName(nickname);
+			DbManager::GetInstance()->AddOrUpdateChannel(device_id, channel, true);
 			return _mk_response(0, "");
 		}
 	);

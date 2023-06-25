@@ -65,6 +65,7 @@ using namespace std::chrono_literals;
 #pragma comment(lib, "libssl.lib")
 #pragma comment(lib, "libcrypto.lib")
 #pragma comment(lib, "ZLToolKit.lib")
+#pragma comment(lib, "sqlite3.lib")
 
 #ifdef _DEBUG
 #pragma comment(lib, "pugixmld.lib")

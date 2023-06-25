@@ -4,7 +4,7 @@
 class ConfigManager {
 public:
     SINGLETON_DEFINE(ConfigManager);
-    bool LoadConfig(std::wstring filepath);
+    bool LoadConfig(std::string filepath);
 
     std::shared_ptr<SipServerInfo> GetSipServerInfo() { return server_info; }
     std::shared_ptr<MediaServerInfo> GetMediaServerInfo() { return media_server_info; }
