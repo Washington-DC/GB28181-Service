@@ -66,20 +66,27 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		osip_message_get_contact(e->exosip_event->request, 0, &contact);
 		if (contact == nullptr)
 		{
-			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED);
-			LOG(WARNING) << "Device Registration Failed, Address";
+			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+			LOG(WARNING) << "Device Regist Failed, contact = null";
 			return -1;
 		}
+		auto config = ConfigManager::GetInstance()->GetSipServerInfo();
 
 		method = e->exosip_event->request->sip_method;
+
+		auto sip_id = e->exosip_event->request->req_uri->username;
+		if (strcmp(sip_id, config->ID.c_str()) != 0)
+		{
+			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+			LOG(WARNING) << "Device Regist Failed, sip id doesn't match";
+			return -1;
+		}
 
 #define SIP_STRDUP(field)  if(authorization->field) (field) = osip_strdup_without_quote(authorization->field);
 
 		SIP_STRDUP(uri);
 		SIP_STRDUP(username);
 		SIP_STRDUP(response);
-
-		auto config = ConfigManager::GetInstance()->GetSipServerInfo();
 
 		HASHHEX HA1, calc_response;
 		DigestCalcHA1("REGISTER", username, config->Realm.c_str(), config->Password.c_str(),
@@ -137,7 +144,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		else
 		{
 			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED);
-			LOG(INFO) << "Device Registration Failed, Address:" << client_host << ":" << client_port << "   ID: " << client_device_id;
+			LOG(INFO) << "Device Regist Failed, Address:" << client_host << ":" << client_port << "   ID: " << client_device_id;
 
 			//TODO:
 			DeviceManager::GetInstance()->RemoveDevice(client_device_id);
