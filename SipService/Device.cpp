@@ -450,6 +450,10 @@ int Device::GetStatus() const
 void Device::SetStatus(int status)
 {
 	_status = status;
+	if (status == 0)
+	{
+		_registered = false;
+	}
 }
 
 time_t Device::GetRegistTime()
@@ -500,6 +504,16 @@ std::string Device::GetStreamIP() const
 void Device::SetStreamIP(const std::string& stream_ip)
 {
 	_stream_ip = stream_ip;
+}
+
+bool Device::IsRegistered()
+{
+	return _registered;
+}
+
+void Device::SetRegistered(bool flag)
+{
+	_registered = flag;
 }
 
 

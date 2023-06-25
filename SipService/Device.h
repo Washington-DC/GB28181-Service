@@ -160,6 +160,9 @@ public:
 	std::string GetStreamIP() const;
 	void SetStreamIP(const std::string& stream_ip);
 
+	bool IsRegistered();
+	void SetRegistered(bool flag);
+
 	nlohmann::json toJson();
 	std::string toString();
 
@@ -185,6 +188,7 @@ private:
 
 	std::map<std::string, Channel::Ptr> _channels;
 
+	bool _registered = false;
 	std::mutex _mutex;
 };
 

@@ -103,20 +103,13 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			if (device == nullptr)
 			{
 				device = std::make_shared<Device>(client_device_id, client_host, client_port);
-				device->SetStatus(1);
-				device->UpdateRegistTime();
-				device->UpdateLastTime();
 				device->SetStreamIP(config->ExternIP);
 				DeviceManager::GetInstance()->AddDevice(device);
 			}
 			else
 			{
 				//如果设备已经存在的话，就只更新在线状态和注册时间
-				device->SetStatus(1);
-				device->UpdateRegistTime();
-				device->UpdateLastTime();
 				find = true;
-
 				if (device->GetIP() != client_host)
 				{
 					LOG(WARNING) << "设备IP变化: " << client_device_id << "\t" << device->GetIP() << " -> " << client_host;
@@ -124,6 +117,11 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 					device->SetPort(client_port);
 				}
 			}
+
+			device->SetRegistered(true);
+			device->SetStatus(1);
+			device->UpdateRegistTime();
+			device->UpdateLastTime();
 			DbManager::GetInstance()->AddOrUpdateDevice(device, find);
 
 			{
@@ -359,7 +357,7 @@ bool HeartbeatHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 
 	auto device_id = root.child("DeviceID").text().as_string();
 	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-	if (device)
+	if (device && device->IsRegistered())
 	{
 		device->UpdateLastTime();
 		device->SetStatus(1);
@@ -369,10 +367,12 @@ bool HeartbeatHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	}
 	else
 	{
+		LOG(WARNING) << "Heartbeat SIP_UNAUTHORIZED";
 		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED);
 	}
 	return false;
 }
+
 
 bool DeviceInfoHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 {

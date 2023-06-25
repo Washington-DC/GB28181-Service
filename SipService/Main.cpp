@@ -43,7 +43,7 @@ int main()
 	SipServer::GetInstance()->Init(config->ID, config->Port);
 	SipServer::GetInstance()->Start();
 	HttpServer::GetInstance()->Start(ConfigManager::GetInstance()->GetHttpPort());
-
+	DeviceManager::GetInstance()->Start();
 #ifdef _DEBUG
 	getchar();
 #else
