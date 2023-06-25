@@ -33,7 +33,7 @@
 #endif
 
 
-#define USE_SQLITE
+#define WITH_SQLITE
 
 
 #define GLOG_NO_ABBREVIATED_SEVERITIES
