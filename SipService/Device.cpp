@@ -111,7 +111,7 @@ std::string Channel::GetName() const
 
 void Channel::SetNickName(const std::string& name)
 {
-	_nickname = name;
+	_nickname = nbase::win32::Utf8ToMBCS(name);
 }
 
 std::string Channel::GetNickName() const
@@ -389,7 +389,7 @@ std::string Device::GetNickName() const
 
 void Device::SetNickName(const std::string& name)
 {
-	_nickname = name;
+	_nickname = nbase::win32::Utf8ToMBCS(name);
 }
 
 std::string Device::GetIP() const

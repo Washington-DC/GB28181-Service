@@ -383,7 +383,6 @@ bool DeviceInfoHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 }
 
 
-
 int CallHandler::HandleResponseSuccess(const SipEvent::Ptr e)
 {
 	std::string device_id = e->exosip_event->request->to->url->username;
