@@ -1,22 +1,24 @@
 # SipServer 
 ---
-依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。SipClient则实现了一个简单的模拟设备。
+依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。SipClient则实现了一个简单的模拟设备。暂时只支持Windows。
 
 
 ## 实现功能
 
  -  国标摄像头接入、目录查询、推流。
     
- -  ptz通用控制、预置位调用，参考Http接口部分。
+ -  云台控制、预置位调用，参考Http接口部分。
 
- -  部分zlm的webhook接口,实现按需推流功能。
+ -  实现部分zlm的webhook接口，以实现按需推流功能。客户端拉流时推送视频，无人观看时，自动关闭。
 
  -  sqlite数据保存。
 
  -  单端口模式收流和多端口模式收流适配。单端口模式下，流地址是SSRC信息，所以这里对每个Channel初始化时就设置一个固定的SSRC（通过defaultStreamID获取ssrc对应的streamID）。多端口模式下，使用device_id和channel_id组合作为streamID。
 
 ## 待实现
- - 语音对镜
+
+ - 语音对讲
+
  - ...
 
 
