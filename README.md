@@ -1,6 +1,7 @@
-# SipServer 
----
-依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。SipClient则实现了一个简单的模拟设备。暂时只支持Windows。
+# GB28181-Service
+
+依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。SipClient则实现了一个简单的模拟设备。
+暂时只支持Windows、SIP UDP注册。
 
 
 ## 实现功能
