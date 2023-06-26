@@ -8,7 +8,6 @@ void Channel::InsertSubChannel(const std::string parent_id, const std::string& c
 	if (parent_id == _channel_id)
 	{
 		_sub_channels[channel_id] = channel;
-		_sub_channel_count++;
 	}
 	else
 	{
@@ -37,7 +36,6 @@ void Channel::DeleteSubChannel(const std::string& channel_id)
 	if (iter != _sub_channels.end())
 	{
 		_sub_channels.erase(iter);
-		_sub_channel_count--;
 	}
 	else
 	{
@@ -62,22 +60,9 @@ std::vector<Channel::Ptr> Channel::GetAllSubChannels()
 int Channel::GetChannelCount()
 {
 	std::scoped_lock<std::mutex> lk(_mutex);
-	return _sub_channel_count;
+	return (int)_sub_channels.size();
 }
 
-void Channel::AddChannelCount()
-{
-	std::scoped_lock<std::mutex> lk(_mutex);
-	_sub_channel_count++;
-}
-
-void Channel::SubChannelCount()
-{
-	std::scoped_lock<std::mutex> lk(_mutex);
-	_sub_channel_count--;
-	if (_sub_channel_count < 0)
-		_sub_channel_count = 0;
-}
 
 void Channel::SetParentID(const std::string& parent_id)
 {
@@ -306,10 +291,6 @@ void Device::InsertChannel(const std::string& parent_id, const std::string& chan
 	std::scoped_lock<std::mutex> lk(_mutex);
 	if (_device_id == parent_id)
 	{
-		if (_channels.find(channel_id) != _channels.end())
-		{
-			auto channel = _channels[channel_id];
-		}
 		_channels[channel_id] = channel;
 		_channel_count++;
 	}

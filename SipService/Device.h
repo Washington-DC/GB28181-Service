@@ -13,8 +13,6 @@ public:
 	std::vector<Channel::Ptr> GetAllSubChannels();
 
 	int GetChannelCount();
-	void AddChannelCount();
-	void SubChannelCount();
 
 	void SetParentID(const std::string& parent_id);
 	std::string GetParentID() const;
@@ -94,7 +92,6 @@ private:
 	std::string _ssrc;
 	std::string _stream_id;
 
-	int _sub_channel_count = 0;
 	std::string _ptz_type;
 	std::string _download_speed;
 

@@ -52,7 +52,7 @@ int RequestPool::HandleMessageRequest(const std::string& req_id, int status_code
 	return HandleResponse(req_id, status_code);
 }
 
-void RequestPool::CheckRequestTimeout(double timeout)
+void RequestPool::CheckRequestTimeout(float timeout)
 {
 	_check_timer.reset(new toolkit::Timer(timeout, [this]()
 		{

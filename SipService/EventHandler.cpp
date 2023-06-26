@@ -217,7 +217,7 @@ int MessageHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 
 	XmlParser parser;
 	pugi::xml_document doc;
-	auto ret = parser.Parse(body->body, body->length, doc);
+	auto ret = parser.Parse(body->body, (int)body->length, doc);
 	if (!ret)
 	{
 		SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);

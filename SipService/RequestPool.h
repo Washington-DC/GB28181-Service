@@ -14,7 +14,7 @@ public:
 
 private:
 	RequestPool() = default;
-	void CheckRequestTimeout(double timeout = 6.0);
+	void CheckRequestTimeout(float timeout = 6.0);
 	int HandleResponse(const std::string& req_id, int status_code);
 
 private:

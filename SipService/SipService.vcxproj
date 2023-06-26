@@ -78,8 +78,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
-    <IncludePath>..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\cpprestsdk\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\cpr\lib;..\depends\curl\lib;..\depends\ZLTookit\lib\release;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\release;..\depends\sip\lib\release;$(LibraryPath)</LibraryPath>
+    <IncludePath>..;..\depends\sqlite\include;..\depends\cpr\include;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\sqlite\lib;..\depends\cpr\lib;..\depends\curl\lib;..\depends\ZLTookit\lib\release;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\release;..\depends\sip\lib\release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -134,7 +134,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
