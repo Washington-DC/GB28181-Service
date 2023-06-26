@@ -8,7 +8,7 @@
 
 @base_params=secret={{secret}}&vhost=__defaultVhost__
 
-@auth_info=admin:cdty2020
+@auth_info=admin:admin123456
    
 
 ###
@@ -17,7 +17,7 @@ GET {{base_zlm_url}}/index/api/addStreamProxy
     ?{{base_params}}
     &app=h265
     &stream=ch1/sub/av_stream
-    &url=rtsp://admin:cdtye123456@192.168.51.3:554/cam/realmonitor?channel=1%26subtype=0
+    &url=rtsp://admin:admin123456@192.168.51.3:554/cam/realmonitor?channel=1%26subtype=0
     # &url=rtsp://{{auth_info}}@192.168.116.200:554/Streaming/Channels/103
 
 
@@ -83,7 +83,7 @@ GET {{local_servre_url}}/v1/device?device_id=34020000001320000103
 
 ###
 # @name device_hikvision
-GET {{local_servre_url}}/v1/device?device_id=34020000002000000123
+GET {{local_servre_url}}/v1/device?device_id=34020000001320000100
 
 ###
 # @name channellist_mock
@@ -96,7 +96,7 @@ GET {{local_servre_url}}/v1/channel/list?device_id=34020000001320000103
 
 ###
 # @name channellist_hikvision
-GET {{local_servre_url}}/v1/channel/list?device_id=34020000002000000123
+GET {{local_servre_url}}/v1/channel/list?device_id=34020000001320000100
 
 
 ###

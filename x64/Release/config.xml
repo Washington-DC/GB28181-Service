@@ -18,7 +18,7 @@
 			<ID>34020000002000000111</ID>
 			<Protocol>TCP</Protocol>
 			<Name>IP Camera</Name>
-			<Manufacturer>Cdtye</Manufacturer>
+			<Manufacturer>Test</Manufacturer>
 			<HeartbeatInterval>60</HeartbeatInterval>
 			<Catalog>
 				<Channel>

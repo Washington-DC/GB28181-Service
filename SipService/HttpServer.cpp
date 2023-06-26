@@ -413,6 +413,29 @@ HttpServer::HttpServer()
 		}
 	);
 
+
+	CROW_BP_ROUTE(_api_blueprint, "/defaultStreamID")([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "channel_id");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
+
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "", "channel not found");
+			}
+
+			return _mk_response(0, nlohmann::json{ {"ssrc",channel->GetDefaultSSRC()}}, "ok");
+		}
+	);
+
 	//-------------------------------------------------------------------------------------------------------
 	//-------------------------------------------------------------------------------------------------------
 	//-------------------------------------------------------------------------------------------------------

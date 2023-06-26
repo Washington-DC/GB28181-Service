@@ -134,19 +134,19 @@ bool DbManager::AddOrUpdateChannel(const std::string& device_id, Channel::Ptr ch
 	{
 		text = R"(UPDATE "Channel" 
 					SET 
-						"name" = ?3
-						"nickname" = ?4
-						"ip" = ?5
-						"manufacturer" = ?6
-						"model" = ?7
-						"ssrc" = ?8
-						"owner" = ?9
-						"civil_code" = ?10
-						"address" = ?11
-						"parental" = ?12
-						"secrety" = ?13
-						"stream_num" = ?14
-						"ptz_type" = ?15
+						"name" = ?3,
+						"nickname" = ?4,
+						"ip" = ?5,
+						"manufacturer" = ?6,
+						"model" = ?7,
+						"ssrc" = ?8,
+						"owner" = ?9,
+						"civil_code" = ?10,
+						"address" = ?11,
+						"parental" = ?12,
+						"secrety" = ?13,
+						"stream_num" = ?14,
+						"ptz_type" = ?15,
 						"download_speed" = ?16
 					WHERE
 						"channel_id" = ?1
@@ -154,26 +154,34 @@ bool DbManager::AddOrUpdateChannel(const std::string& device_id, Channel::Ptr ch
 						"device_id" = ?2)";
 	}
 
-	sqlite3pp::command cmd(*_db.get(), text.c_str());
-	cmd.bind(1, channel->GetChannelID(), sqlite3pp::copy);
-	cmd.bind(2, device_id, sqlite3pp::copy);
-	cmd.bind(3, nbase::win32::MBCSToUtf8(channel->GetName()), sqlite3pp::copy);
-	cmd.bind(4, nbase::win32::MBCSToUtf8(channel->GetNickName()), sqlite3pp::copy);
-	cmd.bind(5, channel->GetIpAddress(), sqlite3pp::copy);
-	cmd.bind(6, channel->GetManufacturer(), sqlite3pp::copy);
-	cmd.bind(7, channel->GetModel(), sqlite3pp::copy);
-	cmd.bind(8, channel->GetDefaultSSRC(), sqlite3pp::copy);
-	cmd.bind(9, channel->GetOwner(), sqlite3pp::copy);
-	cmd.bind(10, channel->GetCivilCode(), sqlite3pp::copy);
-	cmd.bind(11, channel->GetAddress(), sqlite3pp::copy);
-	cmd.bind(12, channel->GetParental(), sqlite3pp::copy);
-	cmd.bind(13, channel->GetSecrety(), sqlite3pp::copy);
-	cmd.bind(14, channel->GetStreamNum(), sqlite3pp::copy);
-	cmd.bind(15, channel->GetPtzType(), sqlite3pp::copy);
-	cmd.bind(16, channel->GetDownloadSpeed(), sqlite3pp::copy);
+	try
+	{
+		sqlite3pp::command cmd(*_db.get(), text.c_str());
+		cmd.bind(1, channel->GetChannelID(), sqlite3pp::copy);
+		cmd.bind(2, device_id, sqlite3pp::copy);
+		cmd.bind(3, nbase::win32::MBCSToUtf8(channel->GetName()), sqlite3pp::copy);
+		cmd.bind(4, nbase::win32::MBCSToUtf8(channel->GetNickName()), sqlite3pp::copy);
+		cmd.bind(5, channel->GetIpAddress(), sqlite3pp::copy);
+		cmd.bind(6, channel->GetManufacturer(), sqlite3pp::copy);
+		cmd.bind(7, channel->GetModel(), sqlite3pp::copy);
+		cmd.bind(8, channel->GetDefaultSSRC(), sqlite3pp::copy);
+		cmd.bind(9, channel->GetOwner(), sqlite3pp::copy);
+		cmd.bind(10, channel->GetCivilCode(), sqlite3pp::copy);
+		cmd.bind(11, channel->GetAddress(), sqlite3pp::copy);
+		cmd.bind(12, channel->GetParental(), sqlite3pp::copy);
+		cmd.bind(13, channel->GetSecrety(), sqlite3pp::copy);
+		cmd.bind(14, channel->GetStreamNum(), sqlite3pp::copy);
+		cmd.bind(15, channel->GetPtzType(), sqlite3pp::copy);
+		cmd.bind(16, channel->GetDownloadSpeed(), sqlite3pp::copy);
 
-	auto ret = cmd.execute();
-	return ret == SQLITE_OK;
+		auto ret = cmd.execute();
+		return ret == SQLITE_OK;
+	}
+	catch (const std::exception& e)
+	{
+		LOG(ERROR) << e.what();
+		return false;
+	}
 }
 
 std::vector<Device::Ptr> DbManager::GetDeviceList()

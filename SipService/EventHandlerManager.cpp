@@ -237,7 +237,7 @@ int EventHandlerManager::on_exosip_message_proceeding(const SipEvent::Ptr& event
 
 int EventHandlerManager::on_exosip_message_answered(const SipEvent::Ptr& event)
 {
-	_msg_handler.HandleResponseSuccess(event);
+	//_msg_handler.HandleResponseSuccess(event);
 	return 0;
 }
 
