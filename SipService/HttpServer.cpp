@@ -188,6 +188,11 @@ HttpServer::HttpServer()
 				return _mk_response(1, "", "device not found");
 			}
 
+			if (!device->IsRegistered())
+			{
+				return _mk_response(1, "", "device not online");
+			}
+
 			auto channel = device->GetChannel(channel_id);
 			if (channel == nullptr)
 			{
@@ -215,7 +220,10 @@ HttpServer::HttpServer()
 			{
 				return _mk_response(1, "", "device not found");
 			}
-
+			if (!device->IsRegistered())
+			{
+				return _mk_response(1, "", "device not online");
+			}
 			auto channel = device->GetChannel(channel_id);
 			if (channel == nullptr)
 			{
@@ -265,7 +273,10 @@ HttpServer::HttpServer()
 			{
 				return _mk_response(1, "", "device not found");
 			}
-
+			if (!device->IsRegistered())
+			{
+				return _mk_response(1, "", "device not online");
+			}
 			auto channel = device->GetChannel(channel_id);
 			if (channel == nullptr)
 			{
@@ -574,6 +585,11 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 	if (device == nullptr)
 	{
 		return _mk_response(1, "", "device not found");
+	}
+
+	if (!device->IsRegistered())
+	{
+		return _mk_response(1, "", "device not online");
 	}
 
 	auto channel = device->GetChannel(channel_id);
