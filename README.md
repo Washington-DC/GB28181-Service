@@ -1,7 +1,8 @@
 # GB28181-Service
 
-依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。SipClient则实现了一个简单的模拟设备。
-暂时只支持Windows、SIP UDP注册。
+依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。暂时只支持Windows、SIP UDP注册。
+
+还包括一个SipClinet，用于模拟一个GB28181设备。
 
 
 ## 实现功能
@@ -15,6 +16,8 @@
  -  sqlite数据保存。
 
  -  单端口模式收流和多端口模式收流适配。单端口模式下，流地址是SSRC信息，所以这里对每个Channel初始化时就设置一个固定的SSRC（通过defaultStreamID获取ssrc对应的streamID）。多端口模式下，使用device_id和channel_id组合作为streamID。
+
+![chart](chart.png)
 
 ## 待实现
 
