@@ -2,7 +2,7 @@
 
 依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。暂时只支持Windows、SIP UDP注册。
 
-还包括一个SipClinet，用于模拟一个GB28181设备。
+还写了一个SipClinet，用于模拟一个GB28181设备。
 
 
 ## 实现功能
@@ -16,8 +16,12 @@
  -  sqlite数据保存。
 
  -  单端口模式收流和多端口模式收流适配。单端口模式下，流地址是SSRC信息，所以这里对每个Channel初始化时就设置一个固定的SSRC（通过defaultStreamID获取ssrc对应的streamID）。多端口模式下，使用device_id和channel_id组合作为streamID。
+    
+    如设备ID: `34020000002000000001`,通道ID: `34020000002000000012`,系统初始化SSRC: `0200000000`。单端口模式下，可以用`rtsp://127.0.0.1:554/rtp/0BEBC200`地址播放，其中`0BEBC200`则为SSRC的16进制标识。多端口模式下，则使用`rtsp://127.0.0.1:554/rtp/34020000002000000001_34020000002000000012`。当然也可用ZLMediaKit支持的其他各种协议格式。
+    
+    具体内容可以参考[GB28181怎么用设备ID作为流ID · ZLMediaKit/ZLMediaKit Wiki (github.com)](https://github.com/ZLMediaKit/ZLMediaKit/wiki/GB28181怎么用设备ID作为流ID)
 
-![chart](chart.png)
+![按需推流大致流程](chart.png)
 
 ## 待实现
 
