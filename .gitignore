@@ -364,3 +364,6 @@ FodyWeavers.xsd
 SipDevice.bak
 /depends/oatpp
 /.svn
+
+
+test.http
