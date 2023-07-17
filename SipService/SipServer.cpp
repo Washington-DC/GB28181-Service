@@ -13,6 +13,8 @@ bool SipServer::Init(const std::string& sip_id, uint16_t port)
 	}
 
 	eXosip_set_user_agent(_sip_context, _user_agent.c_str());
+	int val = 1;
+	eXosip_set_option(_sip_context, EXOSIP_OPT_ENABLE_REUSE_TCP_PORT, (void*)&val);
 
 	return true;
 }

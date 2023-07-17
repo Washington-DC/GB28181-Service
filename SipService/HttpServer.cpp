@@ -457,7 +457,10 @@ HttpServer::HttpServer()
 	//服务器定时上报，确认服务器是否在线
 	CROW_BP_ROUTE(_hook_blueprint, "/on_server_keepalive").methods("POST"_method)([this](const crow::request& req)
 		{
-			ZlmServer::GetInstance()->UpdateHeartbeatTime();
+			toolkit::EventPollerPool::Instance().getExecutor()->async([this]()
+				{
+					ZlmServer::GetInstance()->UpdateHeartbeatTime();
+				});
 			return _mk_response(0, "", "success");
 		}
 	);
@@ -535,32 +538,34 @@ HttpServer::HttpServer()
 
 			if (info.App == "rtp")
 			{
-				auto pos = info.Stream.find_first_of('_');
-				if (pos != std::string::npos)
-				{
-					auto device_id = info.Stream.substr(0, pos);
-					auto channel_id = info.Stream.substr(pos + 1);
-					auto ret = Play(device_id, channel_id);
-					LOG(INFO) << "Play: " << ret;
-					return _mk_response(0, "", "success");
-				}
-				else
-				{
-					auto&& devices = DeviceManager::GetInstance()->GetDeviceList();
-					for (auto&& device : devices)
+				toolkit::EventPollerPool::Instance().getExecutor()->async([this,info]()
 					{
-						auto&& channels = device->GetAllChannels();
-						for (auto&& channel : channels)
+						auto pos = info.Stream.find_first_of('_');
+						if (pos != std::string::npos)
 						{
-							if (channel->GetDefaultStreamID() == info.Stream)
+							auto device_id = info.Stream.substr(0, pos);
+							auto channel_id = info.Stream.substr(pos + 1);
+							auto ret = Play(device_id, channel_id);
+							LOG(INFO) << "Play: " << ret;
+						}
+						else
+						{
+							auto&& devices = DeviceManager::GetInstance()->GetDeviceList();
+							for (auto&& device : devices)
 							{
-								auto ret = Play(device->GetDeviceID(), channel->GetChannelID());
-								LOG(INFO) << "Play: " << ret;
-								return _mk_response(0, "", "success");
+								auto&& channels = device->GetAllChannels();
+								for (auto&& channel : channels)
+								{
+									if (channel->GetDefaultStreamID() == info.Stream)
+									{
+										auto ret = Play(device->GetDeviceID(), channel->GetChannelID());
+										LOG(INFO) << "Play: " << ret;
+									}
+								}
 							}
 						}
-					}
-				}
+					});
+				return _mk_response(0, "", "success");
 			}
 			return _mk_response(2, "", "stream app not supported");
 		}
@@ -632,7 +637,7 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 	if (stream)
 	{
 		auto session = std::dynamic_pointer_cast<CallSession>(stream);
-		auto ret = session->WaitForStreamReady();
+		auto ret = session->WaitForStreamReady(ZlmServer::GetInstance()->MaxPlayWaitTime());
 
 		if (!ret)
 		{

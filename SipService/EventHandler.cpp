@@ -43,7 +43,9 @@ int BaseEventHandler::GetStatusCodeFromResponse(osip_message_t* response)
 std::string BaseEventHandler::GetMsgIDFromRequest(osip_message_t* request)
 {
 	osip_generic_param_t* tag = nullptr;
-	osip_to_get_tag(request->from, &tag);
+	//osip_to_get_tag(request->from, &tag);
+	osip_uri_param_get_byname(&request->from->gen_params, (char*)"tag", &tag);
+
 	if (nullptr == tag || nullptr == tag->gvalue) {
 		return "";
 	}
@@ -442,7 +444,9 @@ int CallHandler::on_proceeding(const SipEvent::Ptr e)
 {
 	std::string reqid;
 	osip_generic_param_t* tag = nullptr;
-	osip_to_get_tag(e->exosip_event->request->from, &tag);
+	//osip_to_get_tag(e->exosip_event->request->from, &tag);
+	osip_uri_param_get_byname(&e->exosip_event->request->from->gen_params, (char*)"tag", &tag);
+
 	if (nullptr == tag || nullptr == tag->gvalue) {
 		reqid = "";
 	}

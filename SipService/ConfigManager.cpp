@@ -51,6 +51,8 @@ bool ConfigManager::LoadConfig(std::string filepath)
 		media_server_info->IP = media_server_node.child_value("IP");
 		//流媒体服务 端口
 		media_server_info->Port = media_server_node.child("Port").text().as_int();
+
+		media_server_info->PlayWait = media_server_node.child("PlayWait").text().as_int(15);
 		//流媒体服务 如果不是127.0.0.1的话，需要校验Secret字段
 		media_server_info->Secret = media_server_node.child_value("Secret");
 

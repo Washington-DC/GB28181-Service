@@ -85,7 +85,9 @@ Device::Ptr BaseRequest::GetDevice()
 const char* BaseRequest::_get_request_id_from_request(osip_message_t* msg)
 {
 	osip_generic_param_t* tag = nullptr;
-	osip_to_get_tag(msg->from, &tag);
+	//osip_to_get_tag(msg->from, &tag);
+	osip_uri_param_get_byname(&msg->from->gen_params, (char*)"tag", &tag);
+
 	if (tag == nullptr || tag->gvalue == nullptr)
 	{
 		return nullptr;

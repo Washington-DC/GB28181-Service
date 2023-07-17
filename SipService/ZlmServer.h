@@ -15,6 +15,7 @@ public:
 
 	bool SinglePortMode();
 	int FixedRtpPort();
+	int MaxPlayWaitTime();
 
 	void UpdateHeartbeatTime(time_t t = time(nullptr));
 	void UpdateStatus(bool flag = true);

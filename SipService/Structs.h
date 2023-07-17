@@ -15,6 +15,7 @@ struct MediaServerInfo {
 	std::string IP;
 	int Port;
 	int RtpPort;
+	int PlayWait;
 	std::string Secret;
 	bool SinglePortMode = false;
 };

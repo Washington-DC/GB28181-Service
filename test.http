@@ -1,6 +1,11 @@
 
 @base_zlm_url=http://192.168.116.126:10080
+
 @iot_zlm_url=http://192.168.117.48:82
+
+@arm_zlm_url=http://192.168.119.57:10008
+
+@local_zlm_url=http://127.0.0.1:10080
 
 @local_servre_url=http://127.0.0.1:8000
 
@@ -9,6 +14,25 @@
 @base_params=secret={{secret}}&vhost=__defaultVhost__
 
 @auth_info=admin:admin123456
+
+
+###
+# @name addStreamProxy_Local
+GET {{local_zlm_url}}/index/api/addStreamProxy
+    ?{{base_params}}
+    &app=h265
+    &stream=ch1/sub/av_stream
+    &url=rtsp://admin:cdtye123456@192.168.116.200:554/Streaming/Channels/103
+
+
+
+###
+# @name delStreamProxy_Local
+GET {{local_zlm_url}}/index/api/delStreamProxy
+    ?{{base_params}}
+    &key=__defaultVhost__/h265/ch1/sub/av_stream
+   
+   
    
 
 ###
@@ -21,6 +45,24 @@ GET {{base_zlm_url}}/index/api/addStreamProxy
     # &url=rtsp://{{auth_info}}@192.168.116.200:554/Streaming/Channels/103
 
 
+###
+# @name addStreamProxy_103_ARM
+GET {{arm_zlm_url}}/index/api/addStreamProxy
+    ?{{base_params}}
+    &app=Streaming
+    &stream=Channels/107
+    &url=rtsp://admin:cdtye123456@192.168.116.200:554/Streaming/Channels/103
+
+
+###
+# @name getMediaList_ARM
+GET {{arm_zlm_url}}/index/api/getMediaList
+    ?{{base_params}}
+
+###
+# @name getMediaList_local
+GET {{local_zlm_url}}/index/api/getMediaList
+    ?{{base_params}}
 
 ###
 # @name addStreamProxy_101

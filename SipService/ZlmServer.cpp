@@ -123,3 +123,8 @@ int ZlmServer::FixedRtpPort()
 {
 	return _info->SinglePortMode ? _info->RtpPort : -1;
 }
+
+int ZlmServer::MaxPlayWaitTime()
+{
+	return _info->PlayWait;
+}

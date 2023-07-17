@@ -152,7 +152,8 @@ int EventHandlerManager::on_exosip_call_message_new(const SipEvent::Ptr& event)
 	// ´òÓ¡message
 	std::string reqid;
 	osip_generic_param_t* tag = nullptr;
-	osip_to_get_tag(event->exosip_event->request->from, &tag);
+	//osip_to_get_tag(event->exosip_event->request->from, &tag);
+	osip_uri_param_get_byname(&event->exosip_event->request->from->gen_params, (char*)"tag", &tag);
 	if (nullptr == tag || nullptr == tag->gvalue) {
 		reqid = "";
 	}

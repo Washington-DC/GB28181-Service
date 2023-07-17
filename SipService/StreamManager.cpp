@@ -67,10 +67,10 @@ bool CallSession::IsConnected()
 }
 
 
-bool CallSession::WaitForStreamReady()
+bool CallSession::WaitForStreamReady(int seconds)
 {
 	std::unique_lock<std::mutex> lk(_mutex);
-	auto status = _cv.wait_for(lk, std::chrono::seconds(6));
+	auto status = _cv.wait_for(lk, std::chrono::seconds(seconds));
 	if (status == std::cv_status::timeout)
 	{
 		return false;

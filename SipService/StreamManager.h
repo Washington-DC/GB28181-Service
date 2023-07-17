@@ -66,7 +66,7 @@ public:
 	void SetConnected(bool flag);
 	bool IsConnected();
 
-	bool WaitForStreamReady();
+	bool WaitForStreamReady(int seconds = 6);
 	void NotifyStreamReady();
 
 private:
