@@ -217,7 +217,7 @@ std::vector<Device::Ptr> DbManager::GetDeviceList()
 		device->SetManufacturer(iter.get<char const*>(6));
 		device->SetModel(iter.get<char const*>(7));
 		device->SetStreamIP(iter.get<char const*>(8));
-		device->SetChannelCount(iter.get<int>(9));
+		device->SetChannelCount(/*iter.get<int>(9)*/0);
 		device->SetParentID(iter.get<char const*>(10));
 		device->UpdateRegistTime(iter.get<long long>(11));
 		device->UpdateLastTime(iter.get<long long>(12));

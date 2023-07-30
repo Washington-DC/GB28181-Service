@@ -538,8 +538,9 @@ HttpServer::HttpServer()
 
 			if (info.App == "rtp")
 			{
-				toolkit::EventPollerPool::Instance().getExecutor()->async([this,info]()
+				auto task = toolkit::EventPollerPool::Instance().getExecutor()->async([this,info]()
 					{
+						//∑¢ÀÕINVITE«Î«Û
 						auto pos = info.Stream.find_first_of('_');
 						if (pos != std::string::npos)
 						{
@@ -565,6 +566,7 @@ HttpServer::HttpServer()
 							}
 						}
 					});
+
 				return _mk_response(0, "", "success");
 			}
 			return _mk_response(2, "", "stream app not supported");
