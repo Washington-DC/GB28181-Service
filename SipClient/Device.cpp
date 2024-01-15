@@ -870,11 +870,11 @@ void SipDevice::on_in_subscription_new(eXosip_event_t* event)
 		eXosip_insubscription_send_answer(_sip_context, event->tid, 200, answer);
 		_subscription_dialog_id = event->did;
 
-		if (!_logout) {
-			if (_subscription_thread == nullptr) {
-				_subscription_thread = std::make_shared<std::thread>(&SipDevice::mobile_position_task, this);
-			}
-		}
+		//if (!_logout) {
+		//	if (_subscription_thread == nullptr) {
+		//		_subscription_thread = std::make_shared<std::thread>(&SipDevice::mobile_position_task, this);
+		//	}
+		//}
 	}
 }
 
