@@ -33,17 +33,23 @@ struct DeviceInfo {
     std::vector<std::shared_ptr<ChannelInfo>> Channels;
 };
 
-struct SessinInfo {
+struct SessionInfo {
+    int32_t DialogID; //»á»°ID
     std::string ID;
     std::string SSRC;
     std::string TargetIP;
     int TargetPort;
     int LocalPort;
     bool UseTcp = false;
+
+    bool Playback = false;
+    std::string StartTime;
+    std::string EndTime;
+
     std::shared_ptr<ChannelInfo> Channel = nullptr;
 
     std::string to_string() {
         return fmt::format(
-            "ID:{}\nSSRC:{}\nDstIP:{}\nDstPort:{}\nLocalPort:{}", ID, SSRC, TargetIP, TargetPort, LocalPort);
+            "DialogID:{}\nID:{}\nSSRC:{}\nDstIP:{}\nDstPort:{}\nLocalPort:{}", DialogID, ID, SSRC, TargetIP, TargetPort, LocalPort);
     }
 };

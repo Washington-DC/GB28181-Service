@@ -33,6 +33,12 @@
     <ClCompile Include="HttpClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="HttpServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FileTime.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -51,6 +57,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="HttpClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FileTime.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

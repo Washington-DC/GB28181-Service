@@ -1,6 +1,5 @@
+#include "pch.h"
 #include "FileTime.h"
-
-
 
 namespace toolkit {
 CFileTimeSpan::CFileTimeSpan()

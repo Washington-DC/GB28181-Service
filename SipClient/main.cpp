@@ -5,6 +5,7 @@
 #include "ConfigManager.h"
 #include "Device.h"
 #include "HttpClient.h"
+#include "HttpServer.h"
 
 int main() {
     google::InitGoogleLogging("");
@@ -22,6 +23,9 @@ int main() {
     auto sip_server_info = ConfigManager::GetInstance()->GetSipServerInfo();
     auto media_server_info = ConfigManager::GetInstance()->GetMediaServerInfo();
     auto device_infos = ConfigManager::GetInstance()->GetAllDeviceInfo();
+
+    auto f = HttpServer::GetInstance()->Start(ConfigManager::GetInstance()->GetHttpPort());
+
     HttpClient::GetInstance()->Init(media_server_info);
     std::vector<std::shared_ptr<SipDevice>> devices;
     for (auto &&info : device_infos) {

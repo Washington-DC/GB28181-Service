@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\depends\cpr\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\depends\crow;..\depends\boost-1.75\include;..\depends\sip5.3\include;..\depends\cpr\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\sip5.3\lib\release;..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip\lib\debug;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -150,7 +150,9 @@
   <ItemGroup>
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="FileTime.cpp" />
     <ClCompile Include="HttpClient.cpp" />
+    <ClCompile Include="HttpServer.cpp" />
     <ClCompile Include="NetUtils.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -163,7 +165,9 @@
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Device.h" />
+    <ClInclude Include="FileTime.h" />
     <ClInclude Include="HttpClient.h" />
+    <ClInclude Include="HttpServer.h" />
     <ClInclude Include="NetUtils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Structs.h" />

@@ -46,6 +46,13 @@ bool ConfigManager::LoadConfig(std::wstring filepath) {
 		return false;
 	}
 
+
+	//设备列表，当前软件的主要工作内容
+	auto http_server_node = root.child("HttpServer");
+	if (http_server_node) {
+		nbase::StringToInt(http_server_node.child_value("Port"), &http_port);
+	}
+
 	//设备列表，当前软件的主要工作内容
 	auto devicelist_node = root.child("DeviceList");
 	if (devicelist_node) {
