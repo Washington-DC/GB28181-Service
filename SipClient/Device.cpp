@@ -143,6 +143,13 @@ bool SipDevice::stop_sip_client() {
 	_register_success = false;
 	_is_heartbeat_running = false;
 
+	if (_subscription_thread)
+	{
+		_subscription_condition.notify_one();
+		_subscription_thread->join();
+		_subscription_thread = nullptr;
+	}
+
 	if (_heartbeat_thread) {
 		_heartbeat_condition.notify_one();
 		_heartbeat_thread->join();
