@@ -109,7 +109,7 @@ public:
 	virtual int SendCall(bool needcb = true);
 
 protected:
-	virtual const std::string make_sdp_body();
+	virtual const std::string make_sdp_body(const std::string& id);
 
 private:
 	SSRCInfo::Ptr _ssrc_info = nullptr;

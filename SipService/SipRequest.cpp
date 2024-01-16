@@ -211,25 +211,24 @@ const std::string DeviceInfoRequest::make_manscdp_body()
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-const std::string InviteRequest::make_sdp_body()
+const std::string InviteRequest::make_sdp_body(const std::string& id)
 {
 	auto text = R"(v=0
 o={} 0 0 IN IP4 {}
 s=Play
 c=IN IP4 {}
 t=0 0
-m=video {} RTP/AVP 96 98 97
+m=video {} RTP/AVP 96 97 98 99
 a=recvonly
 a=rtpmap:96 PS/90000
-a=rtpmap:98 H264/90000
 a=rtpmap:97 MPEG4/90000
-a=setup:passive
-a=connection:new
+a=rtpmap:98 H264/90000
+a=rtpmap:99 H265/90000
 y={}
-f=)";
+)";
 
 	auto server = ConfigManager::GetInstance()->GetSipServerInfo();
-	return fmt::format(text, server->ID, _device->GetStreamIP(), _device->GetStreamIP(), _ssrc_info->GetPort(), _ssrc_info->GetSSRC());
+	return fmt::format(text, id, _device->GetStreamIP(), _device->GetStreamIP(), _ssrc_info->GetPort(), _ssrc_info->GetSSRC());
 }
 
 
@@ -293,13 +292,13 @@ int InviteRequest::SendCall(bool needcb)
 	auto session = std::make_shared<CallSession>("rtp", stream_id, _ssrc_info);
 	StreamManager::GetInstance()->AddStream(session);
 
-	auto sdp_body = make_sdp_body();
+	auto sdp_body = make_sdp_body(_channel_id);
 
 	osip_message_set_body(msg, sdp_body.c_str(), sdp_body.length());
-	osip_message_set_content_type(msg, "application/sdp");
-	std::string session_expires = "1800;refresher=uac";
-	osip_message_set_header(msg, "session-expires", session_expires.c_str());
-	osip_message_set_supported(msg, "timer");
+	osip_message_set_content_type(msg, "APPLICATION/SDP");
+	//std::string session_expires = "1800;refresher=uac";
+	//osip_message_set_header(msg, "session-expires", session_expires.c_str());
+	//osip_message_set_supported(msg, "timer");
 	eXosip_lock(_exosip_context);
 	int call_id = eXosip_call_send_initial_invite(_exosip_context, msg);
 	eXosip_unlock(_exosip_context);
