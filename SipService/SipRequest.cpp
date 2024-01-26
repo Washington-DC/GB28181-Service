@@ -308,6 +308,7 @@ int InviteRequest::SendCall(bool needcb)
 		LOG(INFO) << "eXosip_call_send_initial_invite: " << call_id;
 	}
 	session->SetCallID(call_id);
+	session->exosip_context = _exosip_context;
 	LOG(INFO) << "==================================SDP: \n" << sdp_body;
 
 	if (needcb)

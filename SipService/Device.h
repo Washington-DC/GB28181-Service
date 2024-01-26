@@ -163,6 +163,8 @@ public:
 	nlohmann::json toJson();
 	std::string toString();
 
+	eXosip_t* exosip_context = nullptr;
+
 private:
 
 	std::string _device_id;

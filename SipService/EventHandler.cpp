@@ -131,6 +131,10 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			device->SetStatus(1);
 			device->UpdateRegistTime();
 			device->UpdateLastTime();
+
+			//将设备和sip context关联，用于后期判断处理方便。
+			device->exosip_context = e->exosip_context;
+
 			DbManager::GetInstance()->AddOrUpdateDevice(device, find);
 
 			{

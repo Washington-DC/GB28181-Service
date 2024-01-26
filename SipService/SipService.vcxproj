@@ -72,8 +72,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\depends\sqlite\include;..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip5.3\include;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\Code\Work\av\libosip2-5.2.1.tar\exosip\platform\vsnet\v143\x64\Debug;..\depends\cpr\lib;..\depends\sqlite\lib;..\depends\oatpp\lib\oatpp-1.3.0\debug;..\depends\curl\lib;..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;..\depends\sip5.3\lib\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\sqlite\include;..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\cpr\lib;..\depends\sqlite\lib;..\depends\curl\lib;..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -117,7 +117,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;ENABLE_MAIN_SOCKET;HAVE_SYS_EPOLL_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -201,6 +201,18 @@
   <ItemGroup>
     <ProjectReference Include="..\base\base.vcxproj">
       <Project>{8d9a6595-717a-41c8-b468-0011a72be3d1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libexosip2-5.3.0\exosip\platform\vsnet\eXosip.vcxproj">
+      <Project>{4ea67539-9ee9-4065-bd39-87e517fd8262}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libexosip2-5.3.0\exosip\platform\vsnet\libcares.vcxproj">
+      <Project>{6bce0e64-5a72-4243-b385-88e62c8e398a}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libexosip2-5.3.0\osip\platform\vsnet\osip2.vcxproj">
+      <Project>{85255507-5d16-4218-85e2-f683bb2f04da}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libexosip2-5.3.0\osip\platform\vsnet\osipparser2.vcxproj">
+      <Project>{44f46b7e-0e51-4304-9735-330dfbab41e5}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

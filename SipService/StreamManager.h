@@ -25,6 +25,8 @@ public:
 
 	nlohmann::json toJson();
 
+	eXosip_t* exosip_context = nullptr;
+
 private:
 	std::string _app;
 	std::string _stream_id;

@@ -40,8 +40,13 @@ int main()
 	auto config = ConfigManager::GetInstance()->GetSipServerInfo();
 	SSRCConfig::GetInstance()->SetPrefix(config->ID.substr(3, 5));
 
-	SipServer::GetInstance()->Init(config->ID, config->Port);
-	SipServer::GetInstance()->Start();
+	SipServer sip_tcp_server, sip_udp_server;
+
+	sip_tcp_server.Init(config->ID, config->Port, true);
+	//sip_udp_server.Init(config->ID, config->Port, false);
+	sip_tcp_server.Start();
+	//sip_udp_server.Start();
+
 	HttpServer::GetInstance()->Start(ConfigManager::GetInstance()->GetHttpPort());
 	DeviceManager::GetInstance()->Start();
 #ifdef _DEBUG
@@ -56,7 +61,8 @@ int main()
 	s_exit.get_future().wait();
 #endif
 
-	SipServer::GetInstance()->Stop();
+	sip_tcp_server.Stop();
+	//sip_udp_server.Stop();
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

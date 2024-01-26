@@ -135,8 +135,10 @@ HttpServer::HttpServer()
 				}
 				else
 				{
-					eXosip_call_terminate(SipServer::GetInstance()->GetSipContext(),
+					eXosip_call_terminate(session->exosip_context,
 						session->GetCallID(), session->GetDialogID());
+					/*eXosip_call_terminate(SipServer::GetInstance()->GetSipContext(),
+						session->GetCallID(), session->GetDialogID());*/
 					session->SetConnected(false);
 
 					return _mk_response(0, "", "ok");
@@ -157,7 +159,7 @@ HttpServer::HttpServer()
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
 				if (session && session->IsConnected())
 				{
-					eXosip_call_terminate(SipServer::GetInstance()->GetSipContext(),
+					eXosip_call_terminate(session->exosip_context,
 						session->GetCallID(), session->GetDialogID());
 					session->SetConnected(false);
 				}
@@ -165,7 +167,6 @@ HttpServer::HttpServer()
 			return _mk_response(0, "", "ok");
 		}
 	);
-
 
 
 	CROW_BP_ROUTE(_api_blueprint, "/preset")([this](const crow::request& req)
@@ -199,8 +200,7 @@ HttpServer::HttpServer()
 				return _mk_response(1, "", "channel not found");
 			}
 
-			auto ctx = SipServer::GetInstance()->GetSipContext();
-			auto request = std::make_shared<PresetCtlRequest>(ctx, device, channel_id, cmd, 0, preset, 0);
+			auto request = std::make_shared<PresetCtlRequest>(device->exosip_context, device, channel_id, cmd, 0, preset, 0);
 
 			request->SendMessage();
 
@@ -230,8 +230,8 @@ HttpServer::HttpServer()
 				return _mk_response(1, "", "channel not found");
 			}
 
-			auto ctx = SipServer::GetInstance()->GetSipContext();
-			auto request = std::make_shared<PresetRequest>(ctx, device, channel_id);
+			//auto ctx = SipServer::GetInstance()->GetSipContext();
+			auto request = std::make_shared<PresetRequest>(device->exosip_context, device, channel_id);
 			request->SendMessage();
 
 			request->SetWait();
@@ -283,7 +283,7 @@ HttpServer::HttpServer()
 				return _mk_response(1, "", "channel not found");
 			}
 
-			auto ctx = SipServer::GetInstance()->GetSipContext();
+			auto ctx = device->exosip_context;
 			std::shared_ptr<MessageRequest> request = nullptr;
 			if (strcmp(command, "left") == 0)
 				request = std::make_shared<PtzCtlRequest>(ctx, device, channel_id, 1, 0, 0, speed, 0);
@@ -518,7 +518,7 @@ HttpServer::HttpServer()
 			if (stream)
 			{
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
-				eXosip_call_terminate(SipServer::GetInstance()->GetSipContext(),
+				eXosip_call_terminate(session->exosip_context,
 					session->GetCallID(), session->GetDialogID());
 				session->SetConnected(false);
 			}
@@ -630,8 +630,7 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 		}
 	}
 
-	request = std::make_shared<InviteRequest>(
-		SipServer::GetInstance()->GetSipContext(), device, channel_id);
+	request = std::make_shared<InviteRequest>(device->exosip_context, device, channel_id);
 
 	request->SendCall();
 
@@ -653,7 +652,7 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 }
 
 
-void HttpServer::Start(int port)
+std::future<void> HttpServer::Start(int port)
 {
-	_app.loglevel(crow::LogLevel::Critical).port(port).multithreaded().run_async();
+	return _app.loglevel(crow::LogLevel::Critical).port(port).multithreaded().run_async();
 }

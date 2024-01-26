@@ -1,10 +1,11 @@
 #include "pch.h"
 #include "SipServer.h"
 
-bool SipServer::Init(const std::string& sip_id, uint16_t port)
+bool SipServer::Init(const std::string& sip_id, uint16_t port, bool use_tcp)
 {
 	_sip_id = sip_id;
 	_sip_port = port;
+	_listen_tcp = use_tcp;
 
 	_sip_context = eXosip_malloc();
 	if (OSIP_SUCCESS != eXosip_init(_sip_context)) {
@@ -21,7 +22,7 @@ bool SipServer::Init(const std::string& sip_id, uint16_t port)
 
 bool SipServer::Start()
 {
-	auto ret = eXosip_listen_addr(_sip_context, IPPROTO_UDP, NULL, _sip_port, AF_INET, 0);
+	auto ret = eXosip_listen_addr(_sip_context, _listen_tcp ? IPPROTO_TCP : IPPROTO_UDP, NULL, _sip_port, AF_INET, 0);
 	if (ret != OSIP_SUCCESS)
 	{
 		LOG(ERROR) << "eXosip_listen_addr";
@@ -68,10 +69,13 @@ void SipServer::RecvEventThread()
 
 		if (event == nullptr)
 		{
+			continue;
+		}
+
+		{
 			eXosip_lock(_sip_context);
 			eXosip_automatic_action(_sip_context);
 			eXosip_unlock(_sip_context);
-			continue;
 		}
 
 		auto sip_event = _new_event(_sip_context, event);

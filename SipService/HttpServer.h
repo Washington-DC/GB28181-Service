@@ -21,7 +21,7 @@ class HttpServer
 {
 public:
 	SINGLETON_DEFINE(HttpServer);
-	void Start(int port);
+	std::future<void> Start(int port);
 
 private:
 	HttpServer();
