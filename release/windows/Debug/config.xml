@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Config>
+	<SipServer>
+		<IP>192.168.119.57</IP>
+		<Port>5060</Port>
+		<Password>12345678</Password>
+		<ID>34020000002000000001</ID>
+	</SipServer>
+	<MediaServer>
+		<IP>127.0.0.1</IP>
+		<Port>10080</Port>
+		<Secret>035c73f7-bb6b-4889-a715-d9eb2d1925cc</Secret>
+	</MediaServer>
+	<HttpServer>
+		<Port>28080</Port>
+	</HttpServer>
+	<DeviceList>
+		<Device>
+			<IP>192.168.116.125</IP>
+			<Port>35560</Port>
+			<ID>14020000002000000001</ID>
+			<Protocol>TCP</Protocol>
+			<Name>IP Camera</Name>
+			<Manufacturer>Test</Manufacturer>
+			<HeartbeatInterval>5</HeartbeatInterval>
+			<Catalog>
+				<Channel>
+					<Name>Test</Name>
+					<ID>14020000002000000001</ID>
+					<URI>Streaming/Channels/101</URI>
+				</Channel>
+			</Catalog>
+		</Device>
+	</DeviceList>
+</Config>
