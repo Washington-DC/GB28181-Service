@@ -40,11 +40,6 @@ using namespace std::chrono_literals;
 namespace fs = std::filesystem;
 
 #ifdef _WIN32
-#define sprintf_s sprintf
-#endif
-
-
-#ifdef _WIN32
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Crypt32.lib")
