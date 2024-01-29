@@ -11,7 +11,6 @@
 
 #include "base/base_export.h"
 #include "base/hardware/cpu.h"
-#include "base/synchronization/lock.h"
 #include "base/time/time.h"
 
 #if defined(COMPILER_MSVC)
@@ -168,7 +167,6 @@ DWORD last_seen_now = 0;
 // easy to use a Singleton without even knowing it, and that may lead to many
 // gotchas). Its impact on startup time should be negligible due to low-level
 // nature of time code.
-nbase::NLock rollover_lock;
 
 // We use timeGetTime() to implement TimeTicks::Now().  This can be problematic
 // because it returns the number of milliseconds since Windows has started,
@@ -177,7 +175,6 @@ nbase::NLock rollover_lock;
 // 49 days.
 TimeDelta RolloverProtectedNow()
 {
-	nbase::NAutoLock locked(&rollover_lock);
 	// We should hold the lock while calling tick_function to make sure that
 	// we keep last_seen_now stay correctly in sync.
 	DWORD now = timeGetTime();

@@ -677,6 +677,62 @@ std::string UTF32ToUTF8(const UTF32Char *utf32, size_t length)
 }
 
 
+std::basic_string<UTF32Char> UTF16ToUTF32(const UTF16Char* utf16, size_t length)
+{
+	UTF32Char output[4096];
+	const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
+	const UTF16* src_end = src_begin + length;
+	UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
+
+	std::basic_string<UTF32Char> utf32;
+	while (src_begin < src_end)
+	{
+		ConversionResult result = ConvertUTF16toUTF32(&src_begin,
+													  src_end,
+													  &dst_begin,
+													  dst_begin + COUNT_OF(output),
+													  lenientConversion);
+
+		utf32.append(output, dst_begin - reinterpret_cast<UTF32*>(output));
+		dst_begin = reinterpret_cast<UTF32*>(output);
+		if (result == sourceIllegal || result == sourceExhausted)
+		{
+			utf32.clear();
+			break;
+		}
+	}
+
+	return utf32;
+}
+
+std::wstring UTF32ToUTF16(const UTF32Char* utf32, size_t length)
+{
+	UTF16Char output[8192];
+	const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
+	const UTF32* src_end = src_begin + length;
+	UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
+
+	std::wstring utf16;
+	while (src_begin < src_end)
+	{
+		ConversionResult result = ConvertUTF32toUTF16(&src_begin,
+													  src_end,
+													  &dst_begin,
+													  dst_begin + COUNT_OF(output),
+													  lenientConversion);
+
+		utf16.append(output, dst_begin - reinterpret_cast<UTF16*>(output));
+		dst_begin = reinterpret_cast<UTF16*>(output);
+		if (result == sourceIllegal || result == sourceExhausted)
+		{
+			utf16.clear();
+			break;
+		}
+	}
+
+	return utf16;
+}
+
 std::wstring UTF8ToUTF16(const std::string &utf8)
 {
 	return UTF8ToUTF16(utf8.c_str(), utf8.length());

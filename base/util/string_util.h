@@ -61,6 +61,8 @@ BASE_EXPORT char HexCharToInt8(char c);
 // the following functions are used to convert encodings in utf-8、utf-16 and utf-32
 BASE_EXPORT std::wstring UTF8ToUTF16(const UTF8Char *utf8, size_t length);
 BASE_EXPORT std::string UTF16ToUTF8(const UTF16Char *utf16, size_t length);
+BASE_EXPORT std::basic_string<UTF32Char> UTF16ToUTF32(const UTF16Char* utf16, size_t length);
+BASE_EXPORT std::wstring UTF32ToUTF16(const UTF32Char* utf32, size_t length);
 BASE_EXPORT std::basic_string<UTF32Char> UTF8ToUTF32(const UTF8Char *utf8, size_t length);
 BASE_EXPORT std::string UTF32ToUTF8(const UTF32Char *utf32, size_t length);
 BASE_EXPORT std::wstring UTF8ToUTF16(const std::string &utf8);

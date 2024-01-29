@@ -36,11 +36,7 @@
 #undef min
 #undef max
 #else
-
 #endif
-
-
-#define WITH_SQLITE
 
 
 #define GLOG_NO_ABBREVIATED_SEVERITIES

@@ -55,7 +55,7 @@ std::string ToMbcsString(const std::string &input)
 std::string GetCurrentModuleDirectory()
 {
 #ifdef _WIN32
-	return nbase::win32::GetCurrentModuleDirectory(input);
+	return nbase::win32::GetCurrentModuleDirectoryA();
 #else
 	char buffer[1024] = {};
 	readlink("/proc/self/exe", buffer, sizeof(buffer));

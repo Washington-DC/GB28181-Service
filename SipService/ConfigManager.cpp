@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "ConfigManager.h"
 #include "Utils.h"
 

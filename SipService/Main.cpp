@@ -24,7 +24,7 @@ int main()
 
 	google::InitGoogleLogging("");
 	google::SetStderrLogging(google::GLOG_INFO);
-	google::SetLogDestination(google::GLOG_INFO, (log_path / "/").lexically_normal().c_str());
+	google::SetLogDestination(google::GLOG_INFO, (log_path / "/").lexically_normal().string().c_str());
 	google::SetLogFilenameExtension(".log");
 	google::EnableLogCleaner(3);
 
@@ -43,12 +43,14 @@ int main()
 	SSRCConfig::GetInstance()->SetPrefix(config->ID.substr(3, 5));
 
 	SipServer sip_tcp_server, sip_udp_server;
-
-	sip_tcp_server.Init(config->ID, config->Port, true);
+	
 	sip_udp_server.Init(config->ID, config->Port, false);
-	sip_tcp_server.Start();
 	sip_udp_server.Start();
 
+#ifndef _WIN32
+	sip_tcp_server.Init(config->ID, config->Port, true);
+	sip_tcp_server.Start();
+#endif
 	HttpServer::GetInstance()->Start(ConfigManager::GetInstance()->GetHttpPort());
 	DeviceManager::GetInstance()->Start();
 #ifdef _DEBUG
@@ -63,7 +65,9 @@ int main()
 	s_exit.get_future().wait();
 #endif
 
+#ifndef _WIN32
 	sip_tcp_server.Stop();
+#endif
 	sip_udp_server.Stop();
 }
 

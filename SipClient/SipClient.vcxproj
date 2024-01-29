@@ -76,8 +76,8 @@
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\depends\cpr\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;..\depends\sip\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\release;..\depends\sip\lib\release;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\crow;..\depends\boost-1.75\include;..\depends\cpr\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\release;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

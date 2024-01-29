@@ -8,7 +8,7 @@
 #define PCH_H
 
 // 添加要在此处预编译的标头
-#define WIN32_LEAN_AND_MEAN 
+#define WIN32_LEAN_AND_MEAN
 
 #include <filesystem>
 #include <iostream>
@@ -17,7 +17,9 @@
 #include <future>
 #include <csignal>
 
+#ifdef _WIN32
 #include <WinSock2.h>
+#endif
 
 #define GLOG_NO_ABBREVIATED_SEVERITIES
 #define GOOGLE_GLOG_DLL_DECL
@@ -31,6 +33,9 @@
 
 using namespace std::string_literals;
 using namespace std::chrono_literals;
+
+
+#ifdef _WIN32
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Crypt32.lib")
@@ -52,6 +57,8 @@ using namespace std::chrono_literals;
 #pragma comment(lib, "pugixml.lib")
 #pragma comment(lib, "glog.lib")
 #pragma comment(lib, "fmt.lib")
+#endif
+
 #endif
 
 #endif // PCH_H
