@@ -68,7 +68,7 @@
 #define ARCH_CPU_32_BITS    1
 #define WCHAR_T_IS_UNSIGNED 1
 #else
-#error Please add support for your architecture in build/build_config.h
+// #error Please add support for your architecture in build/build_config.h
 #endif
 
 // Type detection for wchar_t.

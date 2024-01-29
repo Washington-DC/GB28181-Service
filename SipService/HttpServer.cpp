@@ -248,7 +248,7 @@ HttpServer::HttpServer()
 				for (auto&& p : preset_list)
 				{
 					doc.push_back({
-						{"name",nbase::win32::MBCSToUtf8(p.second)},
+						{"name",ToUtf8String(p.second)},
 						{"id",p.first}
 						});
 				}

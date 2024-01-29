@@ -21,7 +21,7 @@
 #include <fcntl.h>
 #include <sys/errno.h>
 #include <sys/stat.h>
-
+#include <unistd.h>
 namespace nbase
 {
 

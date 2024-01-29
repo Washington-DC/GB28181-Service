@@ -86,7 +86,7 @@ std::string Channel::GetChannelID() const
 
 void Channel::SetName(const std::string& name)
 {
-	_name = nbase::win32::Utf8ToMBCS(name);
+	_name = ToMbcsString(name);
 }
 
 std::string Channel::GetName() const
@@ -96,7 +96,7 @@ std::string Channel::GetName() const
 
 void Channel::SetNickName(const std::string& name)
 {
-	_nickname = nbase::win32::Utf8ToMBCS(name);
+	_nickname = ToMbcsString(name);
 }
 
 std::string Channel::GetNickName() const
@@ -106,7 +106,7 @@ std::string Channel::GetNickName() const
 
 void Channel::SetManufacturer(const std::string& manufacturer)
 {
-	_manufacturer = nbase::win32::Utf8ToMBCS(manufacturer);
+	_manufacturer = ToMbcsString(manufacturer);
 }
 
 std::string Channel::GetManufacturer() const
@@ -146,7 +146,7 @@ std::string Channel::GetCivilCode() const
 
 void Channel::SetAddress(const std::string& address)
 {
-	_address = nbase::win32::Utf8ToMBCS(address);
+	_address = ToMbcsString(address);
 }
 
 std::string Channel::GetAddress() const
@@ -261,8 +261,8 @@ nlohmann::json Channel::toJson()
 	return nlohmann::json
 	{
 		{"id",_channel_id},
-		{"name",nbase::win32::MBCSToUtf8(_name)},
-		{"nickname",nbase::win32::MBCSToUtf8(_nickname.empty() ? _name : _nickname)},
+		{"name",ToUtf8String(_name)},
+		{"nickname",ToUtf8String(_nickname.empty() ? _name : _nickname)},
 		{"manufacturer",_manufacturer},
 		{"model",_model},
 		{"status",_status},
@@ -360,7 +360,7 @@ std::string Device::GetName() const
 
 void Device::SetName(const std::string& name)
 {
-	_name = nbase::win32::Utf8ToMBCS(name);
+	_name = ToMbcsString(name);
 }
 
 std::string Device::GetNickName() const
@@ -370,7 +370,7 @@ std::string Device::GetNickName() const
 
 void Device::SetNickName(const std::string& name)
 {
-	_nickname = nbase::win32::Utf8ToMBCS(name);
+	_nickname = ToMbcsString(name);
 }
 
 std::string Device::GetIP() const
@@ -405,7 +405,7 @@ void Device::SetTransport(const std::string& transport)
 
 void Device::SetManufacturer(const std::string& manufacturer)
 {
-	_manufacturer = nbase::win32::Utf8ToMBCS(manufacturer);
+	_manufacturer = ToMbcsString(manufacturer);
 }
 
 std::string Device::GetManufacturer() const
@@ -503,8 +503,8 @@ nlohmann::json Device::toJson()
 	return nlohmann::json
 	{
 		{"id",_device_id},
-		{"name",nbase::win32::MBCSToUtf8(_name)},
-		{"nickname",nbase::win32::MBCSToUtf8(_nickname.empty() ? _name : _nickname)},
+		{"name",ToUtf8String(_name)},
+		{"nickname",ToUtf8String(_nickname.empty() ? _name : _nickname)},
 		{"ip",_ip},
 		{"port",_port},
 		{"channel_count",_channel_count},

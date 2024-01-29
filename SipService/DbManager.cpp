@@ -6,7 +6,7 @@ bool DbManager::Init(const std::string& db_path)
 {
 	try
 	{
-		_db = std::make_shared<sqlite3pp::database>(nbase::win32::MBCSToUtf8(db_path).c_str());
+		_db = std::make_shared<sqlite3pp::database>(ToUtf8String(db_path).c_str());
 		return _create_tables();
 	}
 	catch (const std::exception& e)
@@ -67,8 +67,8 @@ bool DbManager::AddOrUpdateDevice(Device::Ptr device, bool update)
 
 	sqlite3pp::command cmd(*_db, text.c_str());
 	cmd.bind(1, device->GetDeviceID(), sqlite3pp::copy);
-	cmd.bind(2, nbase::win32::MBCSToUtf8(device->GetName()), sqlite3pp::copy);
-	cmd.bind(3, nbase::win32::MBCSToUtf8(device->GetNickName()), sqlite3pp::copy);
+	cmd.bind(2, ToUtf8String(device->GetName()), sqlite3pp::copy);
+	cmd.bind(3, ToUtf8String(device->GetNickName()), sqlite3pp::copy);
 	cmd.bind(4, device->GetIP(), sqlite3pp::copy);
 	cmd.bind(5, device->GetPort(), sqlite3pp::copy);
 	cmd.bind(6, device->GetTransport(), sqlite3pp::copy);
@@ -159,8 +159,8 @@ bool DbManager::AddOrUpdateChannel(const std::string& device_id, Channel::Ptr ch
 		sqlite3pp::command cmd(*_db.get(), text.c_str());
 		cmd.bind(1, channel->GetChannelID(), sqlite3pp::copy);
 		cmd.bind(2, device_id, sqlite3pp::copy);
-		cmd.bind(3, nbase::win32::MBCSToUtf8(channel->GetName()), sqlite3pp::copy);
-		cmd.bind(4, nbase::win32::MBCSToUtf8(channel->GetNickName()), sqlite3pp::copy);
+		cmd.bind(3, ToUtf8String(channel->GetName()), sqlite3pp::copy);
+		cmd.bind(4, ToUtf8String(channel->GetNickName()), sqlite3pp::copy);
 		cmd.bind(5, channel->GetIpAddress(), sqlite3pp::copy);
 		cmd.bind(6, channel->GetManufacturer(), sqlite3pp::copy);
 		cmd.bind(7, channel->GetModel(), sqlite3pp::copy);
@@ -209,8 +209,8 @@ std::vector<Device::Ptr> DbManager::GetDeviceList()
 	{
 		auto device = std::make_shared<Device>();
 		device->SetDeviceID(iter.get<char const*>(0));
-		device->SetName(nbase::win32::Utf8ToMBCS(iter.get<char const*>(1)));
-		device->SetNickName(nbase::win32::Utf8ToMBCS(iter.get<char const*>(2)));
+		device->SetName(ToMbcsString(iter.get<char const*>(1)));
+		device->SetNickName(ToMbcsString(iter.get<char const*>(2)));
 		device->SetIP(iter.get<char const*>(3));
 		device->SetPort(iter.get<char const*>(4));
 		device->SetTransport(iter.get<char const*>(5));
@@ -256,8 +256,8 @@ std::vector<Channel::Ptr> DbManager::GetChannelList(const std::string& device_id
 	{
 		auto channel = std::make_shared<Channel>();
 		channel->SetChannelID(iter.get<char const*>(0));
-		channel->SetName(nbase::win32::Utf8ToMBCS(iter.get<char const*>(1)));
-		channel->SetNickName(nbase::win32::Utf8ToMBCS(iter.get<char const*>(2)));
+		channel->SetName(ToMbcsString(iter.get<char const*>(1)));
+		channel->SetNickName(ToMbcsString(iter.get<char const*>(2)));
 		channel->SetIpAddress(iter.get<char const*>(3));
 		channel->SetManufacturer(iter.get<char const*>(4));
 		channel->SetModel(iter.get<char const*>(5));

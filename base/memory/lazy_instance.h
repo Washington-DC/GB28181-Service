@@ -5,7 +5,6 @@
 #define BASE_MEMORY_LAZY_INSTANCE_H_
 
 #include "base/base_config.h"
-#include "base/third_party/chrome/atomicops.h"
 #include "base/thread/thread.h"
 #include "base/util/at_exit.h"
 //#include "base/log/log.h"

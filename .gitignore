@@ -368,3 +368,7 @@ SipDevice.bak
 
 test.http
 /Test_Upload
+
+
+build
+.vscode

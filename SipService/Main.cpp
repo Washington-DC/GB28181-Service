@@ -10,30 +10,32 @@
 #include "SSRC_Config.h"
 #include "DbManager.h"
 #include "DeviceManager.h"
+#include "Utils.h"
 
 int main()
 {
-	auto root = nbase::win32::GetCurrentModuleDirectoryA();
-	std::string log_path = root + "logs";
-	std::string db_path = root + "record.db";
-	std::string config_file = root + "server.xml";
+	auto root = fs::path(GetCurrentModuleDirectory());
+	auto log_path = root /"logs" ;
+	auto db_path = root / "record.db";
+	auto config_file = root / "server.xml";
 
-	nbase::win32::CreateDirectoryRecursively(nbase::win32::MBCSToUnicode(log_path).c_str());
+	fs::create_directories(log_path);
+	// nbase::win32::CreateDirectoryRecursively(nbase::win32::MBCSToUnicode(log_path).c_str());
 
 	google::InitGoogleLogging("");
 	google::SetStderrLogging(google::GLOG_INFO);
-	google::SetLogDestination(google::GLOG_INFO, log_path.append("\\").c_str());
+	google::SetLogDestination(google::GLOG_INFO, (log_path / "/").lexically_normal().c_str());
 	google::SetLogFilenameExtension(".log");
 	google::EnableLogCleaner(3);
 
 	FLAGS_logbufsecs = 1;
 	FLAGS_colorlogtostderr = true;
 
-	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file);
+	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file.string());
 	if (!ret)
 		return 0;
 
-	DbManager::GetInstance()->Init(db_path);
+	DbManager::GetInstance()->Init(db_path.string());
 	ZlmServer::GetInstance()->Init(ConfigManager::GetInstance()->GetMediaServerInfo());
 
 	DeviceManager::GetInstance()->Init();
@@ -43,9 +45,9 @@ int main()
 	SipServer sip_tcp_server, sip_udp_server;
 
 	sip_tcp_server.Init(config->ID, config->Port, true);
-	//sip_udp_server.Init(config->ID, config->Port, false);
+	sip_udp_server.Init(config->ID, config->Port, false);
 	sip_tcp_server.Start();
-	//sip_udp_server.Start();
+	sip_udp_server.Start();
 
 	HttpServer::GetInstance()->Start(ConfigManager::GetInstance()->GetHttpPort());
 	DeviceManager::GetInstance()->Start();
@@ -62,7 +64,7 @@ int main()
 #endif
 
 	sip_tcp_server.Stop();
-	//sip_udp_server.Stop();
+	sip_udp_server.Stop();
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

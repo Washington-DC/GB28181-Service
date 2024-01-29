@@ -21,7 +21,14 @@
 #include <mutex>
 #include <unordered_map>
 #include <random>
+#include <filesystem>
+
+#ifdef _WIN32
 #include <WinSock2.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#endif
 
 
 #ifdef _WIN32
@@ -53,6 +60,10 @@
 using namespace std::string_literals;
 using namespace std::chrono_literals;
 
+namespace fs = std::filesystem;
+
+#ifdef _WIN32
+
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Dnsapi.lib")
@@ -75,6 +86,8 @@ using namespace std::chrono_literals;
 #pragma comment(lib, "pugixml.lib")
 #pragma comment(lib, "glog.lib")
 #pragma comment(lib, "fmt.lib")
+#endif
+
 #endif
 
 

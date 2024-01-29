@@ -9,7 +9,7 @@
 #define BASE_BASE_CONFIG_H_
 
 #include "port.h"
-
+#include <string.h>
 #if defined(OS_WIN)
 #include "build/winsdk_config.h"
 #include <windows.h>

@@ -50,5 +50,5 @@ std::string SSRCConfig::GenerateSSRC(SSRCConfig::Mode mode)
 	//std::mt19937 gen(rd());
 	//std::uniform_int_distribution<> dis(1, 9999);
 	//return fmt::format("{:01d}{}{:04d}", mode, _prefix, dis(gen));
-	return fmt::format("{:01d}{}{:04d}", mode, _prefix, _ssrc_idx++);
+	return fmt::format("{:01d}{}{:04d}", (int)mode, _prefix, _ssrc_idx++);
 }

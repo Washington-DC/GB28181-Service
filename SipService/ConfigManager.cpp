@@ -4,56 +4,56 @@
 
 bool ConfigManager::LoadConfig(std::string filepath)
 {
-	LOG(INFO) << "ÅäÖÃÎÄ¼þ½âÎö...";
+	LOG(INFO) << "é…ç½®æ–‡ä»¶è§£æž...";
 	pugi::xml_document doc;
 	auto ret = doc.load_file(filepath.c_str(), pugi::parse_full);
 	if (ret.status != pugi::status_ok)
 	{
-		LOG(ERROR) << "ÅäÖÃÎÄ¼þ½âÎöÊ§°Ü";
+		LOG(ERROR) << "é…ç½®æ–‡ä»¶è§£æžå¤±è´¥";
 		return false;
 	}
 
 	auto root = doc.child("Config");
-	// SIP ·þÎñÆ÷
+	// SIP æœåŠ¡å™¨
 	auto sip_server_node = root.child("SipServer");
 	if (sip_server_node)
 	{
 		server_info = std::make_shared<SipServerInfo>();
-		// SIP ·þÎñÆ÷IP
+		// SIP æœåŠ¡å™¨IP
 		server_info->IP = sip_server_node.child_value("IP");
-		// SIP ·þÎñÆ÷¹Ì¶¨¶Ë¿Ú
+		// SIP æœåŠ¡å™¨å›ºå®šç«¯å£
 		server_info->Port = sip_server_node.child("Port").text().as_int();
-		// SIP ·þÎñÆ÷ID
+		// SIP æœåŠ¡å™¨ID
 		server_info->ID = sip_server_node.child_value("ID");
-		// È¡IDµÄÇ°10Î»
+		// å–IDçš„å‰10ä½
 		server_info->Realm = server_info->ID.substr(0, 10);
-		// Ã¿´ÎÔËÐÐµÄÊ±ºòËæ»úÉú³É
+		// æ¯æ¬¡è¿è¡Œçš„æ—¶å€™éšæœºç”Ÿæˆ
 		server_info->Nonce = GenerateRandomString(16);
 		//LOG(INFO) << server_info->Nonce;
-		// SIP ·þÎñÆ÷¹Ì¶¨ÃÜÂë
+		// SIP æœåŠ¡å™¨å›ºå®šå¯†ç 
 		server_info->Password = sip_server_node.child_value("Password");
-		//Á÷Ã½Ìå·þÎñÆ÷¹«ÍøIP
+		//æµåª’ä½“æœåŠ¡å™¨å…¬ç½‘IP
 		server_info->ExternIP = sip_server_node.child_value("ExternIP");
 	}
 	else
 	{
-		LOG(ERROR) << "SipServer½Úµã´íÎó";
+		LOG(ERROR) << "SipServerèŠ‚ç‚¹é”™è¯¯";
 		return false;
 	}
 
-	//Á÷Ã½Ìå·þÎñ
+	//æµåª’ä½“æœåŠ¡
 	auto media_server_node = root.child("MediaServer");
 	if (media_server_node)
 	{
 		media_server_info = std::make_shared<MediaServerInfo>();
 
-		//Á÷Ã½Ìå·þÎñ IP
+		//æµåª’ä½“æœåŠ¡ IP
 		media_server_info->IP = media_server_node.child_value("IP");
-		//Á÷Ã½Ìå·þÎñ ¶Ë¿Ú
+		//æµåª’ä½“æœåŠ¡ ç«¯å£
 		media_server_info->Port = media_server_node.child("Port").text().as_int();
 
 		media_server_info->PlayWait = media_server_node.child("PlayWait").text().as_int(15);
-		//Á÷Ã½Ìå·þÎñ Èç¹û²»ÊÇ127.0.0.1µÄ»°£¬ÐèÒªÐ£ÑéSecret×Ö¶Î
+		//æµåª’ä½“æœåŠ¡ å¦‚æžœä¸æ˜¯127.0.0.1çš„è¯ï¼Œéœ€è¦æ ¡éªŒSecretå­—æ®µ
 		media_server_info->Secret = media_server_node.child_value("Secret");
 
 		media_server_info->SinglePortMode = media_server_node.child("SinglePortMode").text().as_bool();
@@ -62,24 +62,24 @@ bool ConfigManager::LoadConfig(std::string filepath)
 	}
 	else
 	{
-		LOG(ERROR) << "MediaServer½Úµã´íÎó";
+		LOG(ERROR) << "MediaServerèŠ‚ç‚¹é”™è¯¯";
 		return false;
 	}
 
 
-	//±¾µØHttp·þÎñ
+	//æœ¬åœ°HttpæœåŠ¡
 	auto http_node = root.child("Http");
 	if (http_node)
 	{
-		//Á÷Ã½Ìå·þÎñ ¶Ë¿Ú
+		//æµåª’ä½“æœåŠ¡ ç«¯å£
 		http_port = http_node.child("Port").text().as_int();
 	}
 	else
 	{
-		LOG(ERROR) << "Http½Úµã´íÎó";
+		LOG(ERROR) << "HttpèŠ‚ç‚¹é”™è¯¯";
 		return false;
 	}
 
-	LOG(INFO) << "ÅäÖÃÎÄ¼þ½âÎöÍê³É";
+	LOG(INFO) << "é…ç½®æ–‡ä»¶è§£æžå®Œæˆ";
 	return true;
 }

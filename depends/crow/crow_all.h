@@ -299,15 +299,15 @@ namespace crow
 {
     enum class LogLevel
     {
-#ifndef ERROR
-#ifndef DEBUG
-        DEBUG = 0,
-        INFO,
-        WARNING,
-        ERROR,
-        CRITICAL,
-#endif
-#endif
+// #ifndef ERROR
+// #ifndef DEBUG
+//         DEBUG = 0,
+//         INFO,
+//         WARNING,
+//         ERROR,
+//         CRITICAL,
+// #endif
+// #endif
 
         Debug = 0,
         Info,

@@ -7,7 +7,7 @@
 
 #include "base/win32/win_util.h"
 #include "platform_string_util.h"
-#include "..\util\string_util.h"
+#include "base/util/string_util.h"
 #if defined(OS_WIN)
 
 namespace nbase
