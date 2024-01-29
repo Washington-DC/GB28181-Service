@@ -1,4 +1,4 @@
-#include "pch.h"
+Ôªø#include "pch.h"
 #include "Device.h"
 #include "HttpClient.h"
 #include "HttpServer.h"
@@ -8,7 +8,8 @@ static int start_port = 20000;
 static int SN_MAX = 99999999;
 static int sn = 0;
 
-static int get_port() {
+static int get_port()
+{
 	start_port++;
 	if (start_port > 65500)
 	{
@@ -17,8 +18,10 @@ static int get_port() {
 	return start_port;
 }
 
-static int get_sn() {
-	if (sn >= SN_MAX) {
+static int get_sn()
+{
+	if (sn >= SN_MAX)
+	{
 		sn = 0;
 	}
 	sn++;
@@ -27,8 +30,8 @@ static int get_sn() {
 
 #define CALLBACK_TEMPLATE(F) (std::bind(&SipDevice::F, this, std::placeholders::_1))
 
-
-SipDevice::SipDevice(const std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info) {
+SipDevice::SipDevice(const std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info)
+{
 	this->ID = info->ID;
 	this->IP = info->IP;
 	this->Port = info->Port;
@@ -41,9 +44,11 @@ SipDevice::SipDevice(const std::shared_ptr<DeviceInfo> info, std::shared_ptr<Sip
 	this->_sip_server_info = sip_server_info;
 }
 
-bool SipDevice::init() {
+bool SipDevice::init()
+{
 	_sip_context = eXosip_malloc();
-	if (OSIP_SUCCESS != eXosip_init(_sip_context)) {
+	if (OSIP_SUCCESS != eXosip_init(_sip_context))
+	{
 		LOG(ERROR) << "eXosip_init failed";
 		return false;
 	}
@@ -53,8 +58,9 @@ bool SipDevice::init() {
 	_contact_url = fmt::format("sip:{}@{}:{}", this->ID, this->IP, this->Port);
 	_proxy_uri = fmt::format("sip:{}@{}:{}", _sip_server_info->ID, _sip_server_info->IP, _sip_server_info->Port);
 
-	HttpServer::GetInstance()->AddStreamChangedCallback([this](const std::string& app, const std::string& stream, bool regist) {
-		//÷ª–Ë“™≈–∂œ¬ºœÒªÿ∑≈µƒ¡˜◊¢œ˙ ¬º˛º¥ø…
+	HttpServer::GetInstance()->AddStreamChangedCallback([this](const std::string &app, const std::string &stream, bool regist)
+														{
+		//Âè™ÈúÄË¶ÅÂà§Êñ≠ÂΩïÂÉèÂõûÊîæÁöÑÊµÅÊ≥®ÈîÄ‰∫ã‰ª∂Âç≥ÂèØ
 		if (!regist && app == "record")
 		{
 			std::scoped_lock<std::mutex> g(_session_mutex);
@@ -64,29 +70,35 @@ bool SipDevice::init() {
 				{
 					send_notify(session);
 
-					//¥”map÷–…æ≥˝¥Àsession£¨¡˜◊¢œ˙“—◊‘∂Ø Õ∑≈
+					//‰ªémap‰∏≠Âà†Èô§Ê≠§sessionÔºåÊµÅÊ≥®ÈîÄÂ∑≤Ëá™Âä®ÈáäÊîæ
 					_session_map.erase(id);
 					break;
 				}
 			}
-		}
-		});
+		} });
 
 	return true;
 }
 
-/// @brief ∆Ù∂ØsipøÕªß∂Àπ¶ƒ‹
-/// ∞Û∂®±æµÿ∂Àø⁄£¨¥¥Ω®œﬂ≥ÃΩ” ’ ˝æ›£¨∑¢ÀÕ◊¢≤·–≈œ¢
-/// @return 
-bool SipDevice::start_sip_client() {
+/// @brief ÂêØÂä®sipÂÆ¢Êà∑Á´ØÂäüËÉΩ
+/// ÁªëÂÆöÊú¨Âú∞Á´ØÂè£ÔºåÂàõÂª∫Á∫øÁ®ãÊé•Êî∂Êï∞ÊçÆÔºåÂèëÈÄÅÊ≥®ÂÜå‰ø°ÊÅØ
+/// @return
+bool SipDevice::start_sip_client()
+{
+#ifdef _WIN32
 	if (NetHelper::IsPortAvailable(this->Port))
 		_local_port = this->Port;
-	else {
+	else
+	{
 		_local_port = NetHelper::FindAvailablePort();
-		LOG(INFO) << fmt::format("∂Àø⁄:{}±ª’º”√£¨Ω´ π”√∂Àø⁄£∫{}", this->Port, _local_port);
+		LOG(INFO) << fmt::format("Á´ØÂè£:{}Ë¢´Âç†Áî®ÔºåÂ∞Ü‰ΩøÁî®Á´ØÂè£Ôºö{}", this->Port, _local_port);
 	}
+#else
+	_local_port = this->Port;
+#endif
 
-	if (OSIP_SUCCESS != eXosip_listen_addr(_sip_context, this->Protocol, NULL, _local_port, AF_INET, 0)) {
+	if (OSIP_SUCCESS != eXosip_listen_addr(_sip_context, this->Protocol, NULL, _local_port, AF_INET, 0))
+	{
 		LOG(ERROR) << "eXosip_listen_addr";
 		eXosip_quit(_sip_context);
 		return false;
@@ -97,10 +109,11 @@ bool SipDevice::start_sip_client() {
 
 	eXosip_clear_authentication_info(_sip_context);
 
-	osip_message_t* register_msg = nullptr;
+	osip_message_t *register_msg = nullptr;
 	_register_id = eXosip_register_build_initial_register(
 		_sip_context, _from_uri.c_str(), _proxy_uri.c_str(), _contact_url.c_str(), 3600, &register_msg);
-	if (register_msg == nullptr) {
+	if (register_msg == nullptr)
+	{
 		LOG(ERROR) << "eXosip_register_build_initial_register failed";
 	}
 
@@ -108,34 +121,39 @@ bool SipDevice::start_sip_client() {
 	auto ret = eXosip_register_send_register(_sip_context, _register_id, register_msg);
 	eXosip_unlock(_sip_context);
 
-	if (ret == OSIP_SUCCESS) {
-		LOG(INFO) << "∑¢ÀÕ◊¢≤·–≈œ¢";
+	if (ret == OSIP_SUCCESS)
+	{
+		LOG(INFO) << "ÂèëÈÄÅÊ≥®ÂÜå‰ø°ÊÅØ";
 		return true;
 	}
-	else {
-		LOG(ERROR) << "∑¢ÀÕ◊¢≤·–≈œ¢ ß∞‹";
+	else
+	{
+		LOG(ERROR) << "ÂèëÈÄÅÊ≥®ÂÜå‰ø°ÊÅØÂ§±Ë¥•";
 		return false;
 	}
 }
 
-/// @brief Õ£÷πsipπ¶ƒ‹
-/// @return 
-bool SipDevice::stop_sip_client() {
+/// @brief ÂÅúÊ≠¢sipÂäüËÉΩ
+/// @return
+bool SipDevice::stop_sip_client()
+{
 	_is_running = false;
 
-	//ÕÀ≥ˆ ±£¨Õ£÷πÕ∆ÀÕÀ˘”– ˝æ›
+	// ÈÄÄÂá∫Êó∂ÔºåÂÅúÊ≠¢Êé®ÈÄÅÊâÄÊúâÊï∞ÊçÆ
 	std::scoped_lock<std::mutex> g(_session_mutex);
-	for (auto&& [_, session] : _session_map)
+	for (auto &&[_, session] : _session_map)
 	{
 		HttpClient::GetInstance()->StopSendRtp(session);
 	}
 
-	if (_sip_thread) {
+	if (_sip_thread)
+	{
 		_sip_thread->join();
 		_sip_thread = nullptr;
 	}
 
-	if (_sip_context) {
+	if (_sip_context)
+	{
 		eXosip_quit(_sip_context);
 		_sip_context = nullptr;
 	}
@@ -150,7 +168,8 @@ bool SipDevice::stop_sip_client() {
 		_subscription_thread = nullptr;
 	}
 
-	if (_heartbeat_thread) {
+	if (_heartbeat_thread)
+	{
 		_heartbeat_condition.notify_one();
 		_heartbeat_thread->join();
 		_heartbeat_thread = nullptr;
@@ -159,9 +178,10 @@ bool SipDevice::stop_sip_client() {
 	return true;
 }
 
-/// @brief ◊¢œ˙
-/// @return 
-bool SipDevice::log_out() {
+/// @brief Ê≥®ÈîÄ
+/// @return
+bool SipDevice::log_out()
+{
 	_is_heartbeat_running = false;
 
 	if (_subscription_thread)
@@ -171,22 +191,24 @@ bool SipDevice::log_out() {
 		_subscription_thread = nullptr;
 	}
 
-	if (_heartbeat_thread) {
+	if (_heartbeat_thread)
+	{
 		_heartbeat_condition.notify_one();
 		_heartbeat_thread->join();
 		_heartbeat_thread = nullptr;
 	}
 	_logout = true;
 
-	LOG(INFO) << "∑¢ÀÕ◊¢œ˙√¸¡Ó";
-	osip_message_t* register_msg = nullptr;
+	LOG(INFO) << "ÂèëÈÄÅÊ≥®ÈîÄÂëΩ‰ª§";
+	osip_message_t *register_msg = nullptr;
 	auto ret = eXosip_register_build_register(_sip_context, _register_id, 0, &register_msg);
-	if (ret != OSIP_SUCCESS) {
+	if (ret != OSIP_SUCCESS)
+	{
 		LOG(ERROR) << "eXosip_register_build_initial_register failed";
 		return false;
 	}
 
-	osip_contact_t* contact = nullptr;
+	osip_contact_t *contact = nullptr;
 	osip_message_get_contact(register_msg, 0, &contact);
 
 	auto info = fmt::format("{};expires=0", _contact_url);
@@ -202,38 +224,41 @@ bool SipDevice::log_out() {
 	return true;
 }
 
-/// @brief ¬÷—ØΩ” ’ ˝æ›
-void SipDevice::on_response() {
+/// @brief ËΩÆËØ¢Êé•Êî∂Êï∞ÊçÆ
+void SipDevice::on_response()
+{
 
 	_event_processor_map = {
-		//≤È—Ø√¸¡Ó£®ƒø¬º≤È—Ø°¢¬ºœÒŒƒº˛≤È—Ø°¢…Ë±∏≤Œ ˝µ»µ»£©
-		{EXOSIP_MESSAGE_NEW,CALLBACK_TEMPLATE(on_message_new)},
-		//◊¢≤·≥…π¶
-		{EXOSIP_REGISTRATION_SUCCESS,CALLBACK_TEMPLATE(on_registration_success)},
-		//◊¢≤· ß∞‹
-		{EXOSIP_REGISTRATION_FAILURE,CALLBACK_TEMPLATE(on_registration_failure)},
-		//∑˛ŒÒ∂À…æ≥˝¥À…Ë±∏∫Û£¨∑¢ÀÕ«Î«Ûª· ’µΩ¥Àªÿ∏¥
-		{EXOSIP_MESSAGE_REQUESTFAILURE,CALLBACK_TEMPLATE(on_message_request_failure)},
-		//ø™ ºÕ∆¡˜
-		{EXOSIP_CALL_ACK,CALLBACK_TEMPLATE(on_call_ack)},
-		//πÿ±’Õ∆¡˜
-		{EXOSIP_CALL_CLOSED,CALLBACK_TEMPLATE(on_call_closed)},
-		//«Î«Ûª·ª∞
-		{EXOSIP_CALL_INVITE,CALLBACK_TEMPLATE(on_call_invite)},
-		//≤•∑≈√¸¡Ó(‘›Õ£°¢ºÃ–¯≤•∑≈)
-		{EXOSIP_CALL_MESSAGE_NEW,CALLBACK_TEMPLATE(on_call_message_new)},
-		//œ˚œ¢∂©‘ƒ( “∆∂Ø…Ë±∏Œª÷√–≈œ¢∂©‘ƒ )
-		{EXOSIP_IN_SUBSCRIPTION_NEW, CALLBACK_TEMPLATE(on_in_subscription_new)}
-	};
+		// Êü•ËØ¢ÂëΩ‰ª§ÔºàÁõÆÂΩïÊü•ËØ¢„ÄÅÂΩïÂÉèÊñá‰ª∂Êü•ËØ¢„ÄÅËÆæÂ§áÂèÇÊï∞Á≠âÁ≠âÔºâ
+		{EXOSIP_MESSAGE_NEW, CALLBACK_TEMPLATE(on_message_new)},
+		// Ê≥®ÂÜåÊàêÂäü
+		{EXOSIP_REGISTRATION_SUCCESS, CALLBACK_TEMPLATE(on_registration_success)},
+		// Ê≥®ÂÜåÂ§±Ë¥•
+		{EXOSIP_REGISTRATION_FAILURE, CALLBACK_TEMPLATE(on_registration_failure)},
+		// ÊúçÂä°Á´ØÂà†Èô§Ê≠§ËÆæÂ§áÂêéÔºåÂèëÈÄÅËØ∑Ê±Ç‰ºöÊî∂Âà∞Ê≠§ÂõûÂ§ç
+		{EXOSIP_MESSAGE_REQUESTFAILURE, CALLBACK_TEMPLATE(on_message_request_failure)},
+		// ÂºÄÂßãÊé®ÊµÅ
+		{EXOSIP_CALL_ACK, CALLBACK_TEMPLATE(on_call_ack)},
+		// ÂÖ≥Èó≠Êé®ÊµÅ
+		{EXOSIP_CALL_CLOSED, CALLBACK_TEMPLATE(on_call_closed)},
+		// ËØ∑Ê±Ç‰ºöËØù
+		{EXOSIP_CALL_INVITE, CALLBACK_TEMPLATE(on_call_invite)},
+		// Êí≠ÊîæÂëΩ‰ª§(ÊöÇÂÅú„ÄÅÁªßÁª≠Êí≠Êîæ)
+		{EXOSIP_CALL_MESSAGE_NEW, CALLBACK_TEMPLATE(on_call_message_new)},
+		// Ê∂àÊÅØËÆ¢ÈòÖ( ÁßªÂä®ËÆæÂ§á‰ΩçÁΩÆ‰ø°ÊÅØËÆ¢ÈòÖ )
+		{EXOSIP_IN_SUBSCRIPTION_NEW, CALLBACK_TEMPLATE(on_in_subscription_new)}};
 
-	eXosip_event_t* event = nullptr;
-	while (_is_running) {
+	eXosip_event_t *event = nullptr;
+	while (_is_running)
+	{
 		event = eXosip_event_wait(_sip_context, 0, 50);
-		if (event) {
+		if (event)
+		{
 			LOG(INFO) << "------------- Receive: " << magic_enum::enum_name<eXosip_event_type>(event->type);
 		}
 
-		if (!_logout) {
+		if (!_logout)
+		{
 			eXosip_lock(_sip_context);
 			eXosip_automatic_action(_sip_context);
 			eXosip_unlock(_sip_context);
@@ -243,35 +268,41 @@ void SipDevice::on_response() {
 			continue;
 
 		auto proc = _event_processor_map.find(event->type);
-		if (proc != _event_processor_map.end()) {
+		if (proc != _event_processor_map.end())
+		{
 			_event_processor_map[event->type](event);
 		}
 
-		if (event != nullptr) {
+		if (event != nullptr)
+		{
 			eXosip_event_free(event);
 			event = nullptr;
 		}
 	}
 }
 
-/// @brief ◊¢≤· ß∞‹
-/// @param event 
-void SipDevice::on_registration_failure(eXosip_event_t* event) {
-	LOG(ERROR) << "◊¢≤· ß∞‹";
+/// @brief Ê≥®ÂÜåÂ§±Ë¥•
+/// @param event
+void SipDevice::on_registration_failure(eXosip_event_t *event)
+{
+	LOG(ERROR) << "Ê≥®ÂÜåÂ§±Ë¥•";
 	_register_success = false;
 	_is_heartbeat_running = false;
-	if (event->response == nullptr) {
+	if (event->response == nullptr)
+	{
 		return;
 	}
-	LOG(ERROR) << "◊¢≤· ß∞‹: " << event->response->status_code;
+	LOG(ERROR) << "Ê≥®ÂÜåÂ§±Ë¥•: " << event->response->status_code;
 	_is_heartbeat_running = false;
-	if (_heartbeat_thread) {
+	if (_heartbeat_thread)
+	{
 		_heartbeat_thread->join();
 		_heartbeat_thread = nullptr;
 	}
 
-	if (event->response->status_code == 401 || event->response->status_code == 403) {
-		osip_www_authenticate_t* www_authenticate_header = nullptr;
+	if (event->response->status_code == 401 || event->response->status_code == 403)
+	{
+		osip_www_authenticate_t *www_authenticate_header = nullptr;
 		osip_message_get_www_authenticate(event->response, 0, &www_authenticate_header);
 		if (www_authenticate_header)
 		{
@@ -283,35 +314,43 @@ void SipDevice::on_registration_failure(eXosip_event_t* event) {
 	}
 }
 
-/// @brief ◊¢≤·≥…π¶
-/// @param event 
-void SipDevice::on_registration_success(eXosip_event_t* event) {
-	LOG(INFO) << "◊¢≤·≥…π¶";
+/// @brief Ê≥®ÂÜåÊàêÂäü
+/// @param event
+void SipDevice::on_registration_success(eXosip_event_t *event)
+{
+	LOG(INFO) << "Ê≥®ÂÜåÊàêÂäü";
 
-	if (!_logout) {
+	if (!_logout)
+	{
 		_register_success = true;
 		_is_heartbeat_running = true;
-		if (_heartbeat_thread == nullptr) {
+		if (_heartbeat_thread == nullptr)
+		{
 			_heartbeat_thread = std::make_shared<std::thread>(&SipDevice::heartbeat_task, this);
 		}
 	}
 }
 
-/// @brief  ’µΩœ˚œ¢£¨’‚¿Ô÷˜“™”–≤È—ØCatalog∫ÕDeviceInfo¡Ω÷÷
-/// @param event 
-void SipDevice::on_message_new(eXosip_event_t* event) {
-	if (MSG_IS_MESSAGE(event->request)) {
-		osip_body_t* body = nullptr;
+/// @brief Êî∂Âà∞Ê∂àÊÅØÔºåËøôÈáå‰∏ªË¶ÅÊúâÊü•ËØ¢CatalogÂíåDeviceInfo‰∏§Áßç
+/// @param event
+void SipDevice::on_message_new(eXosip_event_t *event)
+{
+	if (MSG_IS_MESSAGE(event->request))
+	{
+		osip_body_t *body = nullptr;
 		osip_message_get_body(event->request, 0, &body);
-		if (body != nullptr) {
-			LOG(INFO) << "request -----> \n" << body->body;
+		if (body != nullptr)
+		{
+			LOG(INFO) << "request -----> \n"
+					  << body->body;
 			LOG(INFO) << "------------------------------------";
 		}
 		send_response_ok(event);
 
 		pugi::xml_document doc;
 		auto ret = doc.load_string(body->body);
-		if (ret.status != pugi::status_ok) {
+		if (ret.status != pugi::status_ok)
+		{
 			LOG(ERROR) << "load request xml failed";
 			return;
 		}
@@ -320,7 +359,8 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 		std::string root_name = root.name();
 		std::string response_body = "";
 
-		if (root_name == "Query") {
+		if (root_name == "Query")
+		{
 			auto cmd_node = root.child("CmdType");
 			if (cmd_node.empty())
 				return;
@@ -328,12 +368,14 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 			auto sn_node = root.child("SN");
 			std::string sn = sn_node.child_value();
 			LOG(INFO) << "SN: " << sn;
-			//ƒø¬º≤È—Ø£¨∑µªÿchannels–≈œ¢
-			if (cmd == "Catalog") {
+			// ÁõÆÂΩïÊü•ËØ¢ÔºåËøîÂõûchannels‰ø°ÊÅØ
+			if (cmd == "Catalog")
+			{
 				response_body = generate_catalog_xml(sn);
 			}
-			//…Ë±∏–≈œ¢≤È—Ø£¨∑¢ÀÕ…Ë±∏–≈œ¢,÷˜“™∞¸¿®…Ë±∏id£¨…Ë±∏√˚≥∆£¨≥ßº“£¨∞Ê±æ£¨channel ˝¡øµ»
-			else if (cmd == "DeviceInfo") {
+			// ËÆæÂ§á‰ø°ÊÅØÊü•ËØ¢ÔºåÂèëÈÄÅËÆæÂ§á‰ø°ÊÅØ,‰∏ªË¶ÅÂåÖÊã¨ËÆæÂ§áidÔºåËÆæÂ§áÂêçÁß∞ÔºåÂéÇÂÆ∂ÔºåÁâàÊú¨ÔºåchannelÊï∞ÈáèÁ≠â
+			else if (cmd == "DeviceInfo")
+			{
 				auto text =
 					R"( <?xml version="1.0" encoding="GB2312"?>
 						<Response>
@@ -353,8 +395,9 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 
 				response_body = fmt::format(text, sn, this->ID, this->Name, this->Manufacturer, this->Channels.size());
 			}
-			//≈‰÷√œ¬‘ÿ
-			else if (cmd == "ConfigDownload") {
+			// ÈÖçÁΩÆ‰∏ãËΩΩ
+			else if (cmd == "ConfigDownload")
+			{
 				auto type_node = root.child("ConfigType");
 				if (type_node.empty())
 					return;
@@ -385,7 +428,7 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 							)"s;
 
 					response_body = fmt::format(text, sn, this->ID, this->Name, this->ID, _sip_server_info->ID, _sip_server_info->IP,
-						_sip_server_info->Port, _sip_server_domain, _sip_server_info->Password, this->HeartbeatInterval);
+												_sip_server_info->Port, _sip_server_domain, _sip_server_info->Password, this->HeartbeatInterval);
 				}
 
 				if (type == "VideoParamOpt")
@@ -406,7 +449,7 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 					response_body = fmt::format(text, sn, this->ID);
 				}
 			}
-			//¬ºœÒŒƒº˛≤È—Ø
+			// ÂΩïÂÉèÊñá‰ª∂Êü•ËØ¢
 			else if (cmd == "RecordInfo")
 			{
 				std::string device_id = root.child("DeviceID").child_value();
@@ -416,15 +459,16 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 				if (event->request && event->request->req_uri && event->request->req_uri->username)
 				{
 					auto record_video_channel_id = event->request->req_uri->username;
-					LOG(INFO) << "find record info -----> \n" << record_video_channel_id;
+					LOG(INFO) << "find record info -----> \n"
+							  << record_video_channel_id;
 					std::shared_ptr<ChannelInfo> channel_info = nullptr;
 					channel_info = find_channel(record_video_channel_id);
 					if (channel_info != nullptr)
 					{
-						// œÚ¡˜√ΩÃÂ∑˛ŒÒ∆˜∑¢ÀÕ«Î«Û
+						// ÂêëÊµÅÂ™í‰ΩìÊúçÂä°Âô®ÂèëÈÄÅËØ∑Ê±Ç
 						std::string response;
 						auto ret = HttpClient::GetInstance()->GetMp4RecordInfo(channel_info->Stream,
-							start_time, end_time, response);
+																			   start_time, end_time, response);
 
 						auto text =
 							R"( <?xml version="1.0" encoding="GB2312"?>
@@ -454,12 +498,13 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 
 							auto record_list = doc.child("Response").child("RecordList");
 
-							for (const auto& file_item : json_data["data"]["fileInfo"])
+							for (const auto &file_item : json_data["data"]["fileInfo"])
 							{
 								std::string file_path = std::filesystem::path(file_item["file_path"].get<std::string>()).filename().u8string();
 
 								std::string str_begin_time = toolkit::CFileTime(file_item["begin_time"]).UTCToLocal().FormatTZ();
-								std::string str_end_time = toolkit::CFileTime(file_item["stop_time"]).UTCToLocal().FormatTZ();;
+								std::string str_end_time = toolkit::CFileTime(file_item["stop_time"]).UTCToLocal().FormatTZ();
+								;
 
 								auto node = record_list.append_child("Item");
 								node.append_child("DeviceID").text().set(this->ID.c_str());
@@ -476,7 +521,7 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 							doc.save(ss);
 							response_body = ss.str();
 						}
-						catch (const std::exception& ex)
+						catch (const std::exception &ex)
 						{
 							response_body = fmt::format(text, sn, this->ID, record_video_channel_id, 0, 0);
 						}
@@ -488,10 +533,11 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 			{
 				auto body = format_xml(response_body);
 
-				osip_message_t* request = nullptr;
+				osip_message_t *request = nullptr;
 				auto ret = eXosip_message_build_request(
 					_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-				if (ret != OSIP_SUCCESS) {
+				if (ret != OSIP_SUCCESS)
+				{
 					LOG(ERROR) << "eXosip_message_build_request failed";
 					return;
 				}
@@ -505,17 +551,20 @@ void SipDevice::on_message_new(eXosip_event_t* event) {
 			}
 		}
 	}
-	else if (MSG_IS_BYE(event->request)) {
+	else if (MSG_IS_BYE(event->request))
+	{
 		LOG(INFO) << "Receive Bye";
 	}
 }
 
-/// @brief ∑˛ŒÒ∂À…æ≥˝…Ë±∏∫Û£¨ø…ƒ‹ª· ’µΩ¥À–≈œ¢£¨¥À ±÷ÿ–¬∑¢ÀÕ◊¢≤·–≈œ¢
-/// @param event 
-void SipDevice::on_message_request_failure(eXosip_event_t* event) {
-	osip_message_t* register_msg = nullptr;
+/// @brief ÊúçÂä°Á´ØÂà†Èô§ËÆæÂ§áÂêéÔºåÂèØËÉΩ‰ºöÊî∂Âà∞Ê≠§‰ø°ÊÅØÔºåÊ≠§Êó∂ÈáçÊñ∞ÂèëÈÄÅÊ≥®ÂÜå‰ø°ÊÅØ
+/// @param event
+void SipDevice::on_message_request_failure(eXosip_event_t *event)
+{
+	osip_message_t *register_msg = nullptr;
 	auto ret = eXosip_register_build_register(_sip_context, _register_id, 3600, &register_msg);
-	if (register_msg == nullptr) {
+	if (register_msg == nullptr)
+	{
 		LOG(ERROR) << "eXosip_register_build_initial_register failed";
 	}
 
@@ -525,15 +574,17 @@ void SipDevice::on_message_request_failure(eXosip_event_t* event) {
 	ret = eXosip_register_send_register(_sip_context, _register_id, register_msg);
 	eXosip_unlock(_sip_context);
 
-	if (ret == OSIP_SUCCESS) {
-		LOG(INFO) << "∑¢ÀÕ◊¢≤·–≈œ¢";
+	if (ret == OSIP_SUCCESS)
+	{
+		LOG(INFO) << "ÂèëÈÄÅÊ≥®ÂÜå‰ø°ÊÅØ";
 	}
 }
 
-/// @brief ø™ ºÕ∆¡˜
-/// @param event 
-void SipDevice::on_call_ack(eXosip_event_t* event) {
-	LOG(INFO) << "Ω” ’µΩ ACK£¨ø™ ºÕ∆¡˜";
+/// @brief ÂºÄÂßãÊé®ÊµÅ
+/// @param event
+void SipDevice::on_call_ack(eXosip_event_t *event)
+{
+	LOG(INFO) << "Êé•Êî∂Âà∞ ACKÔºåÂºÄÂßãÊé®ÊµÅ";
 	std::cout << "ack: did: " << event->did << "\n";
 
 	std::scoped_lock<std::mutex> g(_session_mutex);
@@ -542,14 +593,14 @@ void SipDevice::on_call_ack(eXosip_event_t* event) {
 		auto session = _session_map[event->did];
 		if (session->Playback)
 		{
-			// œÚ¡˜√ΩÃÂ∑˛ŒÒ∆˜∑¢ÀÕªÿ∑≈«Î«Û£¨ø™ ºœÚ÷∏∂®µÿ÷∑∑¢ÀÕRTP ˝æ›
+			// ÂêëÊµÅÂ™í‰ΩìÊúçÂä°Âô®ÂèëÈÄÅÂõûÊîæËØ∑Ê±ÇÔºåÂºÄÂßãÂêëÊåáÂÆöÂú∞ÂùÄÂèëÈÄÅRTPÊï∞ÊçÆ
 			auto ret = HttpClient::GetInstance()->StartSendPlaybackRtp(
 				session->Channel, session->SSRC, session->TargetIP, session->TargetPort,
 				session->LocalPort, session->StartTime, session->EndTime, session->UseTcp);
 		}
 		else
 		{
-			// TODO  œÚ¡˜√ΩÃÂ∑˛ŒÒ∆˜∑¢ÀÕ«Î«Û£¨ø™ ºœÚ÷∏∂®µÿ÷∑∑¢ÀÕRTP ˝æ›
+			// TODO  ÂêëÊµÅÂ™í‰ΩìÊúçÂä°Âô®ÂèëÈÄÅËØ∑Ê±ÇÔºåÂºÄÂßãÂêëÊåáÂÆöÂú∞ÂùÄÂèëÈÄÅRTPÊï∞ÊçÆ
 			auto ret = HttpClient::GetInstance()->StartSendRtp(
 				session->Channel, session->SSRC, session->TargetIP, session->TargetPort, session->LocalPort,
 				session->UseTcp);
@@ -557,64 +608,71 @@ void SipDevice::on_call_ack(eXosip_event_t* event) {
 	}
 }
 
-/// @brief Õ£÷πÕ∆¡˜
-/// @param event 
-void SipDevice::on_call_closed(eXosip_event_t* event) {
-	LOG(INFO) << "Ω” ’µΩ BYE£¨Ω· ¯Õ∆¡˜";
+/// @brief ÂÅúÊ≠¢Êé®ÊµÅ
+/// @param event
+void SipDevice::on_call_closed(eXosip_event_t *event)
+{
+	LOG(INFO) << "Êé•Êî∂Âà∞ BYEÔºåÁªìÊùüÊé®ÊµÅ";
 	std::cout << "close: did: " << event->did << "\n";
 
 	std::scoped_lock<std::mutex> g(_session_mutex);
 	if (_session_map.find(event->did) != _session_map.end())
 	{
 		auto session = _session_map[event->did];
-		// TODO  œÚ¡˜√ΩÃÂ∑˛ŒÒ∆˜∑¢ÀÕ«Î«Û£¨Õ£÷π∑¢ÀÕRTP ˝æ›
+		// TODO  ÂêëÊµÅÂ™í‰ΩìÊúçÂä°Âô®ÂèëÈÄÅËØ∑Ê±ÇÔºåÂÅúÊ≠¢ÂèëÈÄÅRTPÊï∞ÊçÆ
 		auto ret = HttpClient::GetInstance()->StopSendRtp(session);
-		//…æ≥˝¥Àª·ª∞
+		// Âà†Èô§Ê≠§‰ºöËØù
 		_session_map.erase(event->did);
 	}
 }
 
-/// @brief «Î«Ûª·ª∞£¨∑¢ÀÕsdp–≈œ¢
-/// @param event 
-void SipDevice::on_call_invite(eXosip_event_t* event) {
-	LOG(INFO) << "Ω” ’µΩINVITE";
-	osip_body_t* sdp_body = nullptr;
+/// @brief ËØ∑Ê±Ç‰ºöËØùÔºåÂèëÈÄÅsdp‰ø°ÊÅØ
+/// @param event
+void SipDevice::on_call_invite(eXosip_event_t *event)
+{
+	LOG(INFO) << "Êé•Êî∂Âà∞INVITE";
+	osip_body_t *sdp_body = nullptr;
 	osip_message_get_body(event->request, 0, &sdp_body);
-	if (sdp_body != nullptr) {
-		LOG(INFO) << "request -----> \n" << sdp_body->body;
+	if (sdp_body != nullptr)
+	{
+		LOG(INFO) << "request -----> \n"
+				  << sdp_body->body;
 		LOG(INFO) << "------------------------------------";
 	}
-	else {
+	else
+	{
 		LOG(ERROR) << "SDP Error";
 		return;
 	}
 
 	std::cout << "invite: did: " << event->did << "\n";
 
-	sdp_message_t* sdp = NULL;
-	if (OSIP_SUCCESS != sdp_message_init(&sdp)) {
+	sdp_message_t *sdp = NULL;
+	if (OSIP_SUCCESS != sdp_message_init(&sdp))
+	{
 		LOG(ERROR) << "sdp_message_init failed";
 		return;
 	}
 
 	std::string invite_video_channel_id = "";
 	std::shared_ptr<ChannelInfo> channel_info = nullptr;
-	if (event->request && event->request->req_uri && event->request->req_uri->username) {
+	if (event->request && event->request->req_uri && event->request->req_uri->username)
+	{
 		invite_video_channel_id = event->request->req_uri->username;
 		LOG(INFO) << "INVITE: " << invite_video_channel_id;
 		channel_info = find_channel(invite_video_channel_id);
 	}
 	else
 	{
-		LOG(ERROR) << "event->request->req_uri¥ÌŒÛ";
+		LOG(ERROR) << "event->request->req_uriÈîôËØØ";
 		return;
 	}
 
-	if (channel_info == nullptr) {
-		LOG(ERROR) << "Œ¥’“µΩ∂‘”¶Channel: " << invite_video_channel_id;
+	if (channel_info == nullptr)
+	{
+		LOG(ERROR) << "Êú™ÊâæÂà∞ÂØπÂ∫îChannel: " << invite_video_channel_id;
 		return;
 	}
-
 
 	auto ret = sdp_message_parse(sdp, sdp_body->body);
 	std::string ssrc = "";
@@ -623,21 +681,25 @@ void SipDevice::on_call_invite(eXosip_event_t* event) {
 		ssrc = parse_ssrc(text);
 		if (ssrc.empty())
 		{
-			LOG(ERROR) << "Œ¥’“µΩSSRC";
+			LOG(ERROR) << "Êú™ÊâæÂà∞SSRC";
 			return;
 		}
 	}
-	sdp_connection_t* connect = eXosip_get_video_connection(sdp);
-	sdp_media_t* media = eXosip_get_video_media(sdp);
+	sdp_connection_t *connect = eXosip_get_video_connection(sdp);
+	sdp_media_t *media = eXosip_get_video_media(sdp);
 
-	//Ω®¡¢“ª∏ˆSessionΩ·ππ£¨”√”⁄±£¥ÊDialogID£¨∫Õ∂‘”¶µƒChannel–≈œ¢
+	// Âª∫Á´ã‰∏Ä‰∏™SessionÁªìÊûÑÔºåÁî®‰∫é‰øùÂ≠òDialogIDÔºåÂíåÂØπÂ∫îÁöÑChannel‰ø°ÊÅØ
 	auto session = std::make_shared<SessionInfo>();
 	session->DialogID = event->did;
 	session->TargetIP = connect->c_addr;
 	session->TargetPort = std::stoi(media->m_port);
 	auto protocol = media->m_proto;
 	session->UseTcp = strstr(protocol, "TCP");
+	#ifdef _WIN32
 	session->LocalPort = NetHelper::FindAvailablePort(get_port());
+	#else
+	session->LocalPort = get_port();
+	#endif
 	session->SSRC = ssrc;
 	session->ID = invite_video_channel_id;
 	session->Channel = channel_info;
@@ -657,10 +719,11 @@ void SipDevice::on_call_invite(eXosip_event_t* event) {
 		session->Playback = false;
 	}
 
-	LOG(INFO) << "Session:\n" << session->to_string();
+	LOG(INFO) << "Session:\n"
+			  << session->to_string();
 	{
 		std::scoped_lock<std::mutex> g(_session_mutex);
-		_session_map.insert({ event->did, session });
+		_session_map.insert({event->did, session});
 	}
 
 	std::stringstream ss;
@@ -678,9 +741,10 @@ void SipDevice::on_call_invite(eXosip_event_t* event) {
 		ss.str(), invite_video_channel_id, this->IP, session->Playback ? "Playback" : "Play", this->IP,
 		session->LocalPort, session->UseTcp ? "TCP/RTP/AVP" : "RTP/AVP", ssrc);
 
-	osip_message_t* message = event->request;
+	osip_message_t *message = event->request;
 	ret = eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
-	if (ret != OSIP_SUCCESS) {
+	if (ret != OSIP_SUCCESS)
+	{
 		LOG(ERROR) << "eXosip_call_build_answer failed";
 		return;
 	}
@@ -691,10 +755,11 @@ void SipDevice::on_call_invite(eXosip_event_t* event) {
 	LOG(INFO) << "SDP Response: " << info;
 }
 
-/// @brief ∑µªÿ≥…π¶œ˚œ¢
-/// @param event 
-void SipDevice::send_response_ok(eXosip_event_t* event) {
-	osip_message_t* message = event->request;
+/// @brief ËøîÂõûÊàêÂäüÊ∂àÊÅØ
+/// @param event
+void SipDevice::send_response_ok(eXosip_event_t *event)
+{
+	osip_message_t *message = event->request;
 	eXosip_message_build_answer(_sip_context, event->tid, 200, &message);
 
 	eXosip_lock(_sip_context);
@@ -702,9 +767,11 @@ void SipDevice::send_response_ok(eXosip_event_t* event) {
 	eXosip_unlock(_sip_context);
 }
 
-/// @brief –ƒÃ¯
-void SipDevice::heartbeat_task() {
-	while (_is_running && _register_success && _is_heartbeat_running) {
+/// @brief ÂøÉË∑≥
+void SipDevice::heartbeat_task()
+{
+	while (_is_running && _register_success && _is_heartbeat_running)
+	{
 		auto text =
 			R"(<?xml version="1.0" encoding="GB2312"?>
 				<Notify>
@@ -716,10 +783,11 @@ void SipDevice::heartbeat_task() {
 				)"s;
 		auto info = fmt::format(text, get_sn(), this->ID);
 
-		osip_message_t* request = nullptr;
+		osip_message_t *request = nullptr;
 		auto ret = eXosip_message_build_request(
 			_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-		if (ret != OSIP_SUCCESS) {
+		if (ret != OSIP_SUCCESS)
+		{
 			LOG(ERROR) << "eXosip_message_build_request failed";
 			return;
 		}
@@ -740,9 +808,11 @@ void SipDevice::heartbeat_task() {
 
 void SipDevice::mobile_position_task()
 {
-	while (_is_running && _register_success && _subscription_dialog_id > 0) {
-		osip_message_t* notify_message = NULL;
-		if (OSIP_SUCCESS != eXosip_insubscription_build_notify(_sip_context, _subscription_dialog_id, EXOSIP_SUBCRSTATE_PENDING, EXOSIP_NOTIFY_PENDING, &notify_message)) {
+	while (_is_running && _register_success && _subscription_dialog_id > 0)
+	{
+		osip_message_t *notify_message = NULL;
+		if (OSIP_SUCCESS != eXosip_insubscription_build_notify(_sip_context, _subscription_dialog_id, EXOSIP_SUBCRSTATE_PENDING, EXOSIP_NOTIFY_PENDING, &notify_message))
+		{
 			LOG(ERROR) << "eXosip_insubscription_build_notify error";
 		}
 		else
@@ -753,9 +823,14 @@ void SipDevice::mobile_position_task()
 			ss << "<DeviceID>" << this->ID << "</DeviceID>\r\n";
 			ss << "<CmdType>MobilePosition</CmdType>\r\n";
 			ss << "<SN>" << get_sn() << "</SN>\r\n";
-			ss << "<Time>" << "</Time>\r\n";
-			ss << "<Longitude>" << "103.22925" << "</Longitude>\r\n";
-			ss << "<Latitude>" << "31.23354 " << "</Latitude>\r\n";
+			ss << "<Time>"
+			   << "</Time>\r\n";
+			ss << "<Longitude>"
+			   << "103.22925"
+			   << "</Longitude>\r\n";
+			ss << "<Latitude>"
+			   << "31.23354 "
+			   << "</Latitude>\r\n";
 			ss << "<Speed>0.0</Speed>\r\n";
 			ss << "<Direction>0.0</Direction>\r\n";
 			ss << "<Altitude>500</Altitude>\r\n";
@@ -774,10 +849,11 @@ void SipDevice::mobile_position_task()
 	}
 }
 
-/// @brief …˙≥…ƒø¬º–≈œ¢
-/// @param sn 
-/// @return 
-std::string SipDevice::generate_catalog_xml(const std::string& sn) {
+/// @brief ÁîüÊàêÁõÆÂΩï‰ø°ÊÅØ
+/// @param sn
+/// @return
+std::string SipDevice::generate_catalog_xml(const std::string &sn)
+{
 	auto text =
 		R"( <?xml version="1.0" encoding="GB2312"?>
 			<Response>
@@ -793,12 +869,14 @@ std::string SipDevice::generate_catalog_xml(const std::string& sn) {
 	auto xml = fmt::format(text, sn, this->ID, this->Channels.size(), this->Channels.size());
 	pugi::xml_document doc;
 	auto ret = doc.load_string(xml.c_str());
-	if (ret.status != pugi::status_ok) {
+	if (ret.status != pugi::status_ok)
+	{
 		return "";
 	}
 
 	auto device = doc.child("Response").child("DeviceList");
-	for (auto&& channel : this->Channels) {
+	for (auto &&channel : this->Channels)
+	{
 		auto node = device.append_child("Item");
 		node.append_child("DeviceID").text().set(channel->ID.c_str());
 		node.append_child("Name").text().set(channel->Name.c_str());
@@ -813,12 +891,14 @@ std::string SipDevice::generate_catalog_xml(const std::string& sn) {
 	return ss.str();
 }
 
-std::string SipDevice::parse_ssrc(std::string text) {
+std::string SipDevice::parse_ssrc(std::string text)
+{
 	text = nbase::StringTrim(text);
 	auto tokens = nbase::StringTokenize(text.c_str(), "\n");
-	for (auto&& token : tokens)
+	for (auto &&token : tokens)
 	{
-		if (strstr(token.c_str(), "y=0") || strstr(token.c_str(), "y=1")) {
+		if (strstr(token.c_str(), "y=0") || strstr(token.c_str(), "y=1"))
+		{
 			auto result = token.substr(2);
 			LOG(INFO) << "---Y: " << result;
 			return result;
@@ -828,11 +908,11 @@ std::string SipDevice::parse_ssrc(std::string text) {
 	return std::string();
 }
 
-bool SipDevice::parse_time(std::string text, std::string& start_time, std::string& end_time)
+bool SipDevice::parse_time(std::string text, std::string &start_time, std::string &end_time)
 {
 	text = nbase::StringTrim(text);
 	auto tokens = nbase::StringTokenize(text.c_str(), "\n");
-	for (auto&& token : tokens)
+	for (auto &&token : tokens)
 	{
 		if (strstr(token.c_str(), "t="))
 		{
@@ -847,11 +927,13 @@ bool SipDevice::parse_time(std::string text, std::string& start_time, std::strin
 	return false;
 }
 
-
-std::shared_ptr<ChannelInfo> SipDevice::find_channel(std::string id) {
+std::shared_ptr<ChannelInfo> SipDevice::find_channel(std::string id)
+{
 	std::shared_ptr<ChannelInfo> channel_info = nullptr;
-	for (auto&& channel : this->Channels) {
-		if (channel->ID.compare(id) == 0) {
+	for (auto &&channel : this->Channels)
+	{
+		if (channel->ID.compare(id) == 0)
+		{
 			channel_info = channel;
 			break;
 		}
@@ -860,46 +942,47 @@ std::shared_ptr<ChannelInfo> SipDevice::find_channel(std::string id) {
 	return channel_info;
 }
 
-
-void SipDevice::on_in_subscription_new(eXosip_event_t* event)
+void SipDevice::on_in_subscription_new(eXosip_event_t *event)
 {
 	LOG(INFO) << "on_in_subscription_new...";
 
-	osip_message_t* answer = NULL;
-	if (OSIP_SUCCESS == eXosip_insubscription_build_answer(_sip_context, event->tid, 200, &answer)) {
+	osip_message_t *answer = NULL;
+	if (OSIP_SUCCESS == eXosip_insubscription_build_answer(_sip_context, event->tid, 200, &answer))
+	{
 		eXosip_insubscription_send_answer(_sip_context, event->tid, 200, answer);
 		_subscription_dialog_id = event->did;
 
-		//if (!_logout) {
+		// if (!_logout) {
 		//	if (_subscription_thread == nullptr) {
 		//		_subscription_thread = std::make_shared<std::thread>(&SipDevice::mobile_position_task, this);
 		//	}
-		//}
+		// }
 	}
 }
 
-
-/// @brief œÏ”¶≤•∑≈øÿ÷∆«Î«Û
-/// @param event 
+/// @brief ÂìçÂ∫îÊí≠ÊîæÊéßÂà∂ËØ∑Ê±Ç
+/// @param event
 /// @return
-void SipDevice::on_call_message_new(eXosip_event_t* event)
+void SipDevice::on_call_message_new(eXosip_event_t *event)
 {
 	if (MSG_IS_INFO(event->request))
 	{
 		std::cout << "msg: did: " << event->did << "\n";
 
-		if (_session_map.find(event->did) != _session_map.end()) {
+		if (_session_map.find(event->did) != _session_map.end())
+		{
 			auto session = _session_map[event->did];
 			if (session->Playback)
 			{
-				osip_body_t* body = nullptr;
+				osip_body_t *body = nullptr;
 				osip_message_get_body(event->request, 0, &body);
 				if (body != nullptr)
 				{
-					LOG(INFO) << "request -----> \n" << body->body;
+					LOG(INFO) << "request -----> \n"
+							  << body->body;
 					if (strstr(body->body, "PAUSE"))
 					{
-						// œÚ¡˜√ΩÃÂ∑˛ŒÒ∆˜∑¢ÀÕ‘›Õ£«Î«Û
+						// ÂêëÊµÅÂ™í‰ΩìÊúçÂä°Âô®ÂèëÈÄÅÊöÇÂÅúËØ∑Ê±Ç
 						auto ret = HttpClient::GetInstance()->SetPause("record", session->SSRC, true);
 					}
 					else if (strstr(body->body, "PLAY") && strstr(body->body, "Range"))
@@ -909,7 +992,7 @@ void SipDevice::on_call_message_new(eXosip_event_t* event)
 					else if (strstr(body->body, "PLAY") && strstr(body->body, "Scale"))
 					{
 						auto tokens = nbase::StringTokenize(body->body, "\n");
-						for (auto&& token : tokens)
+						for (auto &&token : tokens)
 						{
 							if (strstr(token.c_str(), "Scale"))
 							{
@@ -928,7 +1011,6 @@ void SipDevice::on_call_message_new(eXosip_event_t* event)
 	}
 }
 
-
 ///
 bool SipDevice::send_notify(std::shared_ptr<SessionInfo> session)
 {
@@ -943,10 +1025,11 @@ bool SipDevice::send_notify(std::shared_ptr<SessionInfo> session)
 				)"s;
 	auto info = fmt::format(text, get_sn(), this->ID);
 
-	osip_message_t* request = nullptr;
+	osip_message_t *request = nullptr;
 	auto ret = eXosip_message_build_request(
 		_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-	if (ret != OSIP_SUCCESS) {
+	if (ret != OSIP_SUCCESS)
+	{
 		LOG(ERROR) << "eXosip_message_build_request failed";
 		return false;
 	}
@@ -961,12 +1044,12 @@ bool SipDevice::send_notify(std::shared_ptr<SessionInfo> session)
 	return true;
 }
 
-
-std::string SipDevice::format_xml(std::string& xml)
+std::string SipDevice::format_xml(std::string &xml)
 {
 	pugi::xml_document doc;
 	auto ret = doc.load_string(xml.c_str());
-	if (ret.status != pugi::status_ok) {
+	if (ret.status != pugi::status_ok)
+	{
 		return xml;
 	}
 
@@ -975,4 +1058,3 @@ std::string SipDevice::format_xml(std::string& xml)
 
 	return ss.str();
 }
-

@@ -1,56 +1,12 @@
-#ifndef SRC_UTIL_FILETIME_H_
+﻿#ifndef SRC_UTIL_FILETIME_H_
 #define SRC_UTIL_FILETIME_H_
 #include <string>
 
-#ifdef _WIN32
-#include <Windows.h>
-#else
-#include <stdint.h>
-#include <sys/time.h>
-
-typedef uint32_t DWORD;
-
-typedef uint16_t WORD;
-
-typedef uint8_t BYTE;
-typedef uint8_t UCHAR;
-
-typedef int32_t LONG;
-
-typedef int64_t LONGLONG;
-
-typedef uint64_t ULONGLONG;
-
-typedef uint64_t UINT64;
-
-typedef union _ULARGE_INTEGER {
-    struct {
-        DWORD LowPart;
-        DWORD HighPart;
-    };
-    ULONGLONG QuadPart;
-} ULARGE_INTEGER;
-
-typedef struct _SYSTEMTIME {
-    WORD wYear;
-    WORD wMonth;
-    WORD wDayOfWeek;
-    WORD wDay;
-    WORD wHour;
-    WORD wMinute;
-    WORD wSecond;
-    WORD wMilliseconds;
-} SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
-
-typedef struct _FILETIME {
-    DWORD dwLowDateTime;
-    DWORD dwHighDateTime;
-} FILETIME, *PFILETIME, *LPFILETIME;
-
+#ifndef _WIN32
+#include "WinApi.h"
 #endif
 
 namespace toolkit {
-
 class CFileTimeSpan {
 public:
     CFileTimeSpan();

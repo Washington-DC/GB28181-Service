@@ -1,5 +1,8 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "NetUtils.h"
+
+#ifdef _WIN32
+
 #include <iphlpapi.h>
 #pragma comment(lib, "iphlpapi.lib")
 
@@ -77,3 +80,6 @@ bool NetHelper::IsPortAvailable(uint16_t port) {
     }
     return false;
 }
+
+
+#endif

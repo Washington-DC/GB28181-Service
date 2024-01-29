@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 
 class Channel
@@ -177,7 +177,7 @@ private:
 	std::string _model;
 	int _status = 0;
 
-	std::string _stream_ip;//ÊÕÁ÷IP
+	std::string _stream_ip;//æ”¶æµIP
 
 	time_t _regist_time = 0;
 	time_t _last_time = 0;

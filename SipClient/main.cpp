@@ -7,16 +7,28 @@
 #include "HttpClient.h"
 #include "HttpServer.h"
 
-int main() {
+std::string GetCurrentModuleDirectory()
+{
+#ifdef _WIN32
+    return nbase::win32::GetCurrentModuleDirectoryA();
+#else
+    char cwd[1024];
+    getcwd(cwd, sizeof(cwd));
+    return std::string(cwd);
+#endif
+}
+
+int main()
+{
     google::InitGoogleLogging("");
     google::SetStderrLogging(google::GLOG_INFO);
     FLAGS_logbufsecs = 1;
     FLAGS_colorlogtostderr = true;
 
-    auto root = nbase::win32::GetCurrentModuleDirectory();
-    auto config_file = root + L"config.xml";
+    auto root = GetCurrentModuleDirectory();
+    auto config_file = fs::path(root) / "config.xml";
 
-    auto ret = ConfigManager::GetInstance()->LoadConfig(config_file);
+    auto ret = ConfigManager::GetInstance()->LoadConfig(config_file.string());
     if (!ret)
         return 0;
 
@@ -28,7 +40,8 @@ int main() {
 
     HttpClient::GetInstance()->Init(media_server_info);
     std::vector<std::shared_ptr<SipDevice>> devices;
-    for (auto &&info : device_infos) {
+    for (auto &&info : device_infos)
+    {
         auto device = std::make_shared<SipDevice>(info, sip_server_info);
         device->init();
         device->start_sip_client();
@@ -42,12 +55,12 @@ int main() {
     signal(SIGINT, [](int signal)
            {
                LOG(INFO) << "Catch Signal: " << signal;
-               s_exit.set_value();
-           });
+               s_exit.set_value(); });
     s_exit.get_future().wait();
 #endif
 
-    for (auto &&device : devices) {
+    for (auto &&device : devices)
+    {
         device->log_out();
         device->stop_sip_client();
     }

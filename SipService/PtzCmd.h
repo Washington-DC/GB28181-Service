@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "Structs.h"
 
 class PtzCmd
@@ -8,23 +8,23 @@ public:
 
 
     /**
-     * ÔÆÌ¨Ö¸ÁîÂë¼ÆËã
+     * äº‘å°æŒ‡ä»¤ç è®¡ç®—
      *
-     * @param leftRight  ¾µÍ·×óÒÆÓÒÒÆ 0:Í£Ö¹ 1:×óÒÆ 2:ÓÒÒÆ
-     * @param upDown     ¾µÍ·ÉÏÒÆÏÂÒÆ 0:Í£Ö¹ 1:ÉÏÒÆ 2:ÏÂÒÆ
-     * @param inOut      ¾µÍ··Å´óËõĞ¡ 0:Í£Ö¹ 1:ËõĞ¡ 2:·Å´ó
-     * @param moveSpeed  ¾µÍ·ÒÆ¶¯ËÙ¶È Ä¬ÈÏ 0XFF (0-255)
-     * @param zoomSpeed  ¾µÍ·Ëõ·ÅËÙ¶È Ä¬ÈÏ 0X1 (0-255)
+     * @param leftRight  é•œå¤´å·¦ç§»å³ç§» 0:åœæ­¢ 1:å·¦ç§» 2:å³ç§»
+     * @param upDown     é•œå¤´ä¸Šç§»ä¸‹ç§» 0:åœæ­¢ 1:ä¸Šç§» 2:ä¸‹ç§»
+     * @param inOut      é•œå¤´æ”¾å¤§ç¼©å° 0:åœæ­¢ 1:ç¼©å° 2:æ”¾å¤§
+     * @param moveSpeed  é•œå¤´ç§»åŠ¨é€Ÿåº¦ é»˜è®¤ 0XFF (0-255)
+     * @param zoomSpeed  é•œå¤´ç¼©æ”¾é€Ÿåº¦ é»˜è®¤ 0X1 (0-255)
      */
     static std::string cmdString(int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed);
 
     /**
-     * @brief ÔÆÌ¨Ö¸ÁîÂë¼ÆËã
+     * @brief äº‘å°æŒ‡ä»¤ç è®¡ç®—
      *
-     * @param fourthByte µÚËÄ¸ö×Ö½Ú
-     * @param fifthByte  µÚÎå¸ö×Ö½Ú
-     * @param sixthByte  µÚÁù¸ö×Ö½Ú
-     * @param seventhByte  µÚÆß¸ö×Ö½Ú
+     * @param fourthByte ç¬¬å››ä¸ªå­—èŠ‚
+     * @param fifthByte  ç¬¬äº”ä¸ªå­—èŠ‚
+     * @param sixthByte  ç¬¬å…­ä¸ªå­—èŠ‚
+     * @param seventhByte  ç¬¬ä¸ƒä¸ªå­—èŠ‚
      * @return std::string
      */
     static std::string cmdCode(int fourthByte, int fifthByte, int sixthByte, int seventhByte);

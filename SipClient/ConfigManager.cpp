@@ -1,59 +1,59 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "ConfigManager.h"
 
-bool ConfigManager::LoadConfig(std::wstring filepath) {
-	LOG(INFO) << "ÅäÖÃÎÄ¼ş½âÎö...";
+bool ConfigManager::LoadConfig(std::string filepath) {
+	LOG(INFO) << "é…ç½®æ–‡ä»¶è§£æ...";
 	pugi::xml_document doc;
 	auto ret = doc.load_file(filepath.c_str(), pugi::parse_full);
 	if (ret.status != pugi::status_ok) {
-		LOG(ERROR) << "ÅäÖÃÎÄ¼ş½âÎöÊ§°Ü";
+		LOG(ERROR) << "é…ç½®æ–‡ä»¶è§£æå¤±è´¥";
 		return false;
 	}
 
 	auto root = doc.child("Config");
-	// SIP ·şÎñÆ÷
+	// SIP æœåŠ¡å™¨
 	auto sip_server_node = root.child("SipServer");
 	if (sip_server_node) {
 		server_info = std::make_shared<SipServerInfo>();
-		// SIP ·şÎñÆ÷IP
+		// SIP æœåŠ¡å™¨IP
 		server_info->IP = sip_server_node.child_value("IP");
-		// SIP ·şÎñÆ÷¹Ì¶¨¶Ë¿Ú
+		// SIP æœåŠ¡å™¨å›ºå®šç«¯å£
 		nbase::StringToInt(sip_server_node.child_value("Port"), &server_info->Port);
-		// SIP ·şÎñÆ÷ID
+		// SIP æœåŠ¡å™¨ID
 		server_info->ID = sip_server_node.child_value("ID");
-		// SIP ·şÎñÆ÷¹Ì¶¨ÃÜÂë
+		// SIP æœåŠ¡å™¨å›ºå®šå¯†ç 
 		server_info->Password = sip_server_node.child_value("Password");
 	}
 	else {
-		LOG(ERROR) << "SipServer½Úµã´íÎó";
+		LOG(ERROR) << "SipServerèŠ‚ç‚¹é”™è¯¯";
 		return false;
 	}
 
-	//Á÷Ã½Ìå·şÎñ
+	//æµåª’ä½“æœåŠ¡
 	auto media_server_node = root.child("MediaServer");
 	if (media_server_node) {
 		media_server_info = std::make_shared<MediaServerInfo>();
 
-		//Á÷Ã½Ìå·şÎñ IP
+		//æµåª’ä½“æœåŠ¡ IP
 		media_server_info->IP = media_server_node.child_value("IP");
-		//Á÷Ã½Ìå·şÎñ ¶Ë¿Ú
+		//æµåª’ä½“æœåŠ¡ ç«¯å£
 		nbase::StringToInt(media_server_node.child_value("Port"), &media_server_info->Port);
-		//Á÷Ã½Ìå·şÎñ Èç¹û²»ÊÇ127.0.0.1µÄ»°£¬ĞèÒªĞ£ÑéSecret×Ö¶Î
+		//æµåª’ä½“æœåŠ¡ å¦‚æœä¸æ˜¯127.0.0.1çš„è¯ï¼Œéœ€è¦æ ¡éªŒSecretå­—æ®µ
 		media_server_info->Secret = media_server_node.child_value("Secret");
 	}
 	else {
-		LOG(ERROR) << "MediaServer½Úµã´íÎó";
+		LOG(ERROR) << "MediaServerèŠ‚ç‚¹é”™è¯¯";
 		return false;
 	}
 
 
-	//Éè±¸ÁĞ±í£¬µ±Ç°Èí¼şµÄÖ÷Òª¹¤×÷ÄÚÈİ
+	//è®¾å¤‡åˆ—è¡¨ï¼Œå½“å‰è½¯ä»¶çš„ä¸»è¦å·¥ä½œå†…å®¹
 	auto http_server_node = root.child("HttpServer");
 	if (http_server_node) {
 		nbase::StringToInt(http_server_node.child_value("Port"), &http_port);
 	}
 
-	//Éè±¸ÁĞ±í£¬µ±Ç°Èí¼şµÄÖ÷Òª¹¤×÷ÄÚÈİ
+	//è®¾å¤‡åˆ—è¡¨ï¼Œå½“å‰è½¯ä»¶çš„ä¸»è¦å·¥ä½œå†…å®¹
 	auto devicelist_node = root.child("DeviceList");
 	if (devicelist_node) {
 		auto device_nodes = devicelist_node.children("Device");
@@ -62,18 +62,18 @@ bool ConfigManager::LoadConfig(std::wstring filepath) {
 
 			device_info->IP = device_node.child_value("IP");
 			nbase::StringToInt(device_node.child_value("Port"), &device_info->Port);
-			//µ±Ç°Éè±¸ID
+			//å½“å‰è®¾å¤‡ID
 			device_info->ID = device_node.child_value("ID");
-			//Éè±¸Ãû³Æ
+			//è®¾å¤‡åç§°
 			device_info->Name = device_node.child_value("Name");
-			//³§¼Ò
+			//å‚å®¶
 			device_info->Manufacturer = device_node.child_value("Manufacturer");
-			// SIP´«ÊäĞ­Òé
+			// SIPä¼ è¾“åè®®
 			std::string text = device_node.child_value("Protocol");
 			device_info->Protocol = (text.compare("TCP") == 0 ? IPPROTO_TCP : IPPROTO_UDP);
-			//ĞÄÌø¼ä¸ôÊ±¼ä
+			//å¿ƒè·³é—´éš”æ—¶é—´
 			nbase::StringToInt(device_node.child_value("HeartbeatInterval"), &device_info->HeartbeatInterval);
-			//Éè±¸Ä¿Â¼£¬Ò»°ãÇé¿öÏÂÖ»ÓĞÒ»¸öÍ¨µÀ£¬´ú±íÒ»¸öÉè±¸£¬ ²»ÅÅ³ıÄ³Ğ©Çé¿öÏÂ»áÓĞ¶àÌ¨Éè±¸µÄÇé¿ö
+			//è®¾å¤‡ç›®å½•ï¼Œä¸€èˆ¬æƒ…å†µä¸‹åªæœ‰ä¸€ä¸ªé€šé“ï¼Œä»£è¡¨ä¸€ä¸ªè®¾å¤‡ï¼Œ ä¸æ’é™¤æŸäº›æƒ…å†µä¸‹ä¼šæœ‰å¤šå°è®¾å¤‡çš„æƒ…å†µ
 			auto catalog_node = device_node.child("Catalog");
 			if (catalog_node) {
 				auto channel_nodes = catalog_node.children("Channel");
@@ -95,9 +95,9 @@ bool ConfigManager::LoadConfig(std::wstring filepath) {
 		}
 	}
 	else {
-		LOG(ERROR) << "Devices½Úµã´íÎó";
+		LOG(ERROR) << "DevicesèŠ‚ç‚¹é”™è¯¯";
 		return false;
 	}
-	LOG(INFO) << "ÅäÖÃÎÄ¼ş½âÎöÍê³É";
+	LOG(INFO) << "é…ç½®æ–‡ä»¶è§£æå®Œæˆ";
 	return true;
 }

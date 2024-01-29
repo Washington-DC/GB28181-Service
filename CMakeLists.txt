@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5.0)
 project(SipService VERSION 1.0.0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++17 -Wl,-rpath=./:./lib")
 
-set(OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/release/${CMAKE_BUILD_TYPE})
+set(OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/release/linux/${CMAKE_BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIR})
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -52,3 +52,4 @@ find_package(cpr REQUIRED)
 add_subdirectory(3rdparty)
 add_subdirectory(base)
 add_subdirectory(SipService)
+add_subdirectory(SipClient)

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <sqlite3pp.h>
 #include "Device.h"
 

@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "DeviceManager.h"
 #include "DbManager.h"
 
@@ -114,7 +114,7 @@ void DeviceManager::CheckDeviceStatus()
 			std::scoped_lock<std::mutex> lk(_mutex);
 			time_t now = time(nullptr);
 
-			//TODO£º ÐÄÌø³¬Ê±ÅÐ¶Ï
+			//TODOï¼š å¿ƒè·³è¶…æ—¶åˆ¤æ–­
 			for (auto&& dev : _devices)
 			{
 				if (now - dev.second->GetLastTime() > 60 * 3)

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Structs.h"
 
 using event_proc = std::function<void(eXosip_event_t*)> ;

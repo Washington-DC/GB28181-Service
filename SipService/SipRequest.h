@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Structs.h"
 #include "Device.h"
 #include "SSRC_Config.h"

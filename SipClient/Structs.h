@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "pch.h"
 
 struct SipServerInfo {
@@ -25,7 +25,7 @@ struct DeviceInfo {
     std::string IP;
     int Port;
     std::string ID;
-    IPPROTO Protocol;
+    int Protocol;
     std::string Name;
     std::string Manufacturer;
     int HeartbeatInterval;
@@ -34,7 +34,7 @@ struct DeviceInfo {
 };
 
 struct SessionInfo {
-    int32_t DialogID; //�ỰID
+    int32_t DialogID; //会话ID
     std::string ID;
     std::string SSRC;
     std::string TargetIP;

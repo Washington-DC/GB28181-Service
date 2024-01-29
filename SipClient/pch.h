@@ -19,6 +19,9 @@
 
 #ifdef _WIN32
 #include <WinSock2.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
 #endif
 
 #define GLOG_NO_ABBREVIATED_SEVERITIES
@@ -33,6 +36,12 @@
 
 using namespace std::string_literals;
 using namespace std::chrono_literals;
+
+namespace fs = std::filesystem;
+
+#ifdef _WIN32
+#define sprintf_s sprintf
+#endif
 
 
 #ifdef _WIN32

@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "HttpServer.h"
 
 namespace dto
@@ -44,7 +44,7 @@ namespace dto
 HttpServer::HttpServer()
 	:_hook_blueprint("index/hook")
 {
-	//Á÷×¢²á»ò×¢ÏúÊ±´¥·¢´ËÊÂ¼ş
+	//æµæ³¨å†Œæˆ–æ³¨é”€æ—¶è§¦å‘æ­¤äº‹ä»¶
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_changed").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();

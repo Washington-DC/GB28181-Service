@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "SipRequest.h"
 #include "ConfigManager.h"
 #include "RequestPool.h"
@@ -132,7 +132,7 @@ int MessageRequest::SendMessage(bool needcb)
 	eXosip_lock(_exosip_context);
 	ret = eXosip_message_send_request(_exosip_context, msg);
 	eXosip_unlock(_exosip_context);
-	//MARK: ÕâÀïËäÈ»³É¹¦ÁË£¬µ«ÊÇ·µ»ØÖµ²»ÊÇ0
+	//MARK: è¿™é‡Œè™½ç„¶æˆåŠŸäº†ï¼Œä½†æ˜¯è¿”å›žå€¼ä¸æ˜¯0
 	//if (ret != OSIP_SUCCESS)
 	//{
 	//	return ret;
@@ -266,8 +266,8 @@ int InviteRequest::SendCall(bool needcb)
 
 	std::string stream_id = "";
 
-	//µ¥¶Ë¿ÚÄ£Ê½Ê±£¬Ê¹ÓÃZLMµÄ¹Ì¶¨¶Ë¿Ú
-	//¶à¶Ë¿ÚÄ£Ê½Ê±£¬Ê¹ÓÃOpenRtpServer´´½¨RTP½ÓÊÕ¶Ë¿Ú
+	//å•ç«¯å£æ¨¡å¼æ—¶ï¼Œä½¿ç”¨ZLMçš„å›ºå®šç«¯å£
+	//å¤šç«¯å£æ¨¡å¼æ—¶ï¼Œä½¿ç”¨OpenRtpServeråˆ›å»ºRTPæŽ¥æ”¶ç«¯å£
 	int rtp_port = -1;
 	if (ZlmServer::GetInstance()->SinglePortMode())
 	{
@@ -282,7 +282,7 @@ int InviteRequest::SendCall(bool needcb)
 
 	if (rtp_port == -1)
 	{
-		LOG(ERROR) << "´´½¨RTP·þÎñÆ÷Ê§°Ü";
+		LOG(ERROR) << "åˆ›å»ºRTPæœåŠ¡å™¨å¤±è´¥";
 		return -1;
 	}
 
@@ -403,7 +403,7 @@ int PtzCtlRequest::HandleResponse(int statcode)
 	_moveSpeed = 0;
 	_zoomSpeed = 0;
 
-	// ÊÕµ½Ïà»ú»Ø¸´ºó£¬Á¢¼´Í£Ö¹ÔÆÌ¨×ª¶¯
+	// æ”¶åˆ°ç›¸æœºå›žå¤åŽï¼Œç«‹å³åœæ­¢äº‘å°è½¬åŠ¨
 
 	LOG(INFO) << "PtzControlRequest HandleResponse statuscode = " << statcode;
 	//SendMessage(false);

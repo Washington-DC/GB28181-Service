@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "EventHandlerManager.h"
 
 class SipServer:std::enable_shared_from_this<SipServer>
@@ -25,7 +25,7 @@ private:
 	std::string _sip_id = "34020000002000000001";
 	int _sip_port = 5060;
 	std::string _user_agent = "gb28181";
-	uint64_t _event_id = 0;      // ÊÂ¼şid ×ÔÔö
+	uint64_t _event_id = 0;      // äº‹ä»¶id è‡ªå¢
 	std::shared_ptr<std::thread> _event_thread = nullptr;
 
 	EventHandlerManager _event_handler_manager;

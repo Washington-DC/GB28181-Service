@@ -1,4 +1,4 @@
-#include "pch.h"
+Ôªø#include "pch.h"
 #include "PtzCmd.h"
 #include <iomanip>
 
@@ -6,40 +6,40 @@ std::string PtzCmd::cmdString(int leftRight, int upDown, int inOut, int moveSpee
 {
 	int cmdCode = 0;
 	if (leftRight == 2) {
-		cmdCode = 0x01;  // ”““∆
+		cmdCode = 0x01;  // Âè≥Áßª
 	}
 	else if (leftRight == 1) {
-		cmdCode = 0x02;  // ◊Û“∆
+		cmdCode = 0x02;  // Â∑¶Áßª
 	}
 	if (upDown == 2) {
-		cmdCode |= 0x04;  // œ¬“∆
+		cmdCode |= 0x04;  // ‰∏ãÁßª
 	}
 	else if (upDown == 1) {
-		cmdCode |= 0x08;  // …œ“∆
+		cmdCode |= 0x08;  // ‰∏äÁßª
 	}
 	if (inOut == 2) {
-		cmdCode |= 0x10;  // ∑≈¥Û
+		cmdCode |= 0x10;  // ÊîæÂ§ß
 	}
 	else if (inOut == 1) {
-		cmdCode |= 0x20;  // Àı–°
+		cmdCode |= 0x20;  // Áº©Â∞è
 	}
 
 	LOG(INFO) << "BYTE: " << fmt::format("{:08b}", cmdCode);
 
 	std::stringstream ss;
-	// «∞»˝◊÷Ω⁄
+	// Ââç‰∏âÂ≠óËäÇ
 	ss << "A50F01";
-	// ◊÷Ω⁄4 ÷∏¡Ó¬Î
+	// Â≠óËäÇ4 Êåá‰ª§Á†Å
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << cmdCode;
-	// ◊÷Ω⁄5 ÀÆ∆Ωøÿ÷∆ÀŸ∂»
+	// Â≠óËäÇ5 Ê∞¥Âπ≥ÊéßÂà∂ÈÄüÂ∫¶
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << moveSpeed;
-	// ◊÷Ω⁄6 ¥π÷±øÿ÷∆ÀŸ∂»
+	// Â≠óËäÇ6 ÂûÇÁõ¥ÊéßÂà∂ÈÄüÂ∫¶
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << moveSpeed;
-	// ◊÷Ω⁄7 ∏ﬂÀƒŒª Ωπæ‡øÿ÷∆ÀŸ∂»
+	// Â≠óËäÇ7 È´òÂõõ‰Ωç ÁÑ¶Ë∑ùÊéßÂà∂ÈÄüÂ∫¶
 	ss << std::setfill('0') << std::setw(1) << std::hex << std::uppercase << zoomSpeed;
-	// ◊÷Ω⁄7 µÕÀƒŒª
+	// Â≠óËäÇ7 ‰ΩéÂõõ‰Ωç
 	ss << "0";
-	// ◊÷Ω⁄8 –£—È¬Î  ◊÷Ω⁄8=(◊÷Ω⁄1+◊÷Ω⁄2+◊÷Ω⁄3+◊÷Ω⁄4+◊÷Ω⁄5+◊÷Ω⁄6+◊÷Ω⁄7)%256
+	// Â≠óËäÇ8 Ê†°È™åÁ†Å  Â≠óËäÇ8=(Â≠óËäÇ1+Â≠óËäÇ2+Â≠óËäÇ3+Â≠óËäÇ4+Â≠óËäÇ5+Â≠óËäÇ6+Â≠óËäÇ7)%256
 	int checkCode =
 		(0xA5 + 0x0F + 0x01 + cmdCode + moveSpeed + moveSpeed + (zoomSpeed << 4)) % 0x100;
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << checkCode;
@@ -51,19 +51,19 @@ std::string PtzCmd::cmdString(int leftRight, int upDown, int inOut, int moveSpee
 std::string PtzCmd::cmdCode(int fourthByte, int fifthByte, int sixthByte, int seventhByte)
 {
 	std::stringstream ss;
-	// «∞»˝◊÷Ω⁄
+	// Ââç‰∏âÂ≠óËäÇ
 	ss << "A50F01";
-	// ◊÷Ω⁄4 ÷∏¡Ó¬Î
+	// Â≠óËäÇ4 Êåá‰ª§Á†Å
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << fourthByte;
-	// ◊÷Ω⁄5 ÀÆ∆Ωøÿ÷∆ÀŸ∂»
+	// Â≠óËäÇ5 Ê∞¥Âπ≥ÊéßÂà∂ÈÄüÂ∫¶
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << fifthByte;
-	// ◊÷Ω⁄6 ¥π÷±øÿ÷∆ÀŸ∂»
+	// Â≠óËäÇ6 ÂûÇÁõ¥ÊéßÂà∂ÈÄüÂ∫¶
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << sixthByte;
-	// ◊÷Ω⁄7 ∏ﬂÀƒŒª Ωπæ‡øÿ÷∆ÀŸ∂»
+	// Â≠óËäÇ7 È´òÂõõ‰Ωç ÁÑ¶Ë∑ùÊéßÂà∂ÈÄüÂ∫¶
 	ss << std::setfill('0') << std::setw(1) << std::hex << std::uppercase << seventhByte;
-	// ◊÷Ω⁄7 µÕÀƒŒª
+	// Â≠óËäÇ7 ‰ΩéÂõõ‰Ωç
 	ss << "0";
-	// ◊÷Ω⁄8 –£—È¬Î  ◊÷Ω⁄8=(◊÷Ω⁄1+◊÷Ω⁄2+◊÷Ω⁄3+◊÷Ω⁄4+◊÷Ω⁄5+◊÷Ω⁄6+◊÷Ω⁄7)%256
+	// Â≠óËäÇ8 Ê†°È™åÁ†Å  Â≠óËäÇ8=(Â≠óËäÇ1+Â≠óËäÇ2+Â≠óËäÇ3+Â≠óËäÇ4+Â≠óËäÇ5+Â≠óËäÇ6+Â≠óËäÇ7)%256
 	int checkCode =
 		(0xA5 + 0x0F + 0x01 + fourthByte + fifthByte + sixthByte + (seventhByte & 0xF0)) % 0x100;
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << checkCode;
@@ -75,31 +75,31 @@ std::string PtzCmd::cmdLens(int iris, int focus, int iris_speed, int focus_speed
 {
 	int cmdCode = 0;
 	if (iris == 1)
-		cmdCode = 0b01001000;  //Àı–°
+		cmdCode = 0b01001000;  //Áº©Â∞è
 	else if(iris == 2)
-		cmdCode = 0b01000100;  //∑≈¥Û
+		cmdCode = 0b01000100;  //ÊîæÂ§ß
 
 	if (focus == 1)
-		cmdCode |= 0b00000010;   //Ω¸
+		cmdCode |= 0b00000010;   //Ëøë
 	else if(focus == 2)
-		cmdCode |= 0b00000001;   //‘∂
+		cmdCode |= 0b00000001;   //Ëøú
 
 
 	LOG(INFO) << "BYTE: " << fmt::format("{:08b}", cmdCode);
 
 	std::stringstream ss;
-	// «∞»˝◊÷Ω⁄
+	// Ââç‰∏âÂ≠óËäÇ
 	ss << "A50F01";
-	// ◊÷Ω⁄4 ÷∏¡Ó¬Î
+	// Â≠óËäÇ4 Êåá‰ª§Á†Å
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << cmdCode;
-	// ◊÷Ω⁄5 ÀÆ∆Ωøÿ÷∆ÀŸ∂»
+	// Â≠óËäÇ5 Ê∞¥Âπ≥ÊéßÂà∂ÈÄüÂ∫¶
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << iris_speed;
-	// ◊÷Ω⁄6 ¥π÷±øÿ÷∆ÀŸ∂»
+	// Â≠óËäÇ6 ÂûÇÁõ¥ÊéßÂà∂ÈÄüÂ∫¶
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << focus_speed;
-	// ◊÷Ω⁄7 
+	// Â≠óËäÇ7 
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << 0;
 	
-	// ◊÷Ω⁄8 –£—È¬Î  ◊÷Ω⁄8=(◊÷Ω⁄1+◊÷Ω⁄2+◊÷Ω⁄3+◊÷Ω⁄4+◊÷Ω⁄5+◊÷Ω⁄6+◊÷Ω⁄7)%256
+	// Â≠óËäÇ8 Ê†°È™åÁ†Å  Â≠óËäÇ8=(Â≠óËäÇ1+Â≠óËäÇ2+Â≠óËäÇ3+Â≠óËäÇ4+Â≠óËäÇ5+Â≠óËäÇ6+Â≠óËäÇ7)%256
 	int checkCode =
 		(0xA5 + 0x0F + 0x01 + cmdCode + iris_speed + focus_speed + 0x00) % 0x100;
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << checkCode;

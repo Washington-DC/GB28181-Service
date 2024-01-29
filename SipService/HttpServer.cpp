@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "HttpServer.h"
 #include "DeviceManager.h"
 #include "StreamManager.h"
@@ -454,7 +454,7 @@ HttpServer::HttpServer()
 	CROW_BP_ROUTE(_hook_blueprint, "/")([]() {return "Hello World !"; });
 
 
-	//·şÎñÆ÷¶¨Ê±ÉÏ±¨£¬È·ÈÏ·şÎñÆ÷ÊÇ·ñÔÚÏß
+	//æœåŠ¡å™¨å®šæ—¶ä¸ŠæŠ¥ï¼Œç¡®è®¤æœåŠ¡å™¨æ˜¯å¦åœ¨çº¿
 	CROW_BP_ROUTE(_hook_blueprint, "/on_server_keepalive").methods("POST"_method)([this](const crow::request& req)
 		{
 			toolkit::EventPollerPool::Instance().getExecutor()->async([this]()
@@ -479,7 +479,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	//Á÷×¢²á»ò×¢ÏúÊ±´¥·¢´ËÊÂ¼ş
+	//æµæ³¨å†Œæˆ–æ³¨é”€æ—¶è§¦å‘æ­¤äº‹ä»¶
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_changed").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
@@ -504,11 +504,11 @@ HttpServer::HttpServer()
 		}
 	);
 
-	//Á÷ÎŞÈË¹Û¿´Ê±ÊÂ¼ş£¬ÓÃ»§¿ÉÒÔÍ¨¹ı´ËÊÂ¼şÑ¡ÔñÊÇ·ñ¹Ø±ÕÎŞÈË¿´µÄÁ÷
-	//TODO: ÕâÀï´æÔÚÒ»¸öÎÊÌâ£¬ÔÚµ¥¶Ë¿ÚÄ£Ê½ÏÂ£¬Èç¹ûÕâ¸öÁ÷²»´æÔÚ£¬²¥·Å¶ËÊ¹ÓÃdevice_idºÍchannel_idÈ¥²¥·Å£¬ºÍssrc×÷Îªstreamid³åÍ»
-	//¿ÉÒÔ¿¼ÂÇÈçÏÂ½â¾ö·½°¸:
-	// 1¡¢ÔÚÉè±¸×¢²áÊ±£¬¼´Éú³ÉÃ¿¸öchannel¶ÔÓ¦µÄssrc£¬²¥·ÅÇ°²éÑ¯´Ëssrc×÷Îªstream_idÈ¥²¥·Å
-	// 2¡¢ÔÚZLM¶Ë×öÓ³Éä£¬½«device_idºÍchannel_idÓ³Éäµ½¶ÔÓ¦ssrcµÄÊı¾İ
+	//æµæ— äººè§‚çœ‹æ—¶äº‹ä»¶ï¼Œç”¨æˆ·å¯ä»¥é€šè¿‡æ­¤äº‹ä»¶é€‰æ‹©æ˜¯å¦å…³é—­æ— äººçœ‹çš„æµ
+	//TODO: è¿™é‡Œå­˜åœ¨ä¸€ä¸ªé—®é¢˜ï¼Œåœ¨å•ç«¯å£æ¨¡å¼ä¸‹ï¼Œå¦‚æœè¿™ä¸ªæµä¸å­˜åœ¨ï¼Œæ’­æ”¾ç«¯ä½¿ç”¨device_idå’Œchannel_idå»æ’­æ”¾ï¼Œå’Œssrcä½œä¸ºstreamidå†²çª
+	//å¯ä»¥è€ƒè™‘å¦‚ä¸‹è§£å†³æ–¹æ¡ˆ:
+	// 1ã€åœ¨è®¾å¤‡æ³¨å†Œæ—¶ï¼Œå³ç”Ÿæˆæ¯ä¸ªchannelå¯¹åº”çš„ssrcï¼Œæ’­æ”¾å‰æŸ¥è¯¢æ­¤ssrcä½œä¸ºstream_idå»æ’­æ”¾
+	// 2ã€åœ¨ZLMç«¯åšæ˜ å°„ï¼Œå°†device_idå’Œchannel_idæ˜ å°„åˆ°å¯¹åº”ssrcçš„æ•°æ®
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_none_reader").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
@@ -530,7 +530,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	//Á÷Î´ÕÒµ½ÊÂ¼ş£¬ÓÃ»§¿ÉÒÔÔÚ´ËÊÂ¼ş´¥·¢Ê±£¬Á¢¼´È¥À­Á÷£¬ÕâÑù¿ÉÒÔÊµÏÖ°´ĞèÀ­Á÷
+	//æµæœªæ‰¾åˆ°äº‹ä»¶ï¼Œç”¨æˆ·å¯ä»¥åœ¨æ­¤äº‹ä»¶è§¦å‘æ—¶ï¼Œç«‹å³å»æ‹‰æµï¼Œè¿™æ ·å¯ä»¥å®ç°æŒ‰éœ€æ‹‰æµ
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_not_found").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
@@ -540,7 +540,7 @@ HttpServer::HttpServer()
 			{
 				auto task = toolkit::EventPollerPool::Instance().getExecutor()->async([this,info]()
 					{
-						//·¢ËÍINVITEÇëÇó
+						//å‘é€INVITEè¯·æ±‚
 						auto pos = info.Stream.find_first_of('_');
 						if (pos != std::string::npos)
 						{
@@ -573,7 +573,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-	//µ÷ÓÃopenRtpServer ½Ó¿Ú£¬rtp server ³¤Ê±¼äÎ´ÊÕµ½Êı¾İ,Ö´ĞĞ´Ëweb hook
+	//è°ƒç”¨openRtpServer æ¥å£ï¼Œrtp server é•¿æ—¶é—´æœªæ”¶åˆ°æ•°æ®,æ‰§è¡Œæ­¤web hook
 	CROW_BP_ROUTE(_hook_blueprint, "/on_rtp_server_timeout").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::RtpServerInfo>();

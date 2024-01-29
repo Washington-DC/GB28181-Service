@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "EventHandler.h"
 #include "ConfigManager.h"
 #include "HttpDigest.h"
@@ -117,11 +117,11 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			}
 			else
 			{
-				//Èç¹ûÉè±¸ÒÑ¾­´æÔÚµÄ»°£¬¾ÍÖ»¸üÐÂÔÚÏß×´Ì¬ºÍ×¢²áÊ±¼ä
+				//å¦‚æžœè®¾å¤‡å·²ç»å­˜åœ¨çš„è¯ï¼Œå°±åªæ›´æ–°åœ¨çº¿çŠ¶æ€å’Œæ³¨å†Œæ—¶é—´
 				find = true;
 				if (device->GetIP() != client_host)
 				{
-					LOG(WARNING) << "Éè±¸IP±ä»¯: " << client_device_id << "\t" << device->GetIP() << " -> " << client_host;
+					LOG(WARNING) << "è®¾å¤‡IPå˜åŒ–: " << client_device_id << "\t" << device->GetIP() << " -> " << client_host;
 					device->SetIP(client_host);
 					device->SetPort(client_port);
 				}
@@ -132,7 +132,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			device->UpdateRegistTime();
 			device->UpdateLastTime();
 
-			//½«Éè±¸ºÍsip context¹ØÁª£¬ÓÃÓÚºóÆÚÅÐ¶Ï´¦Àí·½±ã¡£
+			//å°†è®¾å¤‡å’Œsip contextå…³è”ï¼Œç”¨äºŽåŽæœŸåˆ¤æ–­å¤„ç†æ–¹ä¾¿ã€‚
 			device->exosip_context = e->exosip_context;
 
 			DbManager::GetInstance()->AddOrUpdateDevice(device, find);

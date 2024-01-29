@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "SSRC_Config.h"
 
 enum STREAM_TYPE {
@@ -16,7 +16,7 @@ public:
 	MediaStream() = default;
 	MediaStream(const std::string& app, const std::string& stream_id, STREAM_TYPE type);
 
-	//MARK: »ùÀà±ØĞëÒªÓĞÒ»¸öĞéº¯Êı
+	//MARK: åŸºç±»å¿…é¡»è¦æœ‰ä¸€ä¸ªè™šå‡½æ•°
 	virtual ~MediaStream() {}
 
 	std::string GetApp() const;

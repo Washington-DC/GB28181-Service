@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "FileTime.h"
 
 namespace toolkit {
@@ -109,7 +109,11 @@ CFileTime &CFileTime::operator=(const FILETIME &ft) {
 
 CFileTime CFileTime::GetCurrentFileTime() {
     CFileTime ft;
+#ifdef _WIN32
     GetSystemTimeAsFileTime(&ft);
+#else
+    ft = GetCurrentFileTime();
+#endif
     return ft;
 }
 
@@ -195,7 +199,7 @@ CFileTime CFileTime::LocalToUTC() {
 std::string CFileTime::Format() {
     auto st = ToSystemTime();
     char sz[50] = { 0 };
-    sprintf_s(
+    sprintf(
         sz, "%04d-%02d-%02d %02d:%02d:%02d.%03d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
         st.wMilliseconds);
     return std::string(sz);
@@ -205,7 +209,7 @@ std::string CFileTime::Format() {
 std::string CFileTime::FormatTZ() {
     auto st = ToSystemTime();
     char sz[50] = { 0 };
-    sprintf_s(
+    sprintf(
         sz, "%04d-%02d-%02dT%02d:%02d:%02d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
     return std::string(sz);
 }

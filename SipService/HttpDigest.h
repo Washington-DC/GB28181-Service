@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #define HASHLEN 16
 typedef char HASH[HASHLEN];
 #define HASHHEXLEN 32

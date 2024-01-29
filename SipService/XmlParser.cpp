@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "XmlParser.h"
 
 bool XmlParser::Parse(const char* data, int len, pugi::xml_document& doc)
@@ -15,7 +15,7 @@ bool XmlParser::Parse(const char* data, int len, pugi::xml_document& doc)
 	}
 	else
 	{
-		LOG(ERROR) << "xml½âÎöÊ§°Ü\n" << std::string(data, len);
+		LOG(ERROR) << "xmlè§£æžå¤±è´¥\n" << std::string(data, len);
 	}
 
 	return false;

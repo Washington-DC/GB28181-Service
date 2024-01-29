@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "ZlmServer.h"
 #include "DTO.h"
 #include "ConfigManager.h"
@@ -53,8 +53,8 @@ bool ZlmServer::IsConnected()
 }
 
 
-//µ¥¶Ë¿ÚÄ£Ê½Ê±£¬Ê¹ÓÃ¹Ì¶¨µÄ¶Ë¿Ú½ÓÊÕrtpÊı¾İ£¬Í¨¹ıSSRCÇø·Ö²»Í¬µÄÁ÷
-//¶à¶Ë¿ÚÄ£Ê½Ê±£¬µ÷ÓÃOpenRtpServer£¬´´½¨RTPÊı¾İ½ÓÊÕ¶Ë¿Ú£¬¶Ë¿ÚÓÉzlm·ÖÅä£¬Í¨¹ıÉè±¸ºÍÍ¨µÀID±êÊ¶²»Í¬µÄÁ÷
+//å•ç«¯å£æ¨¡å¼æ—¶ï¼Œä½¿ç”¨å›ºå®šçš„ç«¯å£æ¥æ”¶rtpæ•°æ®ï¼Œé€šè¿‡SSRCåŒºåˆ†ä¸åŒçš„æµ
+//å¤šç«¯å£æ¨¡å¼æ—¶ï¼Œè°ƒç”¨OpenRtpServerï¼Œåˆ›å»ºRTPæ•°æ®æ¥æ”¶ç«¯å£ï¼Œç«¯å£ç”±zlmåˆ†é…ï¼Œé€šè¿‡è®¾å¤‡å’Œé€šé“IDæ ‡è¯†ä¸åŒçš„æµ
 int ZlmServer::OpenRtpServer(const std::string& stream_id)
 {
 	cpr::Response res = cpr::Get(

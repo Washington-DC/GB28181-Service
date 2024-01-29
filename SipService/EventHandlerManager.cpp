@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "EventHandlerManager.h"
 
 #define CALLBACK_TEMPLATE(F) (std::bind(&EventHandlerManager::F, this, std::placeholders::_1))
@@ -149,7 +149,7 @@ int EventHandlerManager::on_exosip_call_cancelled(const SipEvent::Ptr& event)
 
 int EventHandlerManager::on_exosip_call_message_new(const SipEvent::Ptr& event)
 {
-	// ��ӡmessage
+	// 打印message
 	std::string reqid;
 	osip_generic_param_t* tag = nullptr;
 	//osip_to_get_tag(event->exosip_event->request->from, &tag);

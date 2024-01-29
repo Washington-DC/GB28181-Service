@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 class SipEvent :public std::enable_shared_from_this<SipEvent>
 {
@@ -7,11 +7,11 @@ public:
     typedef std::function<int(const SipEvent::Ptr&)> event_proc;
 
 public:
-    int                 value;      // ÊÂ¼şÖµ
-    const char*         name;       // ÊÂ¼şÃû³Æ
-    event_proc          proc;       // ÊÂ¼ş´¦Àíº¯Êı
-    struct eXosip_t*    exosip_context;  // eXosipÉÏÏÂÎÄ
-    eXosip_event_t*     exosip_event;    // eXosipÊÂ¼ş
-    uint64_t            id;         // ÊÂ¼şid
+    int                 value;      // äº‹ä»¶å€¼
+    const char*         name;       // äº‹ä»¶åç§°
+    event_proc          proc;       // äº‹ä»¶å¤„ç†å‡½æ•°
+    struct eXosip_t*    exosip_context;  // eXosipä¸Šä¸‹æ–‡
+    eXosip_event_t*     exosip_event;    // eXosipäº‹ä»¶
+    uint64_t            id;         // äº‹ä»¶id
 };
 

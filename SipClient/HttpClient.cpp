@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "HttpClient.h"
 
 #include <cpr/cpr.h>
@@ -38,7 +38,7 @@ bool HttpClient::StartSendRtp(
 
 	if (res.status_code == 200)
 	{
-		LOG(INFO) << "·µ»Ø: " << res.text;
+		LOG(INFO) << "è¿”å›ž: " << res.text;
 		return true;
 	}
 	return false;
@@ -85,7 +85,7 @@ bool HttpClient::StartSendPlaybackRtp(
 
 	if (res.status_code == 200)
 	{
-		LOG(INFO) << "·µ»Ø: " << res.text;
+		LOG(INFO) << "è¿”å›ž: " << res.text;
 		return true;
 	}
 	return false;
