@@ -2,7 +2,7 @@
 
 依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。
 
-因eXosip2使用epoll，Windows下SipService只支持UDP，Linux下支持TCP和UDP。SipClinet，用于模拟一个GB28181设备。
+因eXosip2使用epoll，Windows下SipService只支持UDP，Linux下支持TCP和UDP。[SipClinet](SipClient/README.md)，用于模拟一个GB28181设备。
 
 
 ## 实现功能

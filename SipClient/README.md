@@ -5,9 +5,12 @@
 ## 实现功能
 
 - 设备注册
-- 消息响应，响应 Catalog、DeviceInfo、ConfigDownload、Invite、ACK 等消息。
-- 推流
+- 实时预览
 - 心跳
+- 目录查询
+- 文件检索和回放
+- 其他消息响应，DeviceInfo、ConfigDownload等。
+
 
 ## 依赖库：
 
@@ -43,6 +46,10 @@
 		<Port>10080</Port>
 		<Secret>035c73f7-bb6b-4889-a715-d9eb2d1925cc</Secret>
 	</MediaServer>
+    <HttpServer>
+		<!-- Http服务端口，用于回放时，接收ZLM文件流注销事件 -->
+		<Port>28080</Port>
+	</HttpServer>
 	<DeviceList>
 		<Device>
             <!-- 本地IP -->
@@ -57,7 +64,7 @@
 			<Name>IP Camera</Name>
             <!-- 厂家 -->
 			<Manufacturer>Test</Manufacturer>
-            <!-- 心跳间隔 -->
+            <!-- 心跳间隔，单位：s -->
 			<HeartbeatInterval>60</HeartbeatInterval>
 			<Catalog>
                 <!-- 当前设备的通道信息，可以有多个 -->
@@ -67,11 +74,6 @@
                     <!-- 通道编码 -->
 					<ID>34020000002000000011</ID>
                     <!-- 此通道对应ZLM中的流地址 -->
-					<URI>h265/ch1/sub/av_stream</URI>
-				</Channel>
-				<Channel>
-					<Name>Test_2</Name>
-					<ID>34020000002000000012</ID>
 					<URI>h265/ch1/sub/av_stream</URI>
 				</Channel>
 			</Catalog>
