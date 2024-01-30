@@ -10,7 +10,6 @@
 
 int main()
 {
-	
 	std::string hexStr = "A50F0102000100B8"; // 16进制字符串
 	std::vector<unsigned char> byteArr; // 存储byte数组的vector
 

@@ -1,19 +1,21 @@
 # GB28181-Service
 
-依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。暂时只支持Windows、SIP UDP注册。
+依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。
 
-还写了一个SipClinet，用于模拟一个GB28181设备。
+因eXosip2使用epoll，Windows下SipService只支持UDP，Linux下支持TCP和UDP。SipClinet，用于模拟一个GB28181设备。
 
 
 ## 实现功能
 
- -  国标摄像头接入、目录查询、推流。
+ -  国标摄像头注册接入、目录查询、推流。
     
  -  云台控制、预置位调用，参考Http接口部分。
 
  -  实现部分zlm的webhook接口，以实现按需推流功能。客户端拉流时推送视频，无人观看时，自动关闭。
 
  -  sqlite数据保存。
+
+ -  设置设备和通道的Nickname，修改设备收流IP。
 
  -  单端口模式收流和多端口模式收流适配。单端口模式下，流地址是SSRC信息，所以这里对每个Channel初始化时就设置一个固定的SSRC（通过defaultStreamID获取ssrc对应的streamID）。多端口模式下，使用device_id和channel_id组合作为streamID。
     
@@ -28,6 +30,11 @@
  - 语音对讲
 
  - ...
+
+
+ ## 编译安装
+
+ [Install](Install.md)
 
 
 ## 依赖库：
@@ -49,7 +56,7 @@
 
 
 ## WebHook接口
-
+ 端口为配置文件中Http端口。
  - on_publish=http://127.0.0.1:8000/index/hook/on_publish
  - on_stream_changed=http://127.0.0.1:8000/index/hook/on_stream_changed
  - on_stream_none_reader=http://127.0.0.1:8000/index/hook/on_stream_none_reader
