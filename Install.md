@@ -41,6 +41,7 @@ cd libexosip2-5.3.0
 # 在exosip-config.h中添加一行宏定义ENABLE_MAIN_SOCKET再进行编译，否则无法使用TCP服务
 #define ENABLE_MAIN_SOCKET 1
 make && make install
+cp libexosip2.pc /usr/local/lib/pkgconfig/libexosip2.pc
 
 # 更新submodule
 git submodule update --init --recursive
