@@ -16,7 +16,7 @@ public:
 	bool IsFinished();
 	void SetRequestID(const std::string& id);
 	void OnRequestFinished();
-	time_t GetRequestTime();
+	std::time_t GetRequestTime();
 	REQUEST_MESSAGE_TYPE GetRequestType();
 
 
@@ -32,7 +32,7 @@ private:
 	bool _b_finished = false;
 	bool _b_wait = false;
 	REQUEST_MESSAGE_TYPE _request_type = REQUEST_TYPE_UNKNOWN;
-	time_t _request_time;
+	std::time_t _request_time;
 
 	std::mutex _mutex;
 	std::condition_variable _cv;
@@ -51,7 +51,6 @@ public:
 protected:
 	virtual const std::string make_manscdp_body() = 0;
 
-
 protected:
 	uint64_t _request_sn;
 
@@ -59,7 +58,6 @@ private:
 	static std::atomic_uint64_t _sn;
 
 	std::string format_xml(const std::string& xml);
-
 };
 
 
@@ -91,7 +89,6 @@ public:
 
 public:
 	virtual const std::string make_manscdp_body();
-
 };
 
 
@@ -193,13 +190,15 @@ public:
 		int                inOut,
 		int                moveSpeed,
 		int                zoomSpeed)
-		: MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_CONTROL_PTZ),
-		_leftRight(leftRight),
-		_upDown(upDown),
-		_inOut(inOut),
-		_moveSpeed(moveSpeed),
-		_zoomSpeed(zoomSpeed),
-		_channel_id(channelId) {}
+		: MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_CONTROL_PTZ)
+		, _leftRight(leftRight)
+		, _upDown(upDown)
+		, _inOut(inOut)
+		, _moveSpeed(moveSpeed)
+		, _zoomSpeed(zoomSpeed)
+		, _channel_id(channelId) 
+	{
+	}
 
 	virtual const std::string make_manscdp_body() override;
 
@@ -227,12 +226,14 @@ public:
 		int                focus,
 		int                iris_speed,
 		int                focus_speed)
-		: MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_CONTROL_PTZ),
-		_iris(iris),
-		_focus(focus),
-		_iris_speed(iris_speed),
-		_focus_speed(focus_speed),
-		_channel_id(channelId) {}
+		: MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_CONTROL_PTZ)
+		, _iris(iris)
+		, _focus(focus)
+		, _iris_speed(iris_speed)
+		, _focus_speed(focus_speed)
+		, _channel_id(channelId)
+	{
+	}
 
 	virtual const std::string make_manscdp_body() override;
 

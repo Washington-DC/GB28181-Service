@@ -12,7 +12,7 @@ BaseRequest::BaseRequest(eXosip_t* ctx, Device::Ptr device, REQUEST_MESSAGE_TYPE
 	, _request_type(type)
 {
 	_device = device;
-	_request_time = time(nullptr);
+	_request_time = std::time(nullptr);
 }
 
 BaseRequest::~BaseRequest()

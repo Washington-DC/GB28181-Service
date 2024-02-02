@@ -2,7 +2,7 @@
 #include "SSRC_Config.h"
 
 SSRCInfo::SSRCInfo(int port, const std::string& ssrc, const std::string& stream_id)
-	:_port(port)
+	: _port(port)
 	, _ssrc(ssrc)
 	, _stream_id(stream_id)
 {
