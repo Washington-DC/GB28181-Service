@@ -27,6 +27,7 @@ private:
 	HttpServer();
 
 	std::string Play(const std::string& device_id, const std::string& channel_id);
+	std::string Playback(const std::string& device_id, const std::string& channel_id,int64_t start_time,int64_t end_time);
 
 	template<typename Type>
 	std::string _mk_response(int status, Type t, std::string msg = "ok");

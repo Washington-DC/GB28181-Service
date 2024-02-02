@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <random>
 #include <filesystem>
+#include <regex>
 
 #ifdef _WIN32
 #include <WinSock2.h>
@@ -44,6 +45,7 @@
 #include <base/base.h>
 #include <eXosip2/eXosip.h>
 #include <fmt/format.h>
+#include <fmt/chrono.h>
 #include <glog/logging.h>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>

@@ -163,6 +163,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="WinApi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
@@ -173,6 +174,7 @@
     <ClInclude Include="NetUtils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Structs.h" />
+    <ClInclude Include="WinApi.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\base\base.vcxproj">

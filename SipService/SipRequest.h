@@ -100,20 +100,31 @@ class InviteRequest :public BaseRequest
 {
 public:
 	typedef std::shared_ptr<InviteRequest> Ptr;
-	InviteRequest(eXosip_t* ctx, Device::Ptr device, const std::string& channel_id)
+	InviteRequest(eXosip_t* ctx, Device::Ptr device, const std::string& channel_id, const std::string& ssrc,
+		const std::string& stream_id, SSRCConfig::Mode mode = SSRCConfig::Mode::Realtime, int start_time = 0, int end_time = 0)
 		:BaseRequest(ctx, device, REQUEST_MESSAGE_TYPE::REQUEST_CALL_INVITE)
 		, _channel_id(channel_id)
+		, _ssrc(ssrc)
+		, _stream_id(stream_id)
+		, _play_mode(mode)
+		, _start_time(start_time)
+		, _end_time(end_time)
 	{
 	};
 
 	virtual int SendCall(bool needcb = true);
 
 protected:
-	virtual const std::string make_sdp_body(const std::string& id);
+	virtual const std::string make_sdp_body(const std::string& id, int port, const std::string& ssrc);
 
 private:
+	SSRCConfig::Mode _play_mode = SSRCConfig::Mode::Playback;
 	SSRCInfo::Ptr _ssrc_info = nullptr;
 	std::string _channel_id;
+	std::string _ssrc;
+	std::string _stream_id;
+	int64_t _start_time = 0;
+	int64_t _end_time = 0;
 };
 
 
@@ -233,4 +244,37 @@ private:
 	int _iris_speed = 0;
 	int _focus_speed = 0;
 	std::string _channel_id;
+};
+
+
+
+
+class RecordRequest :public MessageRequest
+{
+public:
+	typedef std::shared_ptr<RecordRequest> Ptr;
+
+	RecordRequest(eXosip_t* ctx, Device::Ptr device, const std::string& channel_id, int64_t start_time, int64_t end_time)
+		:MessageRequest(ctx, device, REQUEST_MESSAGE_TYPE::DEVICE_RECORD_QUERY)
+		, _channel_id(channel_id)
+		, _start_time(start_time)
+		, _end_time(end_time)
+	{
+
+	};
+	virtual const std::string make_manscdp_body();
+
+	void InsertRecord(std::shared_ptr<RecordItem> item);
+
+	uint32_t GetRecordSize();
+
+	std::vector<std::shared_ptr<RecordItem>> GetRecordList();
+private:
+	std::string _channel_id;
+
+	int64_t _start_time;
+	int64_t _end_time;
+
+	std::vector<std::pair<std::string, std::string>> _presets;
+	std::vector<std::shared_ptr<RecordItem>> _record_items;
 };

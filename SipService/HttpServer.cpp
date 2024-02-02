@@ -17,6 +17,7 @@ HttpServer::HttpServer()
 
 	CROW_BP_ROUTE(_api_blueprint, "/")([]() {return "Hello World !"; });
 
+	//查询设备列表
 	CROW_BP_ROUTE(_api_blueprint, "/device/list")([this]()
 		{
 			auto devices = DeviceManager::GetInstance()->GetDeviceList();
@@ -29,6 +30,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//查询某个设备信息
 	CROW_BP_ROUTE(_api_blueprint, "/device")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id");
@@ -42,6 +44,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//查询某个设备的通道列表
 	CROW_BP_ROUTE(_api_blueprint, "/channel/list")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id");
@@ -61,6 +64,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//查询某个设备的某个通道信息
 	CROW_BP_ROUTE(_api_blueprint, "/channel")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id");
@@ -83,6 +87,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//实时流 播放
 	CROW_BP_ROUTE(_api_blueprint, "/play/start")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id");
@@ -92,6 +97,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//实时流 停止播放
 	CROW_BP_ROUTE(_api_blueprint, "/play/stop")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id");
@@ -151,6 +157,8 @@ HttpServer::HttpServer()
 		}
 	);
 
+
+	//停止所有数据流播放
 	CROW_BP_ROUTE(_api_blueprint, "/play/stopall")([this]()
 		{
 			auto streams = StreamManager::GetInstance()->GetAllStream();
@@ -168,7 +176,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-
+	//设置/调用/删除某个设备的预置位
 	CROW_BP_ROUTE(_api_blueprint, "/preset")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id", "command", "preset");
@@ -203,12 +211,11 @@ HttpServer::HttpServer()
 			auto request = std::make_shared<PresetCtlRequest>(device->exosip_context, device, channel_id, cmd, 0, preset, 0);
 
 			request->SendMessage();
-
 			return _mk_response(0, "");
 		}
 	);
 
-
+	//查询某个设备的预置位信息
 	CROW_BP_ROUTE(_api_blueprint, "/preset/query")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id");
@@ -260,6 +267,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//云台控制
 	CROW_BP_ROUTE(_api_blueprint, "/ptz")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id", "command", "speed");
@@ -322,7 +330,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-
+	//查询所有流信息
 	CROW_BP_ROUTE(_api_blueprint, "/stream/list")([this]()
 		{
 			auto streams = StreamManager::GetInstance()->GetAllStream();
@@ -335,14 +343,14 @@ HttpServer::HttpServer()
 		}
 	);
 
-
+	//查询rtpserver列表
 	CROW_BP_ROUTE(_api_blueprint, "/rtpserver/list")([this]()
 		{
 			return ZlmServer::GetInstance()->ListRtpServer();
 		}
 	);
 
-
+	//设置某个设备的收流IP
 	CROW_BP_ROUTE(_api_blueprint, "/set/device/streamip")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "ip");
@@ -360,6 +368,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//设置某个设备昵称
 	CROW_BP_ROUTE(_api_blueprint, "/set/device/nickname")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "nickname");
@@ -378,6 +387,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//设置某个设备通道昵称
 	CROW_BP_ROUTE(_api_blueprint, "/set/channel/nickname")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id", "nickname");
@@ -403,6 +413,7 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//查询某个通道的SSRC
 	CROW_BP_ROUTE(_api_blueprint, "/ssrc")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id");
@@ -424,7 +435,7 @@ HttpServer::HttpServer()
 		}
 	);
 
-
+	//查询某个通道的默认流地址
 	CROW_BP_ROUTE(_api_blueprint, "/defaultStreamID")([this](const crow::request& req)
 		{
 			CHECK_ARGS("device_id", "channel_id");
@@ -443,9 +454,133 @@ HttpServer::HttpServer()
 				return _mk_response(1, "", "channel not found");
 			}
 
-			return _mk_response(0, nlohmann::json{ {"ssrc",channel->GetDefaultSSRC()}}, "ok");
+			return _mk_response(0, nlohmann::json{ {"ssrc",channel->GetDefaultSSRC()} }, "ok");
 		}
 	);
+
+	//录像文件查询
+	CROW_BP_ROUTE(_api_blueprint, "/record/query")([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "channel_id", "start_time", "end_time");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
+
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "", "channel not found");
+			}
+
+			auto start_time = std::stoi(req.url_params.get("start_time"));
+			auto end_time = std::stoi(req.url_params.get("end_time"));
+
+			auto request = std::make_shared<RecordRequest>(device->exosip_context, device, channel_id, start_time, end_time);
+			request->SendMessage();
+
+			request->SetWait();
+			request->WaitResult();
+
+			//等待时间完成之后，无论数据接收是否完成，都返回现有数据
+			{
+				auto items = request->GetRecordList();
+				nlohmann::json doc = { {"count",items.size()} };
+				doc["items"] = nlohmann::json::array();
+				for (auto&& item : items)
+				{
+					doc["items"].push_back({
+						{"filepath",item->FilePath},
+						{"start_time",ISO8601ToTimeT(item->StartTime)},
+						{"end_time",ISO8601ToTimeT(item->EndTime)},
+						{"start_time_str",item->StartTime},
+						{"end_time_str",item->EndTime}
+						});
+				}
+
+				return _mk_response(0, doc, "ok");
+			}
+		}
+	);
+
+
+	//录像回放
+	CROW_BP_ROUTE(_api_blueprint, "/record/play/start")([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "channel_id", "start_time", "end_time");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+			auto start_time = req.url_params.get("start_time");
+			auto end_time = req.url_params.get("end_time");
+			return Playback(device_id, channel_id, std::stoi(start_time), std::stoi(end_time));
+		}
+	);
+
+	//录像回放 停止
+	CROW_BP_ROUTE(_api_blueprint, "/record/play/stop")([this](const crow::request& req)
+		{
+			CHECK_ARGS("device_id", "channel_id");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
+
+			auto channel = device->GetChannel(channel_id);
+			if (channel == nullptr)
+			{
+				return _mk_response(1, "", "channel not found");
+			}
+
+			std::string stream_id = "";
+			if (ZlmServer::GetInstance()->SinglePortMode())
+			{
+				stream_id = SSRC_Hex(channel->GetDefaultSSRC());
+			}
+			else
+			{
+				stream_id = fmt::format("{}_{}", device_id, channel_id);
+			}
+
+			if (stream_id.empty())
+			{
+				return _mk_response(400, "", "not play");
+			}
+
+			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
+			if (stream)
+			{
+				auto session = std::dynamic_pointer_cast<CallSession>(stream);
+				if (!session->IsConnected())
+				{
+					return _mk_response(400, "", "not play");
+				}
+				else
+				{
+					eXosip_call_terminate(session->exosip_context,
+						session->GetCallID(), session->GetDialogID());
+					/*eXosip_call_terminate(SipServer::GetInstance()->GetSipContext(),
+						session->GetCallID(), session->GetDialogID());*/
+					session->SetConnected(false);
+
+					return _mk_response(0, "", "ok");
+				}
+			}
+			else
+			{
+				return _mk_response(400, "", "not play");
+			}
+		}
+	);
+
+
 
 	//-------------------------------------------------------------------------------------------------------
 	//-------------------------------------------------------------------------------------------------------
@@ -538,7 +673,7 @@ HttpServer::HttpServer()
 
 			if (info.App == "rtp")
 			{
-				auto task = toolkit::EventPollerPool::Instance().getExecutor()->async([this,info]()
+				auto task = toolkit::EventPollerPool::Instance().getExecutor()->async([this, info]()
 					{
 						//发送INVITE请求
 						auto pos = info.Stream.find_first_of('_');
@@ -630,7 +765,7 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 		}
 	}
 
-	request = std::make_shared<InviteRequest>(device->exosip_context, device, channel_id);
+	request = std::make_shared<InviteRequest>(device->exosip_context, device, channel_id, channel->GetDefaultSSRC(), stream_id);
 
 	request->SendCall();
 
@@ -649,6 +784,64 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 	}
 
 	return _mk_response(401, "", "unknow error");
+}
+
+std::string HttpServer::Playback(const std::string& device_id, const std::string& channel_id, int64_t start_time, int64_t end_time)
+{
+	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+	if (device == nullptr)
+	{
+		return _mk_response(1, "", "device not found");
+	}
+
+	if (!device->IsRegistered())
+	{
+		return _mk_response(1, "", "device not online");
+	}
+
+	auto channel = device->GetChannel(channel_id);
+	if (channel == nullptr)
+	{
+		return _mk_response(1, "", "channel not found");
+	}
+
+	InviteRequest::Ptr request = nullptr;
+	auto ssrc = SSRCConfig::GetInstance()->GenerateSSRC(SSRCConfig::Mode::Playback);
+	std::string stream_id = SSRC_Hex(ssrc);
+
+	if (!stream_id.empty())
+	{
+		auto stream = StreamManager::GetInstance()->GetStream(stream_id);
+		if (stream)
+		{
+			auto session = std::dynamic_pointer_cast<CallSession>(stream);
+			if (session->IsConnected())
+			{
+				return _mk_response(400, "", "already exists");
+			}
+		}
+	}
+
+	request = std::make_shared<InviteRequest>(device->exosip_context, device, channel_id, ssrc, stream_id,
+		SSRCConfig::Mode::Playback, start_time, end_time);
+	request->SendCall();
+
+	auto stream = StreamManager::GetInstance()->GetStream(stream_id);
+	if (stream)
+	{
+		auto session = std::dynamic_pointer_cast<CallSession>(stream);
+		auto ret = session->WaitForStreamReady(ZlmServer::GetInstance()->MaxPlayWaitTime());
+
+		if (!ret)
+		{
+			return _mk_response(400, "", "timeout");
+		}
+
+		return _mk_response(0, nlohmann::json{ {"ssrc",session->GetSSRCInfo()->GetSSRC()} }, "ok");
+	}
+
+	return _mk_response(401, "", "unknow error");
+
 }
 
 

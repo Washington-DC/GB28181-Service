@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Config>
 	<SipServer>
-		<IP>192.168.119.57</IP>
-		<Port>5060</Port>
+		<IP>172.20.5.38</IP>
+		<Port>15060</Port>
 		<Password>12345678</Password>
-		<ID>34020000002000000001</ID>
+		<ID>41010500002000000001</ID>
 	</SipServer>
 	<MediaServer>
 		<IP>127.0.0.1</IP>
@@ -26,7 +26,7 @@
 			<Catalog>
 				<Channel>
 					<Name>Test</Name>
-					<ID>14020000002000000001</ID>
+					<ID>14020000002000000002</ID>
 					<URI>Streaming/Channels/101</URI>
 				</Channel>
 			</Catalog>

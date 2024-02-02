@@ -171,6 +171,8 @@ std::string MessageRequest::format_xml(const std::string& xml)
 	std::stringstream ss;
 	doc.save(ss);
 
+	LOG(INFO) << "\n" << ss.str();
+
 	return ss.str();
 }
 
@@ -211,13 +213,35 @@ const std::string DeviceInfoRequest::make_manscdp_body()
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
-const std::string InviteRequest::make_sdp_body(const std::string& id)
+const std::string InviteRequest::make_sdp_body(const std::string& id, int port, const std::string& ssrc)
 {
+	//测试，只有将t放在前边才能够相机被识别到，不然会返回 415 Unsupported Media Type
+
+	/*
+		根据SDP（Session Description Protocol）的规范，SDP 中的各个字段其实是没有顺序要求的。
+		每一行的含义都是独立的，可以按任意顺序排列。
+		但是，为了方便阅读和解析，通常会按照规定的顺序来排列。
+			v= (协议版本)
+			o= (创建者和会话标识符)
+			s= (会话名称)
+			i=* (会话信息)
+			u=* (描述的 URI)
+			e=* (电子邮件地址)
+			p=* (电话号码)
+			c=* (连接信息 - 如果在所有媒体中都包含则不需要)
+			b=* (带宽信息)
+			t=* (会话起止时间)
+			r=* (重复时间)
+			z=* (时区调整)
+			k=* (加密密钥)
+			a=* (零个或多个会话属性行)
+			Zero or more media descriptions
+	*/
 	auto text = R"(v=0
 o={} 0 0 IN IP4 {}
-s=Play
+s={}
 c=IN IP4 {}
-t=0 0
+t={} {}
 m=video {} RTP/AVP 96 97 98 99
 a=recvonly
 a=rtpmap:96 PS/90000
@@ -228,7 +252,9 @@ y={}
 )";
 
 	auto server = ConfigManager::GetInstance()->GetSipServerInfo();
-	return fmt::format(text, id, _device->GetStreamIP(), _device->GetStreamIP(), _ssrc_info->GetPort(), _ssrc_info->GetSSRC());
+	return fmt::format(text, id, _device->GetStreamIP(),
+		_play_mode == SSRCConfig::Mode::Playback ? "Playback" : "Play",
+		_device->GetStreamIP(),_start_time, _end_time, port, ssrc);
 }
 
 
@@ -264,20 +290,16 @@ int InviteRequest::SendCall(bool needcb)
 		return -1;
 	}
 
-	std::string stream_id = "";
-
 	//单端口模式时，使用ZLM的固定端口
 	//多端口模式时，使用OpenRtpServer创建RTP接收端口
 	int rtp_port = -1;
 	if (ZlmServer::GetInstance()->SinglePortMode())
 	{
-		stream_id = SSRC_Hex(ssrc);
 		rtp_port = ZlmServer::GetInstance()->FixedRtpPort();
 	}
 	else
 	{
-		stream_id = fmt::format("{}_{}", _device->GetDeviceID(), _channel_id);
-		rtp_port = ZlmServer::GetInstance()->OpenRtpServer(stream_id);
+		rtp_port = ZlmServer::GetInstance()->OpenRtpServer(_stream_id);
 	}
 
 	if (rtp_port == -1)
@@ -286,13 +308,13 @@ int InviteRequest::SendCall(bool needcb)
 		return -1;
 	}
 
-	LOG(INFO) << "Invite: " << stream_id;
+	LOG(INFO) << "Invite: " << _stream_id;
 
-	_ssrc_info = std::make_shared<SSRCInfo>(rtp_port, ssrc, stream_id);
-	auto session = std::make_shared<CallSession>("rtp", stream_id, _ssrc_info);
+	_ssrc_info = std::make_shared<SSRCInfo>(rtp_port, _ssrc, _stream_id);
+	auto session = std::make_shared<CallSession>("rtp", _stream_id, _ssrc_info);
 	StreamManager::GetInstance()->AddStream(session);
 
-	auto sdp_body = make_sdp_body(_channel_id);
+	auto sdp_body = make_sdp_body(_channel_id, rtp_port, _ssrc);
 
 	osip_message_set_body(msg, sdp_body.c_str(), sdp_body.length());
 	osip_message_set_content_type(msg, "APPLICATION/SDP");
@@ -410,6 +432,12 @@ int PtzCtlRequest::HandleResponse(int statcode)
 	return 0;
 }
 
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
 const std::string LensCtlRequest::make_manscdp_body()
 {
 	auto text = R"(<?xml version="1.0"?>
@@ -430,4 +458,46 @@ const std::string LensCtlRequest::make_manscdp_body()
 int LensCtlRequest::HandleResponse(int statcode)
 {
 	return 0;
+}
+
+
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
+
+
+const std::string RecordRequest::make_manscdp_body()
+{
+	auto text = R"(<?xml version="1.0"?>
+					<Query>
+						<CmdType>RecordInfo</CmdType>
+						<SN>{}</SN>
+						<DeviceID>{}</DeviceID>
+						<StartTime>{}</StartTime>
+						<EndTime>{}</EndTime>
+						<Secrecy>0</Secrecy>
+						<Type>all</Type>
+					</Query>
+					)";
+
+	return fmt::format(text, _request_sn, _channel_id,
+		toolkit::getTimeStr("%Y-%m-%dT%H:%M:%S", _start_time),
+		toolkit::getTimeStr("%Y-%m-%dT%H:%M:%S", _end_time));
+}
+
+void RecordRequest::InsertRecord(std::shared_ptr<RecordItem> item)
+{
+	_record_items.push_back(item);
+}
+
+uint32_t RecordRequest::GetRecordSize()
+{
+	return _record_items.size();
+}
+
+std::vector<std::shared_ptr<RecordItem>> RecordRequest::GetRecordList()
+{
+	return _record_items;
 }

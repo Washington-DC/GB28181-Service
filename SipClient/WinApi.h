@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include <stdint.h>
-#include <sys/time.h>
 
 #ifndef _WIN32
+#include <sys/time.h>
 
 typedef uint32_t DWORD;
 

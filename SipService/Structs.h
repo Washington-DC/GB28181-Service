@@ -21,6 +21,19 @@ struct MediaServerInfo {
 };
 
 
+struct RecordItem {
+	std::string			DeviceID;
+	std::string			Name;
+	std::string			FilePath;
+	std::string			Address;
+	std::string			StartTime;
+	std::string			EndTime;
+	uint8_t				Secrecy;
+	std::string			Type;
+	uint64_t			FileSize;
+};
+
+
 enum class PresetCommand
 {
 	SET = 129,
@@ -49,11 +62,13 @@ enum REQUEST_MESSAGE_TYPE
 	REQUEST_TYPE_UNKNOWN = 0,
 	KEEPALIVE,                   // 保活心跳
 	QUERY_CATALOG,               //   查询目录
-	QUERY_DEVICEINFO,               //   查询目录
+	QUERY_DEVICEINFO,               //   查询设备信息
 	DEVICE_CONTROL_PTZ,         // 设备控制-云台
 	DEVICE_QUERY_PRESET,        // 设备查询-预置位
 	DEVICE_CONTROL_PRESET,       // 设备控制-预置位
 	DEVICE_CONTROL_HOMEPOSITION, // 设备控制-看守位
+
+	DEVICE_RECORD_QUERY, // 录像文件查询
 
 	REQUEST_CALL_INVITE,            // 点播
 	REQUEST_CALL_PLAYBACK,          // 回放

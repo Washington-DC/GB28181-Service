@@ -5,10 +5,14 @@
 
 @base_params=secret={{secret}}&vhost=__defaultVhost__
 
+@device_id=34020000001320000001
+
+@channel_id=34020000001320000222
+
 
 ###
 # @name HelloWorld
-GET http://127.0.0.1:8000/v1/
+GET {{local_servre_url}}/v1/
 
 
 ###
@@ -32,37 +36,37 @@ GET {{local_servre_url}}/v1/device/list
 
 ###
 # @name channel
-GET {{local_servre_url}}/v1/channel?device_id=34020000001320000001&channel_id=34020000001320000001
+GET {{local_servre_url}}/v1/channel?device_id={{device_id}}&channel_id={{channel_id}}
 
 ###
 # @name device_hikvision
-GET {{local_servre_url}}/v1/device?device_id=34020000001320000001
+GET {{local_servre_url}}/v1/device?device_id={{device_id}}
 
 ###
 # @name channellist_hikvision
-GET {{local_servre_url}}/v1/channel/list?device_id=34020000001320000001
+GET {{local_servre_url}}/v1/channel/list?device_id={{device_id}}
 
 
 ### 
 # @name query_preset
 GET {{local_servre_url}}/v1/preset/query
-?device_id=34020000001320000001
-&channel_id=34020000001320000001
+?device_id={{device_id}}
+&channel_id={{channel_id}}
 
 
 ### 
 # @name command_preset
 GET {{local_servre_url}}/v1/preset
-?device_id=34020000001320000001
-&channel_id=34020000001320000001
+?device_id={{device_id}}
+&channel_id={{channel_id}}
 &preset=1
 &command=goto
 
 ### 
 # @name command_ptz
 GET {{local_servre_url}}/v1/ptz
-?device_id=34020000001320000001
-&channel_id=34020000001320000001
+?device_id={{device_id}}
+&channel_id={{channel_id}}
 &speed=40
 &command=left
 
@@ -71,51 +75,72 @@ GET {{local_servre_url}}/v1/ptz
 ###
 # @name play_34020000001320000001
 GET {{local_servre_url}}/v1/play/start
-    ?device_id=34020000001320000001
-    &channel_id=34020000001320000001
+    ?device_id={{device_id}}
+    &channel_id={{channel_id}}
 
 
 ###
 # @name stop_34020000001320000001
 GET {{local_servre_url}}/v1/play/stop
-    ?device_id=34020000001320000001
-    &channel_id=34020000001320000001
+    ?device_id={{device_id}}
+    &channel_id={{channel_id}}
 
 
 ###
 # @name SSRC_34020000001320000001
 GET {{local_servre_url}}/v1/ssrc
-    ?device_id=34020000001320000001
-    &channel_id=34020000001320000001
+    ?device_id={{device_id}}
+    &channel_id={{channel_id}}
 
     
 ###
 # @name SSRC_34020000001320000001
 GET {{local_servre_url}}/v1/defaultStreamID
-    ?device_id=34020000001320000001
-    &channel_id=34020000001320000001
+    ?device_id={{device_id}}
+    &channel_id={{channel_id}}
 
 
 
 ### 
 # @name modify_stream_ip
 GET {{local_servre_url}}/v1/set/device/streamip
-?device_id=34020000001320000001
-&channel_id=34020000001320000001
+?device_id={{device_id}}
+&channel_id={{channel_id}}
 &ip=192.168.116.126
 
 
 ### 
 # @name modify_device_nickname
 GET {{local_servre_url}}/v1/set/device/nickname
-?device_id=34020000001320000001
-&channel_id=34020000001320000001
+?device_id={{device_id}}
+&channel_id={{channel_id}}
 &nickname=test123333
 
 
 ### 
 # @name modify_channel_nickname
 GET {{local_servre_url}}/v1/set/channel/nickname
-?device_id=34020000001320000001
-&channel_id=34020000001320000001
+?device_id={{device_id}}
+&channel_id={{channel_id}}
 &nickname=测试测试
+
+
+
+
+### 
+# @name get_record_filelist
+GET {{local_servre_url}}/v1/record/query
+?device_id={{device_id}}
+&channel_id={{channel_id}}
+&start_time=1706846400
+&end_time=1706853600
+
+
+
+### 
+# @name record_play_start
+GET {{local_servre_url}}/v1/record/play/start
+?device_id={{device_id}}
+&channel_id={{channel_id}}
+&start_time=1706846910
+&end_time=1706848661

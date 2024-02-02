@@ -52,6 +52,12 @@ public:
     virtual bool Handle(const SipEvent::Ptr& e, pugi::xml_document& doc);
 };
 
+class RecordQueryHandler :public BaseEventHandler
+{
+public:
+    virtual bool Handle(const SipEvent::Ptr& e, pugi::xml_document& doc);
+};
+
 
 class MessageHandler :public BaseEventHandler
 {

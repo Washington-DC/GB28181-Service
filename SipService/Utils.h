@@ -11,3 +11,5 @@ std::string ToUtf8String(const std::string &input);
 std::string ToMbcsString(const std::string &input);
 
 std::string GetCurrentModuleDirectory();
+
+int64_t ISO8601ToTimeT(const std::string& gz);

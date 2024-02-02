@@ -267,6 +267,11 @@ int MessageHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 				PresetQueryHandler h;
 				h.Handle(e, doc);
 			}
+			else if (header.cmd_type == MANSCDP_QUERY_CMD_RECORD_INFO)
+			{
+				RecordQueryHandler h;
+				h.Handle(e, doc);
+			}
 
 			break;
 		default:
@@ -517,5 +522,51 @@ bool PresetQueryHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	}
 	request->OnRequestFinished();
 	SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
+	return true;
+}
+
+bool RecordQueryHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
+{
+	auto root = doc.first_child();
+	auto sn = root.child("SN").text().as_string();;
+	auto device_id = root.child("DeviceID").text().as_string();
+
+	auto req = RequestPool::GetInstance()->GetMessageRequestBySN(sn, DEVICE_RECORD_QUERY);
+	if (req == nullptr)
+	{
+		LOG(ERROR) << "RecordQueryHandler can not find request by sn: " << sn;
+		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_INTERNAL_SERVER_ERROR);
+		return false;
+	}
+
+	auto sum_num = root.child("SumNum").text().as_int();
+	auto request = std::dynamic_pointer_cast<RecordRequest>(req);
+
+	auto node = root.child("RecordList");
+	auto num = node.attribute("Num").as_int();
+	LOG(INFO) << "DeviceID: " << device_id << "Record: " << num;
+
+	auto children = node.children("Item");
+	for (auto&& child : children)
+	{
+		auto item = std::make_shared<RecordItem>();
+		item->DeviceID = child.child("DeviceID").text().as_string();
+		item->Name = child.child("Name").text().as_string();
+		item->FilePath = child.child("FilePath").text().as_string();
+		item->Address = child.child("Address").text().as_string();
+		item->StartTime = child.child("StartTime").text().as_string();
+		item->EndTime = child.child("EndTime").text().as_string();
+		item->Secrecy = child.child("Secrecy").text().as_int();
+		item->Type = child.child("Type").text().as_string();
+		item->FileSize = child.child("FileSize").text().as_ullong();
+		request->InsertRecord(item);
+	}
+
+	if (request->GetRecordSize() == sum_num)
+	{
+		request->OnRequestFinished();
+	}
+	SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
+
 	return true;
 }

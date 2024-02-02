@@ -24,12 +24,13 @@ private:
 
 class SSRCConfig
 {
-	enum class Mode:int
+public:
+	enum class Mode :int
 	{
 		Realtime,
 		Playback
 	};
-public:
+
 	typedef std::shared_ptr<SSRCConfig> Ptr;
 	SINGLETON_DEFINE(SSRCConfig);
 
