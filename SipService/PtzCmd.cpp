@@ -113,7 +113,7 @@ int PtzParser::ParseControlCmd(control_cmd_t& ctrlcmd, const std::string& cmdstr
 {
 	///parse control type
 	uint8_t b[8];
-	sscanf(cmdstr.c_str(), "%02x%02x%02x%02x%02x%02x%02x%02x", &b[0], &b[1], &b[2], &b[3]
+	sscanf(cmdstr.c_str(), "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx", &b[0], &b[1], &b[2], &b[3]
 		, &b[4], &b[5], &b[6], &b[7]);
 	m_b4 = b[3];
 	m_b5 = b[4];

@@ -132,8 +132,8 @@ GET {{local_servre_url}}/v1/set/channel/nickname
 GET {{local_servre_url}}/v1/record/query
 ?device_id={{device_id}}
 &channel_id={{channel_id}}
-&start_time=1706846400
-&end_time=1706853600
+&start_time={{$timestamp -3 h}}
+&end_time={{$timestamp}}
 
 
 
@@ -142,5 +142,5 @@ GET {{local_servre_url}}/v1/record/query
 GET {{local_servre_url}}/v1/record/play/start
 ?device_id={{device_id}}
 &channel_id={{channel_id}}
-&start_time=1706846910
-&end_time=1706848661
+&start_time={{$timestamp -3 h}}
+&end_time={{$timestamp}}
