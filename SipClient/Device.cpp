@@ -456,13 +456,8 @@ void SipDevice::on_message_new(eXosip_event_t *event)
 				std::string start_time = root.child("StartTime").child_value();
 				std::string end_time = root.child("EndTime").child_value();
 
-				if (event->request && event->request->req_uri && event->request->req_uri->username)
 				{
-					auto record_video_channel_id = event->request->req_uri->username;
-					LOG(INFO) << "find record info -----> \n"
-							  << record_video_channel_id;
-					std::shared_ptr<ChannelInfo> channel_info = nullptr;
-					channel_info = find_channel(record_video_channel_id);
+					std::shared_ptr<ChannelInfo> channel_info = find_channel(device_id);
 					if (channel_info != nullptr)
 					{
 						// 向流媒体服务器发送请求
@@ -488,7 +483,7 @@ void SipDevice::on_message_new(eXosip_event_t *event)
 							pugi::xml_document doc;
 							nlohmann::json json_data = nlohmann::json::parse(response);
 							size_t record_size = json_data["data"]["fileInfo"].size();
-							response_body = fmt::format(text, sn, this->ID, record_video_channel_id, record_size, record_size);
+							response_body = fmt::format(text, sn, this->ID, device_id, record_size, record_size);
 
 							auto doc_ret = doc.load_string(response_body.c_str());
 							if (doc_ret.status != pugi::status_ok)
@@ -508,7 +503,7 @@ void SipDevice::on_message_new(eXosip_event_t *event)
 
 								auto node = record_list.append_child("Item");
 								node.append_child("DeviceID").text().set(this->ID.c_str());
-								node.append_child("Name").text().set(record_video_channel_id);
+								node.append_child("Name").text().set(device_id.c_str());
 								node.append_child("FilePath").text().set(file_path.c_str());
 								node.append_child("StartTime").text().set(str_begin_time.c_str());
 								node.append_child("EndTime").text().set(str_end_time.c_str());
@@ -523,7 +518,7 @@ void SipDevice::on_message_new(eXosip_event_t *event)
 						}
 						catch (const std::exception &ex)
 						{
-							response_body = fmt::format(text, sn, this->ID, record_video_channel_id, 0, 0);
+							response_body = fmt::format(text, sn, this->ID, device_id, 0, 0);
 						}
 					}
 				}

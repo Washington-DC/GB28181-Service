@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Config>
 	<SipServer>
-		<IP>172.20.5.38</IP>
-		<Port>15060</Port>
+		<IP>192.168.119.57</IP>
+		<Port>5060</Port>
 		<Password>12345678</Password>
-		<ID>41010500002000000001</ID>
+		<ID>34020000002000000001</ID>
 	</SipServer>
 	<MediaServer>
 		<IP>127.0.0.1</IP>
-		<Port>10080</Port>
+		<Port>180</Port>
 		<Secret>035c73f7-bb6b-4889-a715-d9eb2d1925cc</Secret>
 	</MediaServer>
 	<HttpServer>
@@ -18,15 +18,15 @@
 		<Device>
 			<IP>192.168.116.125</IP>
 			<Port>35560</Port>
-			<ID>14020000002000000001</ID>
-			<Protocol>TCP</Protocol>
+			<ID>34020000001320000001</ID>
+			<Protocol>UDP</Protocol>
 			<Name>IP Camera</Name>
 			<Manufacturer>Test</Manufacturer>
 			<HeartbeatInterval>5</HeartbeatInterval>
 			<Catalog>
 				<Channel>
 					<Name>Test</Name>
-					<ID>14020000002000000002</ID>
+					<ID>34020000001320000222</ID>
 					<URI>Streaming/Channels/101</URI>
 				</Channel>
 			</Catalog>
