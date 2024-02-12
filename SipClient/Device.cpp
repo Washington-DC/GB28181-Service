@@ -49,7 +49,7 @@ bool SipDevice::init()
 	_sip_context = eXosip_malloc();
 	if (OSIP_SUCCESS != eXosip_init(_sip_context))
 	{
-		LOG(ERROR) << "eXosip_init failed";
+		SPDLOG_ERROR( "eXosip_init failed");
 		return false;
 	}
 	eXosip_set_option(_sip_context, EXOSIP_OPT_SET_HEADER_USER_AGENT, this->Manufacturer.c_str());
@@ -91,7 +91,7 @@ bool SipDevice::start_sip_client()
 	else
 	{
 		_local_port = NetHelper::FindAvailablePort();
-		LOG(INFO) << fmt::format("端口:{}被占用，将使用端口：{}", this->Port, _local_port);
+		SPDLOG_INFO("端口:{}被占用，将使用端口：{}", this->Port, _local_port);
 	}
 #else
 	_local_port = this->Port;
@@ -99,7 +99,7 @@ bool SipDevice::start_sip_client()
 
 	if (OSIP_SUCCESS != eXosip_listen_addr(_sip_context, this->Protocol, NULL, _local_port, AF_INET, 0))
 	{
-		LOG(ERROR) << "eXosip_listen_addr";
+		SPDLOG_ERROR( "eXosip_listen_addr");
 		eXosip_quit(_sip_context);
 		return false;
 	}
@@ -114,7 +114,7 @@ bool SipDevice::start_sip_client()
 		_sip_context, _from_uri.c_str(), _proxy_uri.c_str(), _contact_url.c_str(), 3600, &register_msg);
 	if (register_msg == nullptr)
 	{
-		LOG(ERROR) << "eXosip_register_build_initial_register failed";
+		SPDLOG_ERROR( "eXosip_register_build_initial_register failed");
 	}
 
 	eXosip_lock(_sip_context);
@@ -123,12 +123,12 @@ bool SipDevice::start_sip_client()
 
 	if (ret == OSIP_SUCCESS)
 	{
-		LOG(INFO) << "发送注册信息";
+		SPDLOG_INFO( "发送注册信息");
 		return true;
 	}
 	else
 	{
-		LOG(ERROR) << "发送注册信息失败";
+		SPDLOG_ERROR( "发送注册信息失败");
 		return false;
 	}
 }
@@ -199,12 +199,12 @@ bool SipDevice::log_out()
 	}
 	_logout = true;
 
-	LOG(INFO) << "发送注销命令";
+	SPDLOG_INFO( "发送注销命令");
 	osip_message_t *register_msg = nullptr;
 	auto ret = eXosip_register_build_register(_sip_context, _register_id, 0, &register_msg);
 	if (ret != OSIP_SUCCESS)
 	{
-		LOG(ERROR) << "eXosip_register_build_initial_register failed";
+		SPDLOG_ERROR( "eXosip_register_build_initial_register failed");
 		return false;
 	}
 
@@ -254,7 +254,7 @@ void SipDevice::on_response()
 		event = eXosip_event_wait(_sip_context, 0, 50);
 		if (event)
 		{
-			LOG(INFO) << "------------- Receive: " << magic_enum::enum_name<eXosip_event_type>(event->type);
+			SPDLOG_INFO( "------------- Receive: {}", magic_enum::enum_name<eXosip_event_type>(event->type));
 		}
 
 		if (!_logout)
@@ -285,14 +285,14 @@ void SipDevice::on_response()
 /// @param event
 void SipDevice::on_registration_failure(eXosip_event_t *event)
 {
-	LOG(ERROR) << "注册失败";
+	SPDLOG_ERROR( "注册失败");
 	_register_success = false;
 	_is_heartbeat_running = false;
 	if (event->response == nullptr)
 	{
 		return;
 	}
-	LOG(ERROR) << "注册失败: " << event->response->status_code;
+	SPDLOG_ERROR( "注册失败: {}" , event->response->status_code);
 	_is_heartbeat_running = false;
 	if (_heartbeat_thread)
 	{
@@ -318,7 +318,7 @@ void SipDevice::on_registration_failure(eXosip_event_t *event)
 /// @param event
 void SipDevice::on_registration_success(eXosip_event_t *event)
 {
-	LOG(INFO) << "注册成功";
+	SPDLOG_INFO( "注册成功");
 
 	if (!_logout)
 	{
@@ -341,9 +341,8 @@ void SipDevice::on_message_new(eXosip_event_t *event)
 		osip_message_get_body(event->request, 0, &body);
 		if (body != nullptr)
 		{
-			LOG(INFO) << "request -----> \n"
-					  << body->body;
-			LOG(INFO) << "------------------------------------";
+			SPDLOG_INFO( "request -----> \n {}", body->body);
+			SPDLOG_INFO( "------------------------------------");
 		}
 		send_response_ok(event);
 
@@ -351,7 +350,7 @@ void SipDevice::on_message_new(eXosip_event_t *event)
 		auto ret = doc.load_string(body->body);
 		if (ret.status != pugi::status_ok)
 		{
-			LOG(ERROR) << "load request xml failed";
+			SPDLOG_ERROR( "load request xml failed");
 			return;
 		}
 
@@ -367,7 +366,7 @@ void SipDevice::on_message_new(eXosip_event_t *event)
 			std::string cmd = cmd_node.child_value();
 			auto sn_node = root.child("SN");
 			std::string sn = sn_node.child_value();
-			LOG(INFO) << "SN: " << sn;
+			SPDLOG_INFO( "SN: {}" , sn);
 			// 目录查询，返回channels信息
 			if (cmd == "Catalog")
 			{
@@ -533,7 +532,7 @@ void SipDevice::on_message_new(eXosip_event_t *event)
 					_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
 				if (ret != OSIP_SUCCESS)
 				{
-					LOG(ERROR) << "eXosip_message_build_request failed";
+					SPDLOG_ERROR( "eXosip_message_build_request failed");
 					return;
 				}
 
@@ -548,7 +547,7 @@ void SipDevice::on_message_new(eXosip_event_t *event)
 	}
 	else if (MSG_IS_BYE(event->request))
 	{
-		LOG(INFO) << "Receive Bye";
+		SPDLOG_INFO( "Receive Bye");
 	}
 }
 
@@ -560,7 +559,7 @@ void SipDevice::on_message_request_failure(eXosip_event_t *event)
 	auto ret = eXosip_register_build_register(_sip_context, _register_id, 3600, &register_msg);
 	if (register_msg == nullptr)
 	{
-		LOG(ERROR) << "eXosip_register_build_initial_register failed";
+		SPDLOG_ERROR( "eXosip_register_build_initial_register failed");
 	}
 
 	_is_running = true;
@@ -571,7 +570,7 @@ void SipDevice::on_message_request_failure(eXosip_event_t *event)
 
 	if (ret == OSIP_SUCCESS)
 	{
-		LOG(INFO) << "发送注册信息";
+		SPDLOG_INFO( "发送注册信息");
 	}
 }
 
@@ -579,8 +578,7 @@ void SipDevice::on_message_request_failure(eXosip_event_t *event)
 /// @param event
 void SipDevice::on_call_ack(eXosip_event_t *event)
 {
-	LOG(INFO) << "接收到 ACK，开始推流";
-	std::cout << "ack: did: " << event->did << "\n";
+	SPDLOG_INFO( "接收到 ACK，开始推流");
 
 	std::scoped_lock<std::mutex> g(_session_mutex);
 	if (_session_map.find(event->did) != _session_map.end())
@@ -607,7 +605,7 @@ void SipDevice::on_call_ack(eXosip_event_t *event)
 /// @param event
 void SipDevice::on_call_closed(eXosip_event_t *event)
 {
-	LOG(INFO) << "接收到 BYE，结束推流";
+	SPDLOG_INFO( "接收到 BYE，结束推流");
 	std::cout << "close: did: " << event->did << "\n";
 
 	std::scoped_lock<std::mutex> g(_session_mutex);
@@ -625,27 +623,24 @@ void SipDevice::on_call_closed(eXosip_event_t *event)
 /// @param event
 void SipDevice::on_call_invite(eXosip_event_t *event)
 {
-	LOG(INFO) << "接收到INVITE";
+	SPDLOG_INFO( "接收到INVITE");
 	osip_body_t *sdp_body = nullptr;
 	osip_message_get_body(event->request, 0, &sdp_body);
 	if (sdp_body != nullptr)
 	{
-		LOG(INFO) << "request -----> \n"
-				  << sdp_body->body;
-		LOG(INFO) << "------------------------------------";
+		SPDLOG_INFO( "request -----> \n {}", sdp_body->body);
+		SPDLOG_INFO( "------------------------------------");
 	}
 	else
 	{
-		LOG(ERROR) << "SDP Error";
+		SPDLOG_ERROR( "SDP Error");
 		return;
 	}
-
-	std::cout << "invite: did: " << event->did << "\n";
 
 	sdp_message_t *sdp = NULL;
 	if (OSIP_SUCCESS != sdp_message_init(&sdp))
 	{
-		LOG(ERROR) << "sdp_message_init failed";
+		SPDLOG_ERROR( "sdp_message_init failed");
 		return;
 	}
 
@@ -654,18 +649,18 @@ void SipDevice::on_call_invite(eXosip_event_t *event)
 	if (event->request && event->request->req_uri && event->request->req_uri->username)
 	{
 		invite_video_channel_id = event->request->req_uri->username;
-		LOG(INFO) << "INVITE: " << invite_video_channel_id;
+		SPDLOG_INFO( "INVITE: {}" , invite_video_channel_id);
 		channel_info = find_channel(invite_video_channel_id);
 	}
 	else
 	{
-		LOG(ERROR) << "event->request->req_uri错误";
+		SPDLOG_ERROR( "event->request->req_uri错误");
 		return;
 	}
 
 	if (channel_info == nullptr)
 	{
-		LOG(ERROR) << "未找到对应Channel: " << invite_video_channel_id;
+		SPDLOG_ERROR( "未找到对应Channel: {}" , invite_video_channel_id);
 		return;
 	}
 
@@ -676,7 +671,7 @@ void SipDevice::on_call_invite(eXosip_event_t *event)
 		ssrc = parse_ssrc(text);
 		if (ssrc.empty())
 		{
-			LOG(ERROR) << "未找到SSRC";
+			SPDLOG_ERROR( "未找到SSRC");
 			return;
 		}
 	}
@@ -714,8 +709,7 @@ void SipDevice::on_call_invite(eXosip_event_t *event)
 		session->Playback = false;
 	}
 
-	LOG(INFO) << "Session:\n"
-			  << session->to_string();
+	SPDLOG_INFO( "Session:\n {}", session->to_string());
 	{
 		std::scoped_lock<std::mutex> g(_session_mutex);
 		_session_map.insert({event->did, session});
@@ -740,14 +734,14 @@ void SipDevice::on_call_invite(eXosip_event_t *event)
 	ret = eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
 	if (ret != OSIP_SUCCESS)
 	{
-		LOG(ERROR) << "eXosip_call_build_answer failed";
+		SPDLOG_ERROR( "eXosip_call_build_answer failed");
 		return;
 	}
 	osip_message_set_content_type(message, "APPLICATION/SDP");
 	osip_message_set_body(message, info.c_str(), info.length());
 	eXosip_call_send_answer(_sip_context, event->tid, 200, message);
 
-	LOG(INFO) << "SDP Response: " << info;
+	SPDLOG_INFO( "SDP Response: {}" , info);
 }
 
 /// @brief 返回成功消息
@@ -783,7 +777,7 @@ void SipDevice::heartbeat_task()
 			_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
 		if (ret != OSIP_SUCCESS)
 		{
-			LOG(ERROR) << "eXosip_message_build_request failed";
+			SPDLOG_ERROR( "eXosip_message_build_request failed");
 			return;
 		}
 
@@ -794,7 +788,7 @@ void SipDevice::heartbeat_task()
 		eXosip_message_send_request(_sip_context, request);
 		eXosip_unlock(_sip_context);
 
-		LOG(INFO) << "Heartbeat";
+		SPDLOG_INFO( "Heartbeat");
 
 		std::unique_lock<std::mutex> lck(_heartbeat_mutex);
 		_heartbeat_condition.wait_for(lck, std::chrono::seconds(this->HeartbeatInterval));
@@ -808,7 +802,7 @@ void SipDevice::mobile_position_task()
 		osip_message_t *notify_message = NULL;
 		if (OSIP_SUCCESS != eXosip_insubscription_build_notify(_sip_context, _subscription_dialog_id, EXOSIP_SUBCRSTATE_PENDING, EXOSIP_NOTIFY_PENDING, &notify_message))
 		{
-			LOG(ERROR) << "eXosip_insubscription_build_notify error";
+			SPDLOG_ERROR( "eXosip_insubscription_build_notify error");
 		}
 		else
 		{
@@ -836,7 +830,7 @@ void SipDevice::mobile_position_task()
 			osip_message_set_body(notify_message, text.c_str(), text.length());
 			eXosip_insubscription_send_request(_sip_context, _subscription_dialog_id, notify_message);
 
-			LOG(INFO) << "Insubscription";
+			SPDLOG_INFO( "Insubscription");
 
 			std::unique_lock<std::mutex> lck(_subscription_mutex);
 			_subscription_condition.wait_for(lck, std::chrono::seconds(this->HeartbeatInterval));
@@ -895,7 +889,7 @@ std::string SipDevice::parse_ssrc(std::string text)
 		if (strstr(token.c_str(), "y=0") || strstr(token.c_str(), "y=1"))
 		{
 			auto result = token.substr(2);
-			LOG(INFO) << "---Y: " << result;
+			SPDLOG_INFO( "---Y: {}", result);
 			return result;
 		}
 	}
@@ -939,7 +933,7 @@ std::shared_ptr<ChannelInfo> SipDevice::find_channel(std::string id)
 
 void SipDevice::on_in_subscription_new(eXosip_event_t *event)
 {
-	LOG(INFO) << "on_in_subscription_new...";
+	SPDLOG_INFO( "on_in_subscription_new...");
 
 	osip_message_t *answer = NULL;
 	if (OSIP_SUCCESS == eXosip_insubscription_build_answer(_sip_context, event->tid, 200, &answer))
@@ -962,8 +956,6 @@ void SipDevice::on_call_message_new(eXosip_event_t *event)
 {
 	if (MSG_IS_INFO(event->request))
 	{
-		std::cout << "msg: did: " << event->did << "\n";
-
 		if (_session_map.find(event->did) != _session_map.end())
 		{
 			auto session = _session_map[event->did];
@@ -973,8 +965,7 @@ void SipDevice::on_call_message_new(eXosip_event_t *event)
 				osip_message_get_body(event->request, 0, &body);
 				if (body != nullptr)
 				{
-					LOG(INFO) << "request -----> \n"
-							  << body->body;
+					SPDLOG_INFO( "request -----> \n{}", body->body);
 					if (strstr(body->body, "PAUSE"))
 					{
 						// 向流媒体服务器发送暂停请求
@@ -1025,7 +1016,7 @@ bool SipDevice::send_notify(std::shared_ptr<SessionInfo> session)
 		_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
 	if (ret != OSIP_SUCCESS)
 	{
-		LOG(ERROR) << "eXosip_message_build_request failed";
+		SPDLOG_ERROR( "eXosip_message_build_request failed");
 		return false;
 	}
 

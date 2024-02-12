@@ -1,6 +1,5 @@
 ﻿#include "pch.h"
 #include "Utils.h"
-#include <fmt/chrono.h>
 
 std::string LocalTime(time_t time)
 {
@@ -96,7 +95,7 @@ int64_t ISO8601ToTimeT(const std::string& str)
 		}
 	}
 	else {
-		LOG(ERROR) << "时间格式校验错误: " << str;
+		SPDLOG_ERROR("时间格式校验错误: {}", str);
 		return 0;
 	}
 }

@@ -20,10 +20,11 @@ std::string GetCurrentModuleDirectory()
 
 int main()
 {
-    google::InitGoogleLogging("");
-    google::SetStderrLogging(google::GLOG_INFO);
-    FLAGS_logbufsecs = 1;
-    FLAGS_colorlogtostderr = true;
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/mylog.txt", true);
+	auto logger = std::make_shared<spdlog::logger>("mylogger", spdlog::sinks_init_list{console_sink, file_sink});
+	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] [thread %t] %v");
+	spdlog::set_default_logger(logger);
 
     auto root = GetCurrentModuleDirectory();
     auto config_file = fs::path(root) / "config.xml";
@@ -54,7 +55,7 @@ int main()
     static std::promise<void> s_exit;
     signal(SIGINT, [](int signal)
            {
-               LOG(INFO) << "Catch Signal: " << signal;
+               SPDLOG_INFO( "Catch Signal: {}" , signal);
                s_exit.set_value(); });
     s_exit.get_future().wait();
 #endif

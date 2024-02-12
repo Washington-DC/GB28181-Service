@@ -17,7 +17,7 @@ void RequestPool::AddRequest(const std::string& req_id, BaseRequest::Ptr request
 	}
 	else
 	{
-		LOG(INFO) << "Request Already Exists: " << req_id;
+		SPDLOG_INFO( "Request Already Exists: {}" , req_id);
 	}
 }
 

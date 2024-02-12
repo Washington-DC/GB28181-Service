@@ -171,7 +171,7 @@ std::string MessageRequest::format_xml(const std::string& xml)
 	std::stringstream ss;
 	doc.save(ss);
 
-	LOG(INFO) << "\n" << ss.str();
+	SPDLOG_INFO( ss.str());
 
 	return ss.str();
 }
@@ -278,7 +278,7 @@ int InviteRequest::SendCall(bool needcb)
 
 	auto subject = fmt::format("{}:{},{}:0", _channel_id, ssrc, config->ID);
 
-	LOG(INFO) << "subject: " << subject;
+	SPDLOG_INFO( "subject: {}" , subject);
 
 	eXosip_lock(_exosip_context);
 	auto ret = eXosip_call_build_initial_invite(_exosip_context, &msg, to_uri.c_str(), from_uri.c_str(), nullptr, subject.c_str());
@@ -286,7 +286,7 @@ int InviteRequest::SendCall(bool needcb)
 
 	if (ret != OSIP_SUCCESS)
 	{
-		LOG(ERROR) << "eXosip_call_build_initial_invite error: " << ret;
+		SPDLOG_ERROR ("eXosip_call_build_initial_invite error: {}" , ret);
 		return -1;
 	}
 
@@ -304,11 +304,11 @@ int InviteRequest::SendCall(bool needcb)
 
 	if (rtp_port == -1)
 	{
-		LOG(ERROR) << "创建RTP服务器失败";
+		SPDLOG_ERROR("创建RTP服务器失败");
 		return -1;
 	}
 
-	LOG(INFO) << "Invite: " << _stream_id;
+	SPDLOG_INFO( "Invite: {}" , _stream_id);
 
 	_ssrc_info = std::make_shared<SSRCInfo>(rtp_port, _ssrc, _stream_id);
 	auto session = std::make_shared<CallSession>("rtp", _stream_id, _ssrc_info);
@@ -327,11 +327,11 @@ int InviteRequest::SendCall(bool needcb)
 
 	if (call_id > 0)
 	{
-		LOG(INFO) << "eXosip_call_send_initial_invite: " << call_id;
+		SPDLOG_INFO( "eXosip_call_send_initial_invite: {}", call_id);
 	}
 	session->SetCallID(call_id);
 	session->exosip_context = _exosip_context;
-	LOG(INFO) << "==================================SDP: \n" << sdp_body;
+	SPDLOG_INFO( "==================================SDP: \n {}" , sdp_body);
 
 	if (needcb)
 	{
@@ -427,7 +427,7 @@ int PtzCtlRequest::HandleResponse(int statcode)
 
 	// 收到相机回复后，立即停止云台转动
 
-	LOG(INFO) << "PtzControlRequest HandleResponse statuscode = " << statcode;
+	SPDLOG_INFO( "PtzControlRequest HandleResponse statuscode = {}", statcode);
 	//SendMessage(false);
 	return 0;
 }

@@ -72,8 +72,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\sqlite\include;..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\cpr\lib;..\depends\sqlite\lib;..\depends\curl\lib;..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\sqlite\include;..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\spdlog\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\cpr\lib;..\depends\sqlite\lib;..\depends\curl\lib;..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\openssl\debug;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)release\windows\$(Configuration)\</OutDir>
   </PropertyGroup>

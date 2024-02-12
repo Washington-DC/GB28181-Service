@@ -11,7 +11,7 @@ bool DbManager::Init(const std::string& db_path)
 	}
 	catch (const std::exception& e)
 	{
-		LOG(ERROR) << e.what();
+		SPDLOG_ERROR( e.what());
 		return false;
 	}
 }
@@ -179,7 +179,7 @@ bool DbManager::AddOrUpdateChannel(const std::string& device_id, Channel::Ptr ch
 	}
 	catch (const std::exception& e)
 	{
-		LOG(ERROR) << e.what();
+		SPDLOG_ERROR( e.what());
 		return false;
 	}
 }
@@ -282,7 +282,7 @@ bool DbManager::_create_tables()
 	auto ret = _db->execute(sql);
 	if (ret != SQLITE_OK)
 	{
-		LOG(ERROR) << "exec \"synchronous\" failed";
+		SPDLOG_ERROR( "exec \"synchronous\" failed");
 		return false;
 	}
 
@@ -309,7 +309,7 @@ bool DbManager::_create_tables()
 	ret = _db->execute(sql);
 	if (ret != SQLITE_OK)
 	{
-		LOG(ERROR) << "create table \"device\" failed";
+		SPDLOG_ERROR( "create table \"device\" failed");
 		return false;
 	}
 
@@ -339,7 +339,7 @@ bool DbManager::_create_tables()
 	ret = _db->execute(sql);
 	if (ret != SQLITE_OK)
 	{
-		LOG(ERROR) << "create table \"channel\" failed";
+		SPDLOG_ERROR( "create table \"channel\" failed");
 		return false;
 	}
 
@@ -358,7 +358,7 @@ bool DbManager::_create_tables()
 	ret = _db->execute(sql);
 	if (ret != SQLITE_OK)
 	{
-		LOG(ERROR) << "create table \"stream_log\" failed";
+		SPDLOG_ERROR( "create table \"stream_log\" failed");
 		return false;
 	}
 
@@ -373,7 +373,7 @@ bool DbManager::_create_tables()
 	ret = _db->execute(sql);
 	if (ret != SQLITE_OK)
 	{
-		LOG(ERROR) << "create table \"log\" failed";
+		SPDLOG_ERROR( "create table \"log\" failed");
 		return false;
 	}
 
@@ -388,7 +388,7 @@ bool DbManager::_create_tables()
 	//ret = _db->execute(sql);
 	//if (ret != SQLITE_OK)
 	//{
-	//	LOG(ERROR) << "create trigger \"device_update_time\" failed";
+	//	SPDLOG_ERROR( "create trigger \"device_update_time\" failed";
 	//	return false;
 	//}
 
@@ -403,7 +403,7 @@ bool DbManager::_create_tables()
 	ret = _db->execute(sql);
 	if (ret != SQLITE_OK)
 	{
-		LOG(ERROR) << "create trigger \"channel_update_time\" failed";
+		SPDLOG_ERROR( "create trigger \"channel_update_time\" failed");
 		return false;
 	}
 	_checked = true;

@@ -28,6 +28,20 @@ function(update_cached_list name)
   update_cached(${name} "${_tmp_list}")
 endfunction()
 
+
+if(UNIX)
+  # UNIX/Linux/Darwin
+  set(COMPILE_OPTIONS_DEFAULT
+    "-fPIC"
+    "-Wall;-Wextra"
+    "-Wno-unused-function;-Wno-unused-parameter;-Wno-unused-variable;-Wno-unused-local-typedefs"
+    "-Wno-error=extra;-Wno-error=missing-field-initializers;-Wno-error=type-limits")
+elseif(WIN32)
+  set(COMPILE_OPTIONS_DEFAULT
+    "/wd4566;/wd4819"
+    "/EHsc")
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ZLToolKit/src)
@@ -35,6 +49,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/crow)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/json)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/magic_enum)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/sqlite/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/spdlog/include)
+
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(osip2 REQUIRED libosip2 IMPORTED_TARGET)
@@ -42,11 +58,12 @@ pkg_search_module(exosip2 REQUIRED libexosip2 IMPORTED_TARGET)
 pkg_search_module(sqlite3 REQUIRED sqlite3 IMPORTED_TARGET)
 
 
-find_package(glog  REQUIRED)
-find_package(fmt  REQUIRED)
+# find_package(glog  REQUIRED)
+# find_package(fmt  REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread locale system filesystem)
 find_package(pugixml  REQUIRED)
 find_package(cpr REQUIRED)
+# find_package(spdlog REQUIRED)
 
 
 add_subdirectory(3rdparty)

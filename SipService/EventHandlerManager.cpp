@@ -66,7 +66,7 @@ EventHandlerManager::EventNameProcPair EventHandlerManager::GetEventProc(eXosip_
 	if (type > EXOSIP_EVENT_COUNT)
 	{
 		EventNameProcPair pair = { nullptr, nullptr };
-		LOG(WARNING) << "Event Type: " << type << " don't exist!";
+		SPDLOG_WARN( "Event Type:  {}  doesn't exist!", type);
 		return pair;
 	}
 	auto value = _event_processor_map.find(type);
@@ -159,7 +159,7 @@ int EventHandlerManager::on_exosip_call_message_new(const SipEvent::Ptr& event)
 	}
 	reqid = (const char*)tag->gvalue;
 
-	LOG(INFO) << "on_exosip_call_message_new response reqid = " << reqid;
+	SPDLOG_INFO( "on_exosip_call_message_new response reqid = {}", reqid);
 
 	if (!strncmp(event->exosip_event->request->sip_method, "MESSAGE", strlen("MESSAGE")))
 	{
@@ -226,7 +226,7 @@ int EventHandlerManager::on_exosip_message_new(const SipEvent::Ptr& event)
 		WarnL << " UNKNOW METHON";
 	}
 
-	LOG(INFO) << "===========================>>>" << exosip_event->request->sip_method;
+	SPDLOG_INFO( "===========================>>>  {}", exosip_event->request->sip_method);
 
 	return 0;
 }

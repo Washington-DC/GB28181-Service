@@ -4,12 +4,12 @@
 
 bool ConfigManager::LoadConfig(std::string filepath)
 {
-	LOG(INFO) << "配置文件解析...";
+	SPDLOG_INFO( "配置文件解析...");
 	pugi::xml_document doc;
 	auto ret = doc.load_file(filepath.c_str(), pugi::parse_full);
 	if (ret.status != pugi::status_ok)
 	{
-		LOG(ERROR) << "配置文件解析失败";
+		SPDLOG_ERROR( "配置文件解析失败");
 		return false;
 	}
 
@@ -29,7 +29,7 @@ bool ConfigManager::LoadConfig(std::string filepath)
 		server_info->Realm = server_info->ID.substr(0, 10);
 		// 每次运行的时候随机生成
 		server_info->Nonce = GenerateRandomString(16);
-		//LOG(INFO) << server_info->Nonce;
+		//SPDLOG_INFO( server_info->Nonce;
 		// SIP 服务器固定密码
 		server_info->Password = sip_server_node.child_value("Password");
 		//流媒体服务器公网IP
@@ -37,7 +37,7 @@ bool ConfigManager::LoadConfig(std::string filepath)
 	}
 	else
 	{
-		LOG(ERROR) << "SipServer节点错误";
+		SPDLOG_ERROR( "SipServer节点错误");
 		return false;
 	}
 
@@ -62,7 +62,7 @@ bool ConfigManager::LoadConfig(std::string filepath)
 	}
 	else
 	{
-		LOG(ERROR) << "MediaServer节点错误";
+		SPDLOG_ERROR( "MediaServer节点错误");
 		return false;
 	}
 
@@ -76,10 +76,10 @@ bool ConfigManager::LoadConfig(std::string filepath)
 	}
 	else
 	{
-		LOG(ERROR) << "Http节点错误";
+		SPDLOG_ERROR( "Http节点错误");
 		return false;
 	}
 
-	LOG(INFO) << "配置文件解析完成";
+	SPDLOG_INFO( "配置文件解析完成");
 	return true;
 }

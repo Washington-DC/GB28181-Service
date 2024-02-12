@@ -603,7 +603,7 @@ HttpServer::HttpServer()
 	CROW_BP_ROUTE(_hook_blueprint, "/on_publish").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
-			LOG(INFO) << "Hook on_publish: " << info.Path() << "\tParams: " << info.Params;
+			SPDLOG_INFO( "Hook on_publish: {}  \tParams:{}  ",info.Path(), info.Params);
 			return nlohmann::json{
 				{"code",0},
 				{"msg",""},
@@ -647,7 +647,7 @@ HttpServer::HttpServer()
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_none_reader").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
-			LOG(INFO) << "on_stream_none_reader: " << info.Path();
+			SPDLOG_INFO( "on_stream_none_reader: {}", info.Path());
 
 			auto stream = StreamManager::GetInstance()->GetStream(info.Stream);
 			if (stream)
@@ -669,7 +669,7 @@ HttpServer::HttpServer()
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_not_found").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
-			LOG(INFO) << "on_stream_not_found: " << info.Path();
+			SPDLOG_INFO( "on_stream_not_found: {}", info.Path());
 
 			if (info.App == "rtp")
 			{
@@ -682,7 +682,7 @@ HttpServer::HttpServer()
 							auto device_id = info.Stream.substr(0, pos);
 							auto channel_id = info.Stream.substr(pos + 1);
 							auto ret = Play(device_id, channel_id);
-							LOG(INFO) << "Play: " << ret;
+							SPDLOG_INFO( "Play: {}" , ret);
 						}
 						else
 						{
@@ -695,7 +695,7 @@ HttpServer::HttpServer()
 									if (channel->GetDefaultStreamID() == info.Stream)
 									{
 										auto ret = Play(device->GetDeviceID(), channel->GetChannelID());
-										LOG(INFO) << "Play: " << ret;
+										SPDLOG_INFO( "Play: " ,ret);
 									}
 								}
 							}
@@ -712,7 +712,7 @@ HttpServer::HttpServer()
 	CROW_BP_ROUTE(_hook_blueprint, "/on_rtp_server_timeout").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::RtpServerInfo>();
-			LOG(INFO) << "on_rtp_server_timeout: " << info.StreamID;
+			SPDLOG_INFO( "on_rtp_server_timeout: {}" , info.StreamID);
 			return _mk_response(0, "", "success");
 		}
 	);

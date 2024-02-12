@@ -40,13 +40,13 @@
 #endif
 
 
-#define GLOG_NO_ABBREVIATED_SEVERITIES
-#define GOOGLE_GLOG_DLL_DECL
 #include <base/base.h>
 #include <eXosip2/eXosip.h>
-#include <fmt/format.h>
-#include <fmt/chrono.h>
-#include <glog/logging.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/fmt/fmt.h>
+#include <spdlog/fmt/chrono.h>
 #include <magic_enum.hpp>
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
@@ -78,12 +78,8 @@ namespace fs = std::filesystem;
 
 #ifdef _DEBUG
 #pragma comment(lib, "pugixmld.lib")
-#pragma comment(lib, "glogd.lib")
-#pragma comment(lib, "fmtd.lib")
 #else
 #pragma comment(lib, "pugixml.lib")
-#pragma comment(lib, "glog.lib")
-#pragma comment(lib, "fmt.lib")
 #endif
 
 #endif

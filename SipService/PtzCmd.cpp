@@ -24,7 +24,7 @@ std::string PtzCmd::cmdString(int leftRight, int upDown, int inOut, int moveSpee
 		cmdCode |= 0x20;  // 缩小
 	}
 
-	LOG(INFO) << "BYTE: " << fmt::format("{:08b}", cmdCode);
+	SPDLOG_INFO( "BYTE: {:08b}", cmdCode);
 
 	std::stringstream ss;
 	// 前三字节
@@ -44,7 +44,7 @@ std::string PtzCmd::cmdString(int leftRight, int upDown, int inOut, int moveSpee
 		(0xA5 + 0x0F + 0x01 + cmdCode + moveSpeed + moveSpeed + (zoomSpeed << 4)) % 0x100;
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << checkCode;
 
-	LOG(INFO) << "Code: " << ss.str();
+	SPDLOG_INFO( "Code: {}" , ss.str());
 	return ss.str();
 }
 
@@ -85,7 +85,7 @@ std::string PtzCmd::cmdLens(int iris, int focus, int iris_speed, int focus_speed
 		cmdCode |= 0b00000001;   //远
 
 
-	LOG(INFO) << "BYTE: " << fmt::format("{:08b}", cmdCode);
+	SPDLOG_INFO( "BYTE:  {:08b}", cmdCode);
 
 	std::stringstream ss;
 	// 前三字节
@@ -104,7 +104,7 @@ std::string PtzCmd::cmdLens(int iris, int focus, int iris_speed, int focus_speed
 		(0xA5 + 0x0F + 0x01 + cmdCode + iris_speed + focus_speed + 0x00) % 0x100;
 	ss << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << checkCode;
 
-	LOG(INFO) << "Code: " << ss.str();
+	SPDLOG_INFO( "Code: {}" , ss.str());
 	return ss.str();
 }
 
