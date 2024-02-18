@@ -171,7 +171,7 @@ std::string MessageRequest::format_xml(const std::string& xml)
 	std::stringstream ss;
 	doc.save(ss);
 
-	SPDLOG_INFO( ss.str());
+	SPDLOG_INFO(ss.str());
 
 	return ss.str();
 }
@@ -254,7 +254,7 @@ y={}
 	auto server = ConfigManager::GetInstance()->GetSipServerInfo();
 	return fmt::format(text, id, _device->GetStreamIP(),
 		_play_mode == SSRCConfig::Mode::Playback ? "Playback" : "Play",
-		_device->GetStreamIP(),_start_time, _end_time, port, ssrc);
+		_device->GetStreamIP(), _start_time, _end_time, port, ssrc);
 }
 
 
@@ -278,7 +278,7 @@ int InviteRequest::SendCall(bool needcb)
 
 	auto subject = fmt::format("{}:{},{}:0", _channel_id, ssrc, config->ID);
 
-	SPDLOG_INFO( "subject: {}" , subject);
+	SPDLOG_INFO("subject: {}", subject);
 
 	eXosip_lock(_exosip_context);
 	auto ret = eXosip_call_build_initial_invite(_exosip_context, &msg, to_uri.c_str(), from_uri.c_str(), nullptr, subject.c_str());
@@ -286,7 +286,7 @@ int InviteRequest::SendCall(bool needcb)
 
 	if (ret != OSIP_SUCCESS)
 	{
-		SPDLOG_ERROR ("eXosip_call_build_initial_invite error: {}" , ret);
+		SPDLOG_ERROR("eXosip_call_build_initial_invite error: {}", ret);
 		return -1;
 	}
 
@@ -308,7 +308,7 @@ int InviteRequest::SendCall(bool needcb)
 		return -1;
 	}
 
-	SPDLOG_INFO( "Invite: {}" , _stream_id);
+	SPDLOG_INFO("Invite: {}", _stream_id);
 
 	_ssrc_info = std::make_shared<SSRCInfo>(rtp_port, _ssrc, _stream_id);
 	auto session = std::make_shared<CallSession>("rtp", _stream_id, _ssrc_info);
@@ -327,11 +327,11 @@ int InviteRequest::SendCall(bool needcb)
 
 	if (call_id > 0)
 	{
-		SPDLOG_INFO( "eXosip_call_send_initial_invite: {}", call_id);
+		SPDLOG_INFO("eXosip_call_send_initial_invite: {}", call_id);
 	}
 	session->SetCallID(call_id);
 	session->exosip_context = _exosip_context;
-	SPDLOG_INFO( "==================================SDP: \n {}" , sdp_body);
+	SPDLOG_INFO("==================================SDP: \n {}", sdp_body);
 
 	if (needcb)
 	{
@@ -427,7 +427,7 @@ int PtzCtlRequest::HandleResponse(int statcode)
 
 	// 收到相机回复后，立即停止云台转动
 
-	SPDLOG_INFO( "PtzControlRequest HandleResponse statuscode = {}", statcode);
+	SPDLOG_INFO("PtzControlRequest HandleResponse statuscode = {}", statcode);
 	//SendMessage(false);
 	return 0;
 }
@@ -494,7 +494,7 @@ void RecordRequest::InsertRecord(std::shared_ptr<RecordItem> item)
 
 uint32_t RecordRequest::GetRecordSize()
 {
-	return _record_items.size();
+	return (uint32_t)_record_items.size();
 }
 
 std::vector<std::shared_ptr<RecordItem>> RecordRequest::GetRecordList()

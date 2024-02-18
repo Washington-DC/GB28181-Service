@@ -10,62 +10,66 @@
 std::string GetCurrentModuleDirectory()
 {
 #ifdef _WIN32
-    return nbase::win32::GetCurrentModuleDirectoryA();
+	return nbase::win32::GetCurrentModuleDirectoryA();
 #else
-    char cwd[1024];
-    getcwd(cwd, sizeof(cwd));
-    return std::string(cwd);
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+	return std::string(cwd);
 #endif
 }
 
 int main()
 {
-    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    auto logger = std::make_shared<spdlog::logger>("logger", spdlog::sinks_init_list{ console_sink });
-    logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] [%t] [%s:%#] %v");
-    spdlog::set_default_logger(logger);
+	auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	auto logger = std::make_shared<spdlog::logger>("logger", spdlog::sinks_init_list{ console_sink });
+#ifdef _WIN32
+	auto msvc_sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
+	logger->sinks().push_back(msvc_sink);
+#endif
+	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] [%t] [%s:%#] %v");
+	spdlog::set_default_logger(logger);
 
-    auto root = GetCurrentModuleDirectory();
-    auto config_file = fs::path(root) / "config.xml";
+	auto root = GetCurrentModuleDirectory();
+	auto config_file = fs::path(root) / "config.xml";
 
-    auto ret = ConfigManager::GetInstance()->LoadConfig(config_file.string());
-    if (!ret)
-        return 0;
+	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file.string());
+	if (!ret)
+		return 0;
 
-    auto sip_server_info = ConfigManager::GetInstance()->GetSipServerInfo();
-    auto media_server_info = ConfigManager::GetInstance()->GetMediaServerInfo();
-    auto device_infos = ConfigManager::GetInstance()->GetAllDeviceInfo();
+	auto sip_server_info = ConfigManager::GetInstance()->GetSipServerInfo();
+	auto media_server_info = ConfigManager::GetInstance()->GetMediaServerInfo();
+	auto device_infos = ConfigManager::GetInstance()->GetAllDeviceInfo();
 
-    auto f = HttpServer::GetInstance()->Start(ConfigManager::GetInstance()->GetHttpPort());
+	auto f = HttpServer::GetInstance()->Start(ConfigManager::GetInstance()->GetHttpPort());
 
-    HttpClient::GetInstance()->Init(media_server_info);
-    std::vector<std::shared_ptr<SipDevice>> devices;
-    for (auto &&info : device_infos)
-    {
-        auto device = std::make_shared<SipDevice>(info, sip_server_info);
-        device->init();
-        device->start_sip_client();
-        devices.push_back(device);
-    }
+	HttpClient::GetInstance()->Init(media_server_info);
+	std::vector<std::shared_ptr<SipDevice>> devices;
+	for (auto&& info : device_infos)
+	{
+		auto device = std::make_shared<SipDevice>(info, sip_server_info);
+		device->init();
+		device->start_sip_client();
+		devices.push_back(device);
+	}
 
 #ifdef _DEBUG
-    getchar();
+	getchar();
 #else
-    static std::promise<void> s_exit;
-    signal(SIGINT, [](int signal)
-           {
-               SPDLOG_INFO( "Catch Signal: {}" , signal);
-               s_exit.set_value(); });
-    s_exit.get_future().wait();
+	static std::promise<void> s_exit;
+	signal(SIGINT, [](int signal)
+		   {
+			   SPDLOG_INFO("Catch Signal: {}", signal);
+			   s_exit.set_value(); });
+	s_exit.get_future().wait();
 #endif
 
-    for (auto &&device : devices)
-    {
-        device->log_out();
-        device->stop_sip_client();
-    }
+	for (auto&& device : devices)
+	{
+		device->log_out();
+		device->stop_sip_client();
+	}
 
-    return 0;
+	return 0;
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

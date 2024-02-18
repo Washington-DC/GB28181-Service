@@ -4,12 +4,12 @@
 
 bool ConfigManager::LoadConfig(std::string filepath)
 {
-	SPDLOG_INFO( "配置文件解析...");
+	SPDLOG_INFO("配置文件解析...");
 	pugi::xml_document doc;
 	auto ret = doc.load_file(filepath.c_str(), pugi::parse_full);
 	if (ret.status != pugi::status_ok)
 	{
-		SPDLOG_ERROR( "配置文件解析失败");
+		SPDLOG_ERROR("配置文件解析失败");
 		return false;
 	}
 
@@ -37,7 +37,7 @@ bool ConfigManager::LoadConfig(std::string filepath)
 	}
 	else
 	{
-		SPDLOG_ERROR( "SipServer节点错误");
+		SPDLOG_ERROR("SipServer节点错误");
 		return false;
 	}
 
@@ -62,7 +62,7 @@ bool ConfigManager::LoadConfig(std::string filepath)
 	}
 	else
 	{
-		SPDLOG_ERROR( "MediaServer节点错误");
+		SPDLOG_ERROR("MediaServer节点错误");
 		return false;
 	}
 
@@ -76,10 +76,10 @@ bool ConfigManager::LoadConfig(std::string filepath)
 	}
 	else
 	{
-		SPDLOG_ERROR( "Http节点错误");
+		SPDLOG_ERROR("Http节点错误");
 		return false;
 	}
 
-	SPDLOG_INFO( "配置文件解析完成");
+	SPDLOG_INFO("配置文件解析完成");
 	return true;
 }

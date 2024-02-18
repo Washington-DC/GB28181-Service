@@ -69,7 +69,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		if (contact == nullptr)
 		{
 			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
-			SPDLOG_WARN( "Device Regist Failed, contact = null");
+			SPDLOG_WARN("Device Regist Failed, contact = null");
 			return -1;
 		}
 		auto config = ConfigManager::GetInstance()->GetSipServerInfo();
@@ -80,7 +80,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		if (strcmp(sip_id, config->ID.c_str()) != 0)
 		{
 			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
-			SPDLOG_WARN( "Device Regist Failed, sip id doesn't match");
+			SPDLOG_WARN("Device Regist Failed, sip id doesn't match");
 			return -1;
 		}
 
@@ -95,7 +95,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			config->Nonce.c_str(), NULL, HA1);
 		DigestCalcResponse(HA1, config->Nonce.c_str(), NULL, NULL, NULL, 0, method, uri, NULL,
 			calc_response);
-		SPDLOG_INFO( "MD5: {}" , calc_response);
+		SPDLOG_INFO("MD5: {}", calc_response);
 
 		std::string client_host = strdup(contact->url->host);
 		auto client_port = strdup(contact->url->port);
@@ -104,7 +104,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		if (0 == memcmp(calc_response, response, HASHHEXLEN))
 		{
 			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_OK);
-			SPDLOG_INFO( "Device Registration Success, Address: {}:{}    ID:{}", client_host, client_port, client_device_id);
+			SPDLOG_INFO("Device Registration Success, Address: {}:{}    ID:{}", client_host, client_port, client_device_id);
 
 			//TOOD:
 			bool find = false;
@@ -121,7 +121,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 				find = true;
 				if (device->GetIP() != client_host)
 				{
-					SPDLOG_WARN( "设备IP变化:  {}  {}->{}", client_device_id ,device->GetIP(),client_host);
+					SPDLOG_WARN("设备IP变化:  {}  {}->{}", client_device_id, device->GetIP(), client_host);
 					device->SetIP(client_host);
 					device->SetPort(client_port);
 				}
@@ -150,7 +150,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		else
 		{
 			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED);
-			SPDLOG_INFO( "Device Regist Failed, Address: {}:{}    ID: {}", client_host ,client_port, client_device_id);
+			SPDLOG_INFO("Device Regist Failed, Address: {}:{}    ID: {}", client_host, client_port, client_device_id);
 
 			//TODO:
 			DeviceManager::GetInstance()->RemoveDevice(client_device_id);
@@ -189,11 +189,11 @@ void RegisterHandler::_response_register_401unauthorized(const SipEvent::Ptr& e)
 		eXosip_lock(e->exosip_context);
 		eXosip_message_send_answer(e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED, response);
 		eXosip_unlock(e->exosip_context);
-		SPDLOG_INFO( "response_register_401unauthorized success");
+		SPDLOG_INFO("response_register_401unauthorized success");
 	}
 	else
 	{
-		SPDLOG_ERROR( "response_register_401unauthorized error");
+		SPDLOG_ERROR("response_register_401unauthorized error");
 	}
 
 	osip_www_authenticate_free(www_authenticate_header);
@@ -218,8 +218,8 @@ int MessageHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		return -1;
 	}
 
-	SPDLOG_INFO( "============================================");
-	SPDLOG_INFO(  std::string(body->body));
+	SPDLOG_INFO("============================================");
+	SPDLOG_INFO(std::string(body->body));
 
 	XmlParser parser;
 	pugi::xml_document doc;
@@ -385,7 +385,7 @@ bool HeartbeatHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	}
 	else
 	{
-		SPDLOG_WARN( "Heartbeat SIP_UNAUTHORIZED");
+		SPDLOG_WARN("Heartbeat SIP_UNAUTHORIZED");
 		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED);
 	}
 	return false;
@@ -404,7 +404,7 @@ bool DeviceInfoHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 		device->SetManufacturer(root.child("Manufacturer").text().as_string());
 		device->SetModel(root.child("Model").text().as_string());
 
-		SPDLOG_INFO( device->toString());
+		SPDLOG_INFO(device->toString());
 		DbManager::GetInstance()->AddOrUpdateDevice(device, true);
 		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_OK);
 		return true;
@@ -422,12 +422,12 @@ int CallHandler::HandleResponseSuccess(const SipEvent::Ptr e)
 	int call_id = e->exosip_event->cid;
 	int dialog_id = e->exosip_event->did;
 
-	SPDLOG_INFO( "on_exosip_call_answered DeviceID:  {}    CallID:{}    DialogID:{} ", device_id,call_id ,dialog_id);
+	SPDLOG_INFO("on_exosip_call_answered DeviceID:  {}    CallID:{}    DialogID:{} ", device_id, call_id, dialog_id);
 
 	auto device = DeviceManager::GetInstance()->GetDevice(host, port);
 	if (device == nullptr)
 	{
-		SPDLOG_WARN( "Device Not Exists: {}" , device_id);
+		SPDLOG_WARN("Device Not Exists: {}", device_id);
 		return -1;
 	}
 
@@ -460,7 +460,7 @@ int CallHandler::on_proceeding(const SipEvent::Ptr e)
 	}
 	reqid = (const char*)tag->gvalue;
 
-	SPDLOG_INFO( "on_exosip_call_proceeding response reqid = {}", reqid);
+	SPDLOG_INFO("on_exosip_call_proceeding response reqid = {}", reqid);
 	return 0;
 }
 
@@ -471,7 +471,7 @@ int CallHandler::HandleClose(const SipEvent::Ptr e)
 	int call_id = e->exosip_event->cid;
 	int dialog_id = e->exosip_event->did;
 
-	SPDLOG_INFO( "on_exosip_call_close DeviceID: {}     CallID:{}    DialogID:{}" ,device_id,call_id,dialog_id);
+	SPDLOG_INFO("on_exosip_call_close DeviceID: {}     CallID:{}    DialogID:{}", device_id, call_id, dialog_id);
 
 	auto sessions = StreamManager::GetInstance()->GetStreamByType(STREAM_TYPE_GB);
 	for (auto&& s : sessions)
@@ -485,7 +485,7 @@ int CallHandler::HandleClose(const SipEvent::Ptr e)
 			return 0;
 		}
 	}
-	SPDLOG_WARN( "CallID not found: {}" , call_id);
+	SPDLOG_WARN("CallID not found: {}", call_id);
 	return -1;
 }
 
@@ -500,14 +500,14 @@ bool PresetQueryHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	auto req = RequestPool::GetInstance()->GetMessageRequestBySN(sn, DEVICE_QUERY_PRESET);
 	if (req == nullptr)
 	{
-		SPDLOG_ERROR( "PresetQueryHandler can not find request by sn: {}", sn);
+		SPDLOG_ERROR("PresetQueryHandler can not find request by sn: {}", sn);
 		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_INTERNAL_SERVER_ERROR);
 		return false;
 	}
 
 	auto node = root.child("PresetList");
 	auto num = node.attribute("Num").as_int();
-	SPDLOG_INFO( "DeviceID: {}    Preset:{}", device_id ,num);
+	SPDLOG_INFO("DeviceID: {}    Preset:{}", device_id, num);
 
 	auto request = std::dynamic_pointer_cast<PresetRequest>(req);
 	auto children = node.children("Item");
@@ -532,7 +532,7 @@ bool RecordQueryHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 	auto req = RequestPool::GetInstance()->GetMessageRequestBySN(sn, DEVICE_RECORD_QUERY);
 	if (req == nullptr)
 	{
-		SPDLOG_ERROR( "RecordQueryHandler can not find request by sn: {}" , sn);
+		SPDLOG_ERROR("RecordQueryHandler can not find request by sn: {}", sn);
 		SendResponse(device_id, e->exosip_context, e->exosip_event->tid, SIP_INTERNAL_SERVER_ERROR);
 		return false;
 	}
@@ -542,7 +542,7 @@ bool RecordQueryHandler::Handle(const SipEvent::Ptr& e, pugi::xml_document& doc)
 
 	auto node = root.child("RecordList");
 	auto num = node.attribute("Num").as_int();
-	SPDLOG_INFO( "DeviceID: {}     Record:{}", device_id , num);
+	SPDLOG_INFO("DeviceID: {}     Record:{}", device_id, num);
 
 	auto children = node.children("Item");
 	for (auto&& child : children)

@@ -40,7 +40,7 @@ bool HttpClient::StartSendRtp(
 
 	if (res.status_code == 200)
 	{
-		SPDLOG_INFO( "返回: {}" , res.text);
+		SPDLOG_INFO("返回: {}", res.text);
 		return true;
 	}
 	return false;
@@ -87,7 +87,7 @@ bool HttpClient::StartSendPlaybackRtp(
 
 	if (res.status_code == 200)
 	{
-		SPDLOG_INFO( "返回: {}" , res.text);
+		SPDLOG_INFO("返回: {}", res.text);
 		return true;
 	}
 	return false;

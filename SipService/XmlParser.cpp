@@ -15,7 +15,7 @@ bool XmlParser::Parse(const char* data, int len, pugi::xml_document& doc)
 	}
 	else
 	{
-		SPDLOG_ERROR("xml解析失败\n {}" ,std::string(data, len));
+		SPDLOG_ERROR("xml解析失败\n {}", std::string(data, len));
 	}
 
 	return false;

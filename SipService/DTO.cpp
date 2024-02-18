@@ -19,7 +19,7 @@ namespace dto
 				j.at("originType").get_to(info.OriginType);
 			}
 		}
-		
+
 		if (j.contains("port"))
 		{
 			j.at("port").get_to(info.Port);
