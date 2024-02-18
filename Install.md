@@ -16,30 +16,6 @@
 
  mkdir opensource && cd opensource
 
-# 因为有的系统默认cmake版本较低
-wget https://github.com/Kitware/CMake/releases/download/v3.28.2/cmake-3.28.2.tar.gz
-tar -zxvf cmake-3.28.2.tar.gz
-cd cmake-3.28.2
-./bootstrap
-make && make install
-cd ..
-
-
-
-git clone https://github.com/google/glog.git
-cd glog && mkdir build && cd build
-cmake ..
-make && make install
-cd ../..
-
-
-git clone https://github.com/fmtlib/fmt.git
-cd fmt && mkdir build && cd build
-cmake ..
-make && make install
-cd ../..
-
-
 git clone https://github.com/zeux/pugixml.git
 cd pugixml && mkdir build && cd build
 cmake ..
@@ -81,9 +57,8 @@ tar -zxvf libexosip2-5.3.0.tar.gz
 cd libexosip2-5.3.0
 ./configure
 # 添加宏定义ENABLE_MAIN_SOCKET再进行编译，否则无法使用TCP服务
-#define ENABLE_MAIN_SOCKET 1
 make CFLAGS="-DNABLE_MAIN_SOCKE=1" && make install
-cd ..
+cd ../..
 
 cp libexosip2.pc /usr/local/lib/pkgconfig/libexosip2.pc
 # 更新submodule

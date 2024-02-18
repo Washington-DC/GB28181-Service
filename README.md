@@ -17,6 +17,8 @@
 
  -  设置设备和通道的Nickname，修改设备收流IP。
 
+ -  录像文件查询和回放。
+
  -  单端口模式收流和多端口模式收流适配。单端口模式下，流地址是SSRC信息，所以这里对每个Channel初始化时就设置一个固定的SSRC（通过defaultStreamID获取ssrc对应的streamID）。多端口模式下，使用device_id和channel_id组合作为streamID。
     
     如设备ID: `34020000002000000001`,通道ID: `34020000002000000012`,系统初始化SSRC: `0200000000`。单端口模式下，可以用`rtsp://127.0.0.1:554/rtp/0BEBC200`地址播放，其中`0BEBC200`则为SSRC的16进制标识。多端口模式下，则使用`rtsp://127.0.0.1:554/rtp/34020000002000000001_34020000002000000012`。当然也可用ZLMediaKit支持的其他各种协议格式。
@@ -43,10 +45,9 @@
  - [eXosip2](http://savannah.nongnu.org/projects/exosip)
  - [ZLToolKit](https://github.com/ZLMediaKit/ZLToolKit)
  - [openssl](https://github.com/openssl/openssl)
- - [glog](https://github.com/google/glog)
  - [curl](https://github.com/curl/curl)
  - [cpr](https://github.com/libcpr/cpr)
- - [fmt](https://github.com/fmtlib/fmt)
+ - [spdlog](https://github.com/gabime/spdlog)
  - [crow](https://github.com/CrowCpp/Crow)
  - [nlohmann/json](https://github.com/nlohmann/json)
  - [pugixml](https://github.com/zeux/pugixml)

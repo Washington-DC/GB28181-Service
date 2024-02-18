@@ -17,10 +17,8 @@
 - [osip](https://www.gnu.org/software/osip/osip.html)
 - [eXosip2](http://savannah.nongnu.org/projects/exosip)
 - [openssl](https://github.com/openssl/openssl)
-- [glog](https://github.com/google/glog)
 - [curl](https://github.com/curl/curl)
 - [cpr](https://github.com/libcpr/cpr)
-- [fmt](https://github.com/fmtlib/fmt)
 - [pugixml](https://github.com/zeux/pugixml)
 - [magic_enum](https://github.com/Neargye/magic_enum)
 
