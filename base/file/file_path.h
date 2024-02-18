@@ -2,7 +2,7 @@
 #define BASE_FILE_FILE_PATH_H_
 
 #include <string>
-
+#include <limits>
 namespace nbase
 {
 

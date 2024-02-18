@@ -22,9 +22,10 @@ int main()
 	fs::create_directories(log_path);
 
 	auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/mylog.txt", true);
-	auto logger = std::make_shared<spdlog::logger>("mylogger", spdlog::sinks_init_list{console_sink, file_sink});
-	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] [%t] %v");
+	auto file_path = log_path / fmt::format("{:%Y%m%d%H%M%S}.log", fmt::localtime(std::time(nullptr)));
+	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(file_path.string(), 1024 * 1024 * 50, 12, true);
+	auto logger = std::make_shared<spdlog::logger>("mylogger", spdlog::sinks_init_list{ console_sink, file_sink });
+	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] [%t] [%s:%#] %v");
 	spdlog::set_default_logger(logger);
 
 	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file.string());
@@ -55,8 +56,8 @@ int main()
 	static std::promise<void> s_exit;
 	signal(SIGINT, [](int signal)
 		   {
-			SPDLOG_INFO( "Catch Signal:  {}",signal );
-			s_exit.set_value(); });
+			   SPDLOG_INFO("Catch Signal:  {}", signal);
+			   s_exit.set_value(); });
 	s_exit.get_future().wait();
 #endif
 

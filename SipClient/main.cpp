@@ -21,10 +21,9 @@ std::string GetCurrentModuleDirectory()
 int main()
 {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-	auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/mylog.txt", true);
-	auto logger = std::make_shared<spdlog::logger>("mylogger", spdlog::sinks_init_list{console_sink, file_sink});
-	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] [thread %t] %v");
-	spdlog::set_default_logger(logger);
+    auto logger = std::make_shared<spdlog::logger>("logger", spdlog::sinks_init_list{ console_sink });
+    logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] [%t] [%s:%#] %v");
+    spdlog::set_default_logger(logger);
 
     auto root = GetCurrentModuleDirectory();
     auto config_file = fs::path(root) / "config.xml";

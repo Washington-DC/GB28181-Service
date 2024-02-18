@@ -15,7 +15,7 @@ public:
 	std::vector<Device::Ptr> GetDeviceList();
 	int GetDeviceCount();
 	void UpdateDeviceStatus(const std::string& device_id, int status);
-	void UpdateDeviceLastTime(const std::string& device_id, time_t time = time(nullptr));
+	void UpdateDeviceLastTime(const std::string& device_id, time_t time = std::time(nullptr));
 	void UpdateDeviceChannelCount(const std::string& device_id, int count);
 
 	void Start();
