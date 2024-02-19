@@ -84,8 +84,8 @@
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\CDTY\Downloads\libexosip2-5.3.0.tar\openssl\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\CDTY\Downloads\libexosip2-5.3.0.tar\openssl\release;$(IncludePath)</LibraryPath>
+    <IncludePath>..\..\..\..\depends\openssl\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
