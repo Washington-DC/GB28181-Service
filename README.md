@@ -1,4 +1,7 @@
 # GB28181-Service
+[![CMake on Ubuntu](https://github.com/Washington-DC/GB28181-Service/actions/workflows/cmake-ubuntu.yml/badge.svg)](https://github.com/Washington-DC/GB28181-Service/actions/workflows/cmake-ubuntu.yml)   [![MSBuild](https://github.com/Washington-DC/GB28181-Service/actions/workflows/msbuild-windows.yml/badge.svg)](https://github.com/Washington-DC/GB28181-Service/actions/workflows/msbuild-windows.yml)
+
+
 
 依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的GB28181服务器。
 
@@ -503,3 +506,49 @@
     |   speed    |    Y     |     云台速度。zoomin和zoomout时，固定为1，不使用此参数。     |
     |  command   |    Y     | 命令：left,right,up,down,upleft,upright,downleft,downright,zoomin,zoomout,stop |
 
+
+
+### 15、`/v1/record/query`
+
+- 功能：录像文件查询
+
+- 范例：[http://127.0.0.1:8000/v1/record/query?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800
+&end_time=1679774800](http://127.0.0.1:8000/v1/record/query?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800
+&end_time=1679774800)
+
+- 参数：
+    |    参数    | 是否必选 |                             释意                             |
+    | :--------: | :------: | :----------------------------------------------------------: |
+    | device_id  |    Y     |                           设备编码                           |
+    | channel_id |    Y     |                           通道编码                           |
+    | start_time    |    Y     |     开始时间     |
+    | end_time   |    Y     | 结束时间 |
+
+
+
+### 16、`/v1/record/play/start`
+
+- 功能：录像回放
+
+- 范例：[http://127.0.0.1:8000/v1/record/query?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800](http://127.0.0.1:8000/v1/record/query?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800)
+
+- 参数：
+    |    参数    | 是否必选 |     释意     |
+    | :--------: | :------: | :----------: |
+    | device_id  |    Y     |   设备编码   |
+    | channel_id |    Y     |   通道编码   |
+    | start_time |    Y     | 录像开始时间 |
+    |  end_time  |    Y     | 录像结束时间 |
+
+
+### 17、`/v1/record/play/stop`
+
+- 功能：停止录像回放
+
+- 范例：[http://127.0.0.1:8000/v1/record/play/stop?device_id=34020000001320000100&channel_id=34020000001320000100](http://127.0.0.1:8000/v1/record/play/stop?device_id=34020000001320000100&channel_id=34020000001320000100)
+
+- 参数：
+    |    参数    | 是否必选 |   释意   |
+    | :--------: | :------: | :------: |
+    | device_id  |    Y     | 设备编码 |
+    | channel_id |    Y     | 通道编码 |
