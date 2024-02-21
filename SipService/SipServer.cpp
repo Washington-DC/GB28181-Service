@@ -9,7 +9,7 @@ bool SipServer::Init(const std::string& sip_id, uint16_t port, bool use_tcp)
 
 	_sip_context = eXosip_malloc();
 	if (OSIP_SUCCESS != eXosip_init(_sip_context)) {
-		SPDLOG_ERROR( "eXosip_init failed");
+		SPDLOG_ERROR("eXosip_init failed");
 		return false;
 	}
 
@@ -25,12 +25,12 @@ bool SipServer::Start()
 	auto ret = eXosip_listen_addr(_sip_context, _listen_tcp ? IPPROTO_TCP : IPPROTO_UDP, NULL, _sip_port, AF_INET, 0);
 	if (ret != OSIP_SUCCESS)
 	{
-		SPDLOG_ERROR( "eXosip_listen_addr");
+		SPDLOG_ERROR("eXosip_listen_addr");
 		eXosip_quit(_sip_context);
 		return false;
 	}
 
-	SPDLOG_INFO( "Start SipServer...");
+	SPDLOG_INFO("Start SipServer...");
 	_start = true;
 	_event_thread = std::make_shared<std::thread>(&SipServer::RecvEventThread, this);
 
@@ -84,7 +84,7 @@ void SipServer::RecvEventThread()
 			continue;
 		}
 
-		SPDLOG_INFO( "Receive Event: {}", sip_event->name);
+		SPDLOG_INFO("Receive Event: {}", sip_event->name);
 
 		toolkit::EventPollerPool::Instance().getExecutor()->async([sip_event]()
 			{

@@ -79,8 +79,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
-    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\sqlite\include;..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\glog\include;..\depends\fmt\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\cpr\lib;..\depends\sqlite\lib;..\depends\curl\lib;..\depends\ZLTookit\lib\release;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\glog\lib;..\depends\fmt\lib;..\depends\openssl\release;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\sqlite\include;..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\spdlog\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\cpr\lib;..\depends\sqlite\lib;..\depends\curl\lib;..\depends\ZLTookit\lib\release;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\openssl\release;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)release\windows\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

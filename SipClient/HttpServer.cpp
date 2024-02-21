@@ -54,7 +54,7 @@ HttpServer::HttpServer()
 					func(info.App, info.Stream, info.Regist);
 				}
 			}
-			return crow::json::wvalue({{"code", 0}, {"msg", "success"}});
+			return crow::json::wvalue({ {"code", 0}, {"msg", "success"} });
 		}
 	);
 
