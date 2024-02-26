@@ -266,18 +266,8 @@ int InviteRequest::SendCall(bool needcb)
 
 	osip_message_t* msg = nullptr;
 	auto channel = _device->GetChannel(_channel_id);
-	std::string ssrc = "";
-	if (ZlmServer::GetInstance()->SinglePortMode())
-	{
-		ssrc = channel->GetDefaultSSRC();
-	}
-	else
-	{
-		ssrc = SSRCConfig::GetInstance()->GenerateSSRC();
-	}
 
-	auto subject = fmt::format("{}:{},{}:0", _channel_id, ssrc, config->ID);
-
+	auto subject = fmt::format("{}:{},{}:0", _channel_id, _ssrc, config->ID);
 	SPDLOG_INFO("subject: {}", subject);
 
 	eXosip_lock(_exosip_context);
@@ -426,7 +416,6 @@ int PtzCtlRequest::HandleResponse(int statcode)
 	_zoomSpeed = 0;
 
 	// 收到相机回复后，立即停止云台转动
-
 	SPDLOG_INFO("PtzControlRequest HandleResponse statuscode = {}", statcode);
 	//SendMessage(false);
 	return 0;

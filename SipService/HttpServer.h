@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <crow_all.h>
+#include "DeviceManager.h"
 
 template<typename Req, typename First>
 bool checkArgs(Req& req, const First& first) {
@@ -27,10 +28,13 @@ private:
 	HttpServer();
 
 	std::string Play(const std::string& device_id, const std::string& channel_id);
-	std::string Playback(const std::string& device_id, const std::string& channel_id,int64_t start_time,int64_t end_time);
+	std::string Playback(const std::string& device_id, const std::string& channel_id, int64_t start_time, int64_t end_time);
 
 	template<typename Type>
 	std::string _mk_response(int status, Type t, std::string msg = "ok");
+
+	Device::Ptr GetDevice(const std::string& device_id);
+	Channel::Ptr GetChannel(const std::string& device_id, const std::string& channel_id);
 
 	crow::SimpleApp _app;
 	crow::Blueprint _api_blueprint;

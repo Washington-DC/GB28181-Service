@@ -1,6 +1,5 @@
 ﻿#include "pch.h"
 #include "HttpServer.h"
-#include "DeviceManager.h"
 #include "StreamManager.h"
 #include "SipRequest.h"
 #include "SipServer.h"
@@ -35,7 +34,7 @@ HttpServer::HttpServer()
 		{
 			CHECK_ARGS("device_id");
 			auto device_id = req.url_params.get("device_id");
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			auto device = GetDevice(device_id);
 			if (device)
 			{
 				return _mk_response(0, device->toJson());
@@ -50,7 +49,7 @@ HttpServer::HttpServer()
 			CHECK_ARGS("device_id");
 			auto doc = nlohmann::json::array();
 			auto device_id = req.url_params.get("device_id");
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			auto device = GetDevice(device_id);
 			if (device)
 			{
 				auto channels = device->GetAllChannels();
@@ -71,16 +70,10 @@ HttpServer::HttpServer()
 			auto device_id = req.url_params.get("device_id");
 			auto channel_id = req.url_params.get("channel_id");
 
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-			if (device == nullptr)
-			{
-				return _mk_response(1, "", "device not found");
-			}
-
-			auto channel = device->GetChannel(channel_id);
+			auto channel = GetChannel(device_id, channel_id);
 			if (channel == nullptr)
 			{
-				return _mk_response(1, "", "channel not found");
+				return _mk_response(1, "", "device or channel not found");
 			}
 
 			return _mk_response(0, channel->toJson());
@@ -143,8 +136,6 @@ HttpServer::HttpServer()
 				{
 					eXosip_call_terminate(session->exosip_context,
 						session->GetCallID(), session->GetDialogID());
-					/*eXosip_call_terminate(SipServer::GetInstance()->GetSipContext(),
-						session->GetCallID(), session->GetDialogID());*/
 					session->SetConnected(false);
 
 					return _mk_response(0, "", "ok");
@@ -357,7 +348,7 @@ HttpServer::HttpServer()
 			auto device_id = req.url_params.get("device_id");
 			auto ip = req.url_params.get("ip");
 
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			auto device = GetDevice(device_id);
 			if (device == nullptr)
 			{
 				return _mk_response(1, "", "device not found");
@@ -375,7 +366,7 @@ HttpServer::HttpServer()
 			auto device_id = req.url_params.get("device_id");
 			auto nickname = req.url_params.get("nickname");
 
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			auto device = GetDevice(device_id);
 			if (device == nullptr)
 			{
 				return _mk_response(1, "", "device not found");
@@ -395,16 +386,10 @@ HttpServer::HttpServer()
 			auto channel_id = req.url_params.get("channel_id");
 			auto nickname = req.url_params.get("nickname");
 
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-			if (device == nullptr)
-			{
-				return _mk_response(1, "", "device not found");
-			}
-
-			auto channel = device->GetChannel(channel_id);
+			auto channel = GetChannel(device_id, channel_id);
 			if (channel == nullptr)
 			{
-				return _mk_response(1, "", "channel not found");
+				return _mk_response(1, "", "device or channel not found");
 			}
 
 			channel->SetNickName(nickname);
@@ -442,16 +427,10 @@ HttpServer::HttpServer()
 			auto device_id = req.url_params.get("device_id");
 			auto channel_id = req.url_params.get("channel_id");
 
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-			if (device == nullptr)
-			{
-				return _mk_response(1, "", "device not found");
-			}
-
-			auto channel = device->GetChannel(channel_id);
+			auto channel = GetChannel(device_id, channel_id);
 			if (channel == nullptr)
 			{
-				return _mk_response(1, "", "channel not found");
+				return _mk_response(1, "", "device or channel not found");
 			}
 
 			return _mk_response(0, nlohmann::json{ {"ssrc",channel->GetDefaultSSRC()} }, "ok");
@@ -507,7 +486,6 @@ HttpServer::HttpServer()
 		}
 	);
 
-
 	//录像回放
 	CROW_BP_ROUTE(_api_blueprint, "/record/play/start")([this](const crow::request& req)
 		{
@@ -520,35 +498,13 @@ HttpServer::HttpServer()
 		}
 	);
 
-	//录像回放 停止
+	//录像回放 停止, 根据回放的SSRC查找对应视频流，并关闭
 	CROW_BP_ROUTE(_api_blueprint, "/record/play/stop")([this](const crow::request& req)
 		{
-			CHECK_ARGS("device_id", "channel_id");
-			auto device_id = req.url_params.get("device_id");
-			auto channel_id = req.url_params.get("channel_id");
+			CHECK_ARGS("ssrc");
+			auto ssrc = req.url_params.get("ssrc");
 
-			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
-			if (device == nullptr)
-			{
-				return _mk_response(1, "", "device not found");
-			}
-
-			auto channel = device->GetChannel(channel_id);
-			if (channel == nullptr)
-			{
-				return _mk_response(1, "", "channel not found");
-			}
-
-			std::string stream_id = "";
-			if (ZlmServer::GetInstance()->SinglePortMode())
-			{
-				stream_id = SSRC_Hex(channel->GetDefaultSSRC());
-			}
-			else
-			{
-				stream_id = fmt::format("{}_{}", device_id, channel_id);
-			}
-
+			std::string stream_id = SSRC_Hex(ssrc);
 			if (stream_id.empty())
 			{
 				return _mk_response(400, "", "not play");
@@ -566,10 +522,7 @@ HttpServer::HttpServer()
 				{
 					eXosip_call_terminate(session->exosip_context,
 						session->GetCallID(), session->GetDialogID());
-					/*eXosip_call_terminate(SipServer::GetInstance()->GetSipContext(),
-						session->GetCallID(), session->GetDialogID());*/
 					session->SetConnected(false);
-
 					return _mk_response(0, "", "ok");
 				}
 			}
@@ -766,7 +719,6 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 	}
 
 	request = std::make_shared<InviteRequest>(device->exosip_context, device, channel_id, channel->GetDefaultSSRC(), stream_id);
-
 	request->SendCall();
 
 	auto stream = StreamManager::GetInstance()->GetStream(stream_id);
@@ -786,6 +738,8 @@ std::string HttpServer::Play(const std::string& device_id, const std::string& ch
 	return _mk_response(401, "", "unknow error");
 }
 
+
+//录像回放
 std::string HttpServer::Playback(const std::string& device_id, const std::string& channel_id, int64_t start_time, int64_t end_time)
 {
 	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
@@ -806,11 +760,14 @@ std::string HttpServer::Playback(const std::string& device_id, const std::string
 	}
 
 	InviteRequest::Ptr request = nullptr;
+
+	//生成ssrc以及stream_id
 	auto ssrc = SSRCConfig::GetInstance()->GenerateSSRC(SSRCConfig::Mode::Playback);
 	std::string stream_id = SSRC_Hex(ssrc);
 
 	if (!stream_id.empty())
 	{
+		//判断该ssrc/streamid对应的视频流是否已存在
 		auto stream = StreamManager::GetInstance()->GetStream(stream_id);
 		if (stream)
 		{
@@ -822,6 +779,7 @@ std::string HttpServer::Playback(const std::string& device_id, const std::string
 		}
 	}
 
+	//发送invite请求
 	request = std::make_shared<InviteRequest>(device->exosip_context, device, channel_id, ssrc, stream_id,
 		SSRCConfig::Mode::Playback, start_time, end_time);
 	request->SendCall();
@@ -830,18 +788,32 @@ std::string HttpServer::Playback(const std::string& device_id, const std::string
 	if (stream)
 	{
 		auto session = std::dynamic_pointer_cast<CallSession>(stream);
+		//等待流注册或一段时间后，
 		auto ret = session->WaitForStreamReady(ZlmServer::GetInstance()->MaxPlayWaitTime());
-
+		//超时
 		if (!ret)
-		{
 			return _mk_response(400, "", "timeout");
-		}
 
+		//视频流已注册
 		return _mk_response(0, nlohmann::json{ {"ssrc",session->GetSSRCInfo()->GetSSRC()} }, "ok");
 	}
 
 	return _mk_response(401, "", "unknow error");
+}
 
+std::shared_ptr<Device> HttpServer::GetDevice(const std::string& device_id)
+{
+	return DeviceManager::GetInstance()->GetDevice(device_id);
+}
+
+std::shared_ptr<Channel> HttpServer::GetChannel(const std::string& device_id, const std::string& channel_id)
+{
+	auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+	if (device)
+	{
+		return device->GetChannel(channel_id);
+	}
+	return nullptr;
 }
 
 
