@@ -3,9 +3,9 @@
 
 enum STREAM_TYPE {
 	STREAM_TYPE_NONE = 0,
-	STREAM_TYPE_GB = 1,
-	STREAM_TYPE_PROXY = 2,
-	STREAM_TYPE_PUSH = 3,
+	STREAM_TYPE_GB = 1,         // GB28181方式推流
+	STREAM_TYPE_PROXY = 2,      // 拉流代理
+	STREAM_TYPE_PUSH = 3,       // 设备端主动推流
 	STREAM_TYPE_MAX
 };
 

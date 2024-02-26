@@ -57,7 +57,7 @@ tar -zxvf libexosip2-5.3.0.tar.gz
 cd libexosip2-5.3.0
 ./configure
 # 添加宏定义ENABLE_MAIN_SOCKET再进行编译，否则无法使用TCP服务
-make CFLAGS="-DNABLE_MAIN_SOCKE=1" && make install
+make CFLAGS="-DENABLE_MAIN_SOCKET=1" && make install
 cd ../..
 
 cp libexosip2.pc /usr/local/lib/pkgconfig/libexosip2.pc
