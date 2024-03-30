@@ -8,6 +8,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{9F5EFC7A-7D53-408E-80C8-45D0EBC319E0}"
 	ProjectSection(SolutionItems) = preProject
 		release\windows\Debug\config.xml = release\windows\Debug\config.xml
+		Install.md = Install.md
+		SipClient\README.md = SipClient\README.md
+		README.md = README.md
 		release\windows\Debug\server.xml = release\windows\Debug\server.xml
 	EndProjectSection
 EndProject

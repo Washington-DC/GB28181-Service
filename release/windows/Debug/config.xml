@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Config>
 	<SipServer>
-		<IP>192.168.119.57</IP>
-		<Port>5060</Port>
+		<IP>147.109.57.148</IP>
+		<Port>15060</Port>
 		<Password>12345678</Password>
 		<ID>34020000002000000001</ID>
 	</SipServer>
@@ -19,7 +19,7 @@
 			<IP>192.168.116.125</IP>
 			<Port>35560</Port>
 			<ID>34020000001320000001</ID>
-			<Protocol>UDP</Protocol>
+			<Protocol>TCP</Protocol>
 			<Name>IP Camera</Name>
 			<Manufacturer>Test</Manufacturer>
 			<HeartbeatInterval>5</HeartbeatInterval>

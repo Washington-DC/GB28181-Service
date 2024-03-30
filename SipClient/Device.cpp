@@ -2,10 +2,13 @@
 #include "Device.h"
 #include "HttpClient.h"
 #include "HttpServer.h"
-#include "NetUtils.h"
 #include "FileTime.h"
+#include "NetUtils.h"
+//起始端口号
 static int start_port = 20000;
+//最大的SN
 static int SN_MAX = 99999999;
+//起始SN
 static int sn = 0;
 
 static int get_port()
@@ -13,7 +16,7 @@ static int get_port()
 	start_port++;
 	if (start_port > 65500)
 	{
-		return 20000;
+		start_port = 20000;
 	}
 	return start_port;
 }
@@ -30,6 +33,7 @@ static int get_sn()
 
 #define CALLBACK_TEMPLATE(F) (std::bind(&SipDevice::F, this, std::placeholders::_1))
 
+
 SipDevice::SipDevice(const std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info)
 {
 	this->ID = info->ID;
@@ -44,7 +48,8 @@ SipDevice::SipDevice(const std::shared_ptr<DeviceInfo> info, std::shared_ptr<Sip
 	this->_sip_server_info = sip_server_info;
 }
 
-bool SipDevice::init()
+
+bool SipDevice::Init()
 {
 	_sip_context = eXosip_malloc();
 	if (OSIP_SUCCESS != eXosip_init(_sip_context))
@@ -52,52 +57,25 @@ bool SipDevice::init()
 		SPDLOG_ERROR("eXosip_init failed");
 		return false;
 	}
+
+	//部分服务器不会根据设备信息来判断厂家，而是根据UA来判断
 	eXosip_set_option(_sip_context, EXOSIP_OPT_SET_HEADER_USER_AGENT, this->Manufacturer.c_str());
 
 	_from_uri = fmt::format("sip:{}@{}:{}", this->ID, this->IP, this->Port);
 	_contact_url = fmt::format("sip:{}@{}:{}", this->ID, this->IP, this->Port);
 	_proxy_uri = fmt::format("sip:{}@{}:{}", _sip_server_info->ID, _sip_server_info->IP, _sip_server_info->Port);
 
-	HttpServer::GetInstance()->AddStreamChangedCallback([this](const std::string& app, const std::string& stream, bool regist)
-														{
-															//只需要判断录像回放的流注销事件即可
-															if (!regist && app == "record")
-															{
-																std::scoped_lock<std::mutex> g(_session_mutex);
-																for (auto&& [id, session] : _session_map)
-																{
-																	if (session->SSRC == stream)
-																	{
-																		send_notify(session);
-
-																		//从map中删除此session，流注销已自动释放
-																		_session_map.erase(id);
-																		break;
-																	}
-																}
-															} });
+	HttpServer::GetInstance()->AddStreamChangedCallback(std::bind(&SipDevice::OnStreamChanedCallback, this,
+		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 	return true;
 }
 
-/// @brief 启动sip客户端功能
-/// 绑定本地端口，创建线程接收数据，发送注册信息
-/// @return
-bool SipDevice::start_sip_client()
-{
-#ifdef _WIN32
-	if (NetHelper::IsPortAvailable(this->Port))
-		_local_port = this->Port;
-	else
-	{
-		_local_port = NetHelper::FindAvailablePort();
-		SPDLOG_INFO("端口:{}被占用，将使用端口：{}", this->Port, _local_port);
-	}
-#else
-	_local_port = this->Port;
-#endif
 
-	if (OSIP_SUCCESS != eXosip_listen_addr(_sip_context, this->Protocol, NULL, _local_port, AF_INET, 0))
+bool SipDevice::StartSipClient()
+{
+	//创建socket，Port如果是0，则会随机使用端口
+	if (OSIP_SUCCESS != eXosip_listen_addr(_sip_context, this->Protocol, NULL, this->Port, AF_INET, 0))
 	{
 		SPDLOG_ERROR("eXosip_listen_addr");
 		eXosip_quit(_sip_context);
@@ -105,10 +83,10 @@ bool SipDevice::start_sip_client()
 	}
 
 	_is_running = true;
-	_sip_thread = std::make_shared<std::thread>(&SipDevice::on_response, this);
-
+	_sip_thread = std::make_shared<std::thread>(&SipDevice::SipRecvEventThread, this);
+	//清理注册信息
 	eXosip_clear_authentication_info(_sip_context);
-
+	//构建注册信息
 	osip_message_t* register_msg = nullptr;
 	_register_id = eXosip_register_build_initial_register(
 		_sip_context, _from_uri.c_str(), _proxy_uri.c_str(), _contact_url.c_str(), 3600, &register_msg);
@@ -116,7 +94,7 @@ bool SipDevice::start_sip_client()
 	{
 		SPDLOG_ERROR("eXosip_register_build_initial_register failed");
 	}
-
+	//发送注册信息
 	eXosip_lock(_sip_context);
 	auto ret = eXosip_register_send_register(_sip_context, _register_id, register_msg);
 	eXosip_unlock(_sip_context);
@@ -133,9 +111,7 @@ bool SipDevice::start_sip_client()
 	}
 }
 
-/// @brief 停止sip功能
-/// @return
-bool SipDevice::stop_sip_client()
+void SipDevice::StopSipClient()
 {
 	_is_running = false;
 
@@ -143,19 +119,7 @@ bool SipDevice::stop_sip_client()
 	std::scoped_lock<std::mutex> g(_session_mutex);
 	for (auto&& [_, session] : _session_map)
 	{
-		HttpClient::GetInstance()->StopSendRtp(session);
-	}
-
-	if (_sip_thread)
-	{
-		_sip_thread->join();
-		_sip_thread = nullptr;
-	}
-
-	if (_sip_context)
-	{
-		eXosip_quit(_sip_context);
-		_sip_context = nullptr;
+		session->Stop();
 	}
 
 	_register_success = false;
@@ -175,12 +139,21 @@ bool SipDevice::stop_sip_client()
 		_heartbeat_thread = nullptr;
 	}
 
-	return true;
+	if (_sip_thread)
+	{
+		_sip_thread->join();
+		_sip_thread = nullptr;
+	}
+
+	if (_sip_context)
+	{
+		eXosip_quit(_sip_context);
+		_sip_context = nullptr;
+	}
 }
 
-/// @brief 注销
-/// @return
-bool SipDevice::log_out()
+
+bool SipDevice::Logout()
 {
 	_is_heartbeat_running = false;
 
@@ -197,7 +170,6 @@ bool SipDevice::log_out()
 		_heartbeat_thread->join();
 		_heartbeat_thread = nullptr;
 	}
-	_logout = true;
 
 	SPDLOG_INFO("发送注销命令");
 	osip_message_t* register_msg = nullptr;
@@ -211,6 +183,7 @@ bool SipDevice::log_out()
 	osip_contact_t* contact = nullptr;
 	osip_message_get_contact(register_msg, 0, &contact);
 
+	//注销时，设置expires为0即可
 	auto info = fmt::format("{};expires=0", _contact_url);
 	osip_list_remove(&register_msg->contacts, 0);
 	osip_message_set_contact(register_msg, info.c_str());
@@ -218,6 +191,7 @@ bool SipDevice::log_out()
 
 	eXosip_lock(_sip_context);
 	ret = eXosip_register_send_register(_sip_context, _register_id, register_msg);
+	//注销后，清理注册内容
 	eXosip_clear_authentication_info(_sip_context);
 	eXosip_unlock(_sip_context);
 
@@ -225,28 +199,31 @@ bool SipDevice::log_out()
 }
 
 /// @brief 轮询接收数据
-void SipDevice::on_response()
+void SipDevice::SipRecvEventThread()
 {
-
 	_event_processor_map = {
+
 		// 查询命令（目录查询、录像文件查询、设备参数等等）
-		{EXOSIP_MESSAGE_NEW, CALLBACK_TEMPLATE(on_message_new)},
+		{EXOSIP_MESSAGE_NEW,			CALLBACK_TEMPLATE(OnMessageNew)},
 		// 注册成功
-		{EXOSIP_REGISTRATION_SUCCESS, CALLBACK_TEMPLATE(on_registration_success)},
+		{EXOSIP_REGISTRATION_SUCCESS,	CALLBACK_TEMPLATE(OnRegistrationSuccess)},
 		// 注册失败
-		{EXOSIP_REGISTRATION_FAILURE, CALLBACK_TEMPLATE(on_registration_failure)},
+		{EXOSIP_REGISTRATION_FAILURE,	CALLBACK_TEMPLATE(OnRegistrationFailed)},
 		// 服务端删除此设备后，发送请求会收到此回复
-		{EXOSIP_MESSAGE_REQUESTFAILURE, CALLBACK_TEMPLATE(on_message_request_failure)},
-		// 开始推流
-		{EXOSIP_CALL_ACK, CALLBACK_TEMPLATE(on_call_ack)},
-		// 关闭推流
-		{EXOSIP_CALL_CLOSED, CALLBACK_TEMPLATE(on_call_closed)},
+		{EXOSIP_MESSAGE_REQUESTFAILURE, CALLBACK_TEMPLATE(OnMessageRequestFailed)},
+		// 消息订阅( 如：移动设备位置信息订阅 )
+		{EXOSIP_IN_SUBSCRIPTION_NEW,	CALLBACK_TEMPLATE(OnInSubscriptionNew)},
+
+
 		// 请求会话
-		{EXOSIP_CALL_INVITE, CALLBACK_TEMPLATE(on_call_invite)},
+		{EXOSIP_CALL_INVITE,			CALLBACK_TEMPLATE(OnCallInvite)},
+		// 确认请求，开始推流
+		{EXOSIP_CALL_ACK,				CALLBACK_TEMPLATE(OnCallACK)},
+		// 关闭推流
+		{EXOSIP_CALL_CLOSED,			CALLBACK_TEMPLATE(OnCallClosed)},
 		// 播放命令(暂停、继续播放)
-		{EXOSIP_CALL_MESSAGE_NEW, CALLBACK_TEMPLATE(on_call_message_new)},
-		// 消息订阅( 移动设备位置信息订阅 )
-		{EXOSIP_IN_SUBSCRIPTION_NEW, CALLBACK_TEMPLATE(on_in_subscription_new)} };
+		{EXOSIP_CALL_MESSAGE_NEW,		CALLBACK_TEMPLATE(OnCallMessageNew)}
+	};
 
 	eXosip_event_t* event = nullptr;
 	while (_is_running)
@@ -257,7 +234,7 @@ void SipDevice::on_response()
 			SPDLOG_INFO("------------- Receive: {}", magic_enum::enum_name<eXosip_event_type>(event->type));
 		}
 
-		if (!_logout)
+		//对于某些内容，eXosip可以自动执行
 		{
 			eXosip_lock(_sip_context);
 			eXosip_automatic_action(_sip_context);
@@ -273,7 +250,7 @@ void SipDevice::on_response()
 			_event_processor_map[event->type](event);
 		}
 
-		if (event != nullptr)
+		if (event)
 		{
 			eXosip_event_free(event);
 			event = nullptr;
@@ -281,15 +258,14 @@ void SipDevice::on_response()
 	}
 }
 
-/// @brief 注册失败
-/// @param event
-void SipDevice::on_registration_failure(eXosip_event_t* event)
+
+void SipDevice::OnRegistrationFailed(eXosip_event_t* event)
 {
-	SPDLOG_ERROR("注册失败");
 	_register_success = false;
 	_is_heartbeat_running = false;
 	if (event->response == nullptr)
 	{
+		SPDLOG_ERROR("注册失败");
 		return;
 	}
 	SPDLOG_ERROR("注册失败: {}", event->response->status_code);
@@ -299,14 +275,16 @@ void SipDevice::on_registration_failure(eXosip_event_t* event)
 		_heartbeat_thread->join();
 		_heartbeat_thread = nullptr;
 	}
-
+	//当服务端回复401或403时，表示已经发送了一次消息
 	if (event->response->status_code == 401 || event->response->status_code == 403)
 	{
 		osip_www_authenticate_t* www_authenticate_header = nullptr;
 		osip_message_get_www_authenticate(event->response, 0, &www_authenticate_header);
 		if (www_authenticate_header)
 		{
+			//获取服务器域
 			_sip_server_domain = osip_strdup_without_quote(www_authenticate_header->realm);
+			//使用md5摘要生成注册内容
 			eXosip_add_authentication_info(
 				_sip_context, this->ID.c_str(), this->ID.c_str(), _sip_server_info->Password.c_str(), "md5",
 				www_authenticate_header->realm);
@@ -314,26 +292,22 @@ void SipDevice::on_registration_failure(eXosip_event_t* event)
 	}
 }
 
-/// @brief 注册成功
-/// @param event
-void SipDevice::on_registration_success(eXosip_event_t* event)
+
+void SipDevice::OnRegistrationSuccess(eXosip_event_t* event)
 {
 	SPDLOG_INFO("注册成功");
 
-	if (!_logout)
+	_register_success = true;
+	_is_heartbeat_running = true;
+	if (_heartbeat_thread == nullptr)
 	{
-		_register_success = true;
-		_is_heartbeat_running = true;
-		if (_heartbeat_thread == nullptr)
-		{
-			_heartbeat_thread = std::make_shared<std::thread>(&SipDevice::heartbeat_task, this);
-		}
+		//如果注册成功，就开始启动心跳线程
+		_heartbeat_thread = std::make_shared<std::thread>(&SipDevice::HeartbeatTask, this);
 	}
 }
 
-/// @brief 收到消息，这里主要有查询Catalog和DeviceInfo两种
-/// @param event
-void SipDevice::on_message_new(eXosip_event_t* event)
+
+void SipDevice::OnMessageNew(eXosip_event_t* event)
 {
 	if (MSG_IS_MESSAGE(event->request))
 	{
@@ -344,7 +318,7 @@ void SipDevice::on_message_new(eXosip_event_t* event)
 			SPDLOG_INFO("request -----> \n {}", body->body);
 			SPDLOG_INFO("------------------------------------");
 		}
-		send_response_ok(event);
+		SendResponseOK(event);
 
 		pugi::xml_document doc;
 		auto ret = doc.load_string(body->body);
@@ -356,192 +330,10 @@ void SipDevice::on_message_new(eXosip_event_t* event)
 
 		auto root = doc.first_child();
 		std::string root_name = root.name();
-		std::string response_body = "";
 
 		if (root_name == "Query")
 		{
-			auto cmd_node = root.child("CmdType");
-			if (cmd_node.empty())
-				return;
-			std::string cmd = cmd_node.child_value();
-			auto sn_node = root.child("SN");
-			std::string sn = sn_node.child_value();
-			SPDLOG_INFO("SN: {}", sn);
-			// 目录查询，返回channels信息
-			if (cmd == "Catalog")
-			{
-				response_body = generate_catalog_xml(sn);
-			}
-			// 设备信息查询，发送设备信息,主要包括设备id，设备名称，厂家，版本，channel数量等
-			else if (cmd == "DeviceInfo")
-			{
-				auto text =
-					R"( <?xml version="1.0" encoding="GB2312"?>
-						<Response>
-							<CmdType>DeviceInfo</CmdType>
-							<SN>{}</SN>
-							<DeviceID>{}</DeviceID>
-
-							<Result>OK</Result>
-							<DeviceName>{}</DeviceName>
-							<Manufacturer>{}</Manufacturer>
-
-							<Model>SipServer</Model>
-							<Firmware>V1.0.0</Firmware>
-							<Channel>{}</Channel>
-						</Response>
-						)"s;
-
-				response_body = fmt::format(text, sn, this->ID, this->Name, this->Manufacturer, this->Channels.size());
-			}
-			// 配置下载
-			else if (cmd == "ConfigDownload")
-			{
-				auto type_node = root.child("ConfigType");
-				if (type_node.empty())
-					return;
-				std::string type = type_node.child_value();
-				if (type == "BasicParam")
-				{
-					auto text =
-						R"( <?xml version="1.0" encoding="GB2312"?>
-							<Response>
-								<CmdType>ConfigDownload</CmdType>
-								<SN>{}</SN>
-								<DeviceID>{}</DeviceID>
-
-								<Result>OK</Result>
-								<BasicParam>
-									<Name>{}</Name>
-									<DeviceID>{}</DeviceID>
-									<SIPServerID>{}</SIPServerID>
-									<SIPServerIP>{}</SIPServerIP>
-									<SIPServerPort>{}</SIPServerPort>
-									<DomainName>{}</DomainName>
-									<Expiration>3600</Expiration>
-									<Password>{}</Password>
-									<HeartBeatInterval>{}</HeartBeatInterval>
-									<HeartBeatCount>60</HeartBeatCount>
-								</BasicParam>
-							</Response>
-							)"s;
-
-					response_body = fmt::format(text, sn, this->ID, this->Name, this->ID, _sip_server_info->ID, _sip_server_info->IP,
-												_sip_server_info->Port, _sip_server_domain, _sip_server_info->Password, this->HeartbeatInterval);
-				}
-
-				if (type == "VideoParamOpt")
-				{
-					auto text =
-						R"( <?xml version="1.0" encoding="GB2312"?>
-							<Response>
-								<CmdType>ConfigDownload</CmdType>
-								<SN>{}</SN>
-								<DeviceID>{}</DeviceID>
-								<Result>OK</Result>
-								<VideoParamOpt>
-									<DownloadSpeed>1</DownloadSpeed>
-									<Resolution>5/6</Resolution>
-								</VideoParamOpt>
-							</Response>
-							)"s;
-					response_body = fmt::format(text, sn, this->ID);
-				}
-			}
-			// 录像文件查询
-			else if (cmd == "RecordInfo")
-			{
-				std::string device_id = root.child("DeviceID").child_value();
-				std::string start_time = root.child("StartTime").child_value();
-				std::string end_time = root.child("EndTime").child_value();
-
-				{
-					std::shared_ptr<ChannelInfo> channel_info = find_channel(device_id);
-					if (channel_info != nullptr)
-					{
-						// 向流媒体服务器发送请求
-						std::string response;
-						auto ret = HttpClient::GetInstance()->GetMp4RecordInfo(channel_info->Stream,
-																			   start_time, end_time, response);
-
-						auto text =
-							R"( <?xml version="1.0" encoding="GB2312"?>
-									<Response>
-									<CmdType>RecordInfo</CmdType>
-									<SN>{}</SN>
-									<DeviceID>{}</DeviceID>
-									<Name>{}</Name>
-									<SumNum>{}</SumNum>
-									<RecordList Num="{}">
-									</RecordList>
-								</Response>
-							)"s;
-
-						try
-						{
-							pugi::xml_document doc;
-							nlohmann::json json_data = nlohmann::json::parse(response);
-							size_t record_size = json_data["data"]["fileInfo"].size();
-							response_body = fmt::format(text, sn, this->ID, device_id, record_size, record_size);
-
-							auto doc_ret = doc.load_string(response_body.c_str());
-							if (doc_ret.status != pugi::status_ok)
-							{
-								return;
-							}
-
-							auto record_list = doc.child("Response").child("RecordList");
-
-							for (const auto& file_item : json_data["data"]["fileInfo"])
-							{
-								std::string file_path = std::filesystem::path(file_item["file_path"].get<std::string>()).filename().u8string();
-
-								std::string str_begin_time = toolkit::CFileTime(file_item["begin_time"]).UTCToLocal().FormatTZ();
-								std::string str_end_time = toolkit::CFileTime(file_item["stop_time"]).UTCToLocal().FormatTZ();
-
-								auto node = record_list.append_child("Item");
-								node.append_child("DeviceID").text().set(this->ID.c_str());
-								node.append_child("Name").text().set(device_id.c_str());
-								node.append_child("FilePath").text().set(file_path.c_str());
-								node.append_child("StartTime").text().set(str_begin_time.c_str());
-								node.append_child("EndTime").text().set(str_end_time.c_str());
-								node.append_child("Address").text().set("");
-								node.append_child("Secrecy").text().set("0");
-								node.append_child("Type").text().set("time");
-							}
-
-							std::stringstream ss;
-							doc.save(ss);
-							response_body = ss.str();
-						}
-						catch (const std::exception& ex)
-						{
-							response_body = fmt::format(text, sn, this->ID, device_id, 0, 0);
-						}
-					}
-				}
-			}
-
-			if (!response_body.empty())
-			{
-				auto body = format_xml(response_body);
-
-				osip_message_t* request = nullptr;
-				auto ret = eXosip_message_build_request(
-					_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-				if (ret != OSIP_SUCCESS)
-				{
-					SPDLOG_ERROR("eXosip_message_build_request failed");
-					return;
-				}
-
-				osip_message_set_content_type(request, "Application/MANSCDP+xml");
-				osip_message_set_body(request, body.c_str(), body.length());
-
-				eXosip_lock(_sip_context);
-				eXosip_message_send_request(_sip_context, request);
-				eXosip_unlock(_sip_context);
-			}
+			OnQueryMessage(doc);
 		}
 	}
 	else if (MSG_IS_BYE(event->request))
@@ -550,9 +342,8 @@ void SipDevice::on_message_new(eXosip_event_t* event)
 	}
 }
 
-/// @brief 服务端删除设备后，可能会收到此信息，此时重新发送注册信息
-/// @param event
-void SipDevice::on_message_request_failure(eXosip_event_t* event)
+
+void SipDevice::OnMessageRequestFailed(eXosip_event_t* event)
 {
 	osip_message_t* register_msg = nullptr;
 	auto ret = eXosip_register_build_register(_sip_context, _register_id, 3600, &register_msg);
@@ -560,10 +351,6 @@ void SipDevice::on_message_request_failure(eXosip_event_t* event)
 	{
 		SPDLOG_ERROR("eXosip_register_build_initial_register failed");
 	}
-
-	_is_running = true;
-
-	eXosip_lock(_sip_context);
 	ret = eXosip_register_send_register(_sip_context, _register_id, register_msg);
 	eXosip_unlock(_sip_context);
 
@@ -573,69 +360,47 @@ void SipDevice::on_message_request_failure(eXosip_event_t* event)
 	}
 }
 
-/// @brief 开始推流
-/// @param event
-void SipDevice::on_call_ack(eXosip_event_t* event)
+
+void SipDevice::OnCallACK(eXosip_event_t* event)
 {
 	SPDLOG_INFO("接收到 ACK，开始推流");
-
 	std::scoped_lock<std::mutex> g(_session_mutex);
-	if (_session_map.find(event->did) != _session_map.end())
+	auto iter = _session_map.find(event->did);
+	if (iter != _session_map.end())
 	{
-		auto session = _session_map[event->did];
-		if (session->Playback)
-		{
-			// 向流媒体服务器发送回放请求，开始向指定地址发送RTP数据
-			auto ret = HttpClient::GetInstance()->StartSendPlaybackRtp(
-				session->Channel, session->SSRC, session->TargetIP, session->TargetPort,
-				session->LocalPort, session->StartTime, session->EndTime, session->UseTcp);
-		}
-		else
-		{
-			// TODO  向流媒体服务器发送请求，开始向指定地址发送RTP数据
-			auto ret = HttpClient::GetInstance()->StartSendRtp(
-				session->Channel, session->SSRC, session->TargetIP, session->TargetPort, session->LocalPort,
-				session->UseTcp);
-		}
+		iter->second->Start();
 	}
 }
 
-/// @brief 停止推流
-/// @param event
-void SipDevice::on_call_closed(eXosip_event_t* event)
+
+void SipDevice::OnCallClosed(eXosip_event_t* event)
 {
 	SPDLOG_INFO("接收到 BYE，结束推流");
 	std::cout << "close: did: " << event->did << "\n";
 
 	std::scoped_lock<std::mutex> g(_session_mutex);
-	if (_session_map.find(event->did) != _session_map.end())
+	auto iter = _session_map.find(event->did);
+	if (iter != _session_map.end())
 	{
-		auto session = _session_map[event->did];
-		// TODO  向流媒体服务器发送请求，停止发送RTP数据
-		auto ret = HttpClient::GetInstance()->StopSendRtp(session);
+		//向流媒体服务器发送请求，停止发送RTP数据
+		iter->second->Stop();
 		// 删除此会话
 		_session_map.erase(event->did);
 	}
 }
 
-/// @brief 请求会话，发送sdp信息
-/// @param event
-void SipDevice::on_call_invite(eXosip_event_t* event)
+
+void SipDevice::OnCallInvite(eXosip_event_t* event)
 {
 	SPDLOG_INFO("接收到INVITE");
 	osip_body_t* sdp_body = nullptr;
 	osip_message_get_body(event->request, 0, &sdp_body);
-	if (sdp_body != nullptr)
-	{
-		SPDLOG_INFO("request -----> \n {}", sdp_body->body);
-		SPDLOG_INFO("------------------------------------");
-	}
-	else
+	if (sdp_body == nullptr)
 	{
 		SPDLOG_ERROR("SDP Error");
 		return;
 	}
-
+	SPDLOG_INFO("invite -----> \n {}", sdp_body->body);
 	sdp_message_t* sdp = NULL;
 	if (OSIP_SUCCESS != sdp_message_init(&sdp))
 	{
@@ -643,13 +408,19 @@ void SipDevice::on_call_invite(eXosip_event_t* event)
 		return;
 	}
 
+	//需要根据请求信息来判断具体请求的哪个通道数据
 	std::string invite_video_channel_id = "";
 	std::shared_ptr<ChannelInfo> channel_info = nullptr;
 	if (event->request && event->request->req_uri && event->request->req_uri->username)
 	{
 		invite_video_channel_id = event->request->req_uri->username;
 		SPDLOG_INFO("INVITE: {}", invite_video_channel_id);
-		channel_info = find_channel(invite_video_channel_id);
+		channel_info = FindChannel(invite_video_channel_id);
+		if (channel_info == nullptr)
+		{
+			SPDLOG_ERROR("未找到对应Channel: {}", invite_video_channel_id);
+			return;
+		}
 	}
 	else
 	{
@@ -657,63 +428,50 @@ void SipDevice::on_call_invite(eXosip_event_t* event)
 		return;
 	}
 
-	if (channel_info == nullptr)
+	//SDP内容解析
+	auto ret = sdp_message_parse(sdp, sdp_body->body);
+	//获取SSRC，y字段数据国标扩展的字段
+	std::string ssrc = ParseSSRC(sdp_body->body);
+	if (ssrc.empty())
 	{
-		SPDLOG_ERROR("未找到对应Channel: {}", invite_video_channel_id);
+		SPDLOG_ERROR("未找到SSRC");
 		return;
 	}
-
-	auto ret = sdp_message_parse(sdp, sdp_body->body);
-	std::string ssrc = "";
-	{
-		std::string text = sdp_body->body;
-		ssrc = parse_ssrc(text);
-		if (ssrc.empty())
-		{
-			SPDLOG_ERROR("未找到SSRC");
-			return;
-		}
-	}
+	//获取流媒体服务器地址和协议类型
 	sdp_connection_t* connect = eXosip_get_video_connection(sdp);
 	sdp_media_t* media = eXosip_get_video_media(sdp);
 
 	// 建立一个Session结构，用于保存DialogID，和对应的Channel信息
-	auto session = std::make_shared<SessionInfo>();
+	auto session = std::make_shared<Session>();
 	session->DialogID = event->did;
 	session->TargetIP = connect->c_addr;
 	session->TargetPort = std::stoi(media->m_port);
-	auto protocol = media->m_proto;
-	session->UseTcp = strstr(protocol, "TCP");
+	session->UseTcp = strstr(media->m_proto, "TCP");
 #ifdef _WIN32
 	session->LocalPort = NetHelper::FindAvailablePort(get_port());
 #else
 	session->LocalPort = get_port();
 #endif
 	session->SSRC = ssrc;
-	session->ID = invite_video_channel_id;
 	session->Channel = channel_info;
-
+	//判断是回放还是实时
 	if (strstr(sdp_body->body, "s=Playback"))
 	{
 		session->Playback = true;
 		std::string text = sdp_body->body;
-		std::string start_time;
-		std::string end_time;
-		parse_time(text, start_time, end_time);
-		session->StartTime = start_time;
-		session->EndTime = end_time;
+		ParseTimeStr(text, session->StartTime, session->EndTime);
 	}
 	else
 	{
 		session->Playback = false;
 	}
 
-	SPDLOG_INFO("Session:\n {}", session->to_string());
+	SPDLOG_INFO("Session:\n {}", session->ToString());
 	{
 		std::scoped_lock<std::mutex> g(_session_mutex);
 		_session_map.insert({ event->did, session });
 	}
-
+	//设备端SDP信息
 	std::stringstream ss;
 	ss << "v=0\r\n";
 	ss << "o={} 0 0 IN IP4 {}\r\n";
@@ -738,14 +496,14 @@ void SipDevice::on_call_invite(eXosip_event_t* event)
 	}
 	osip_message_set_content_type(message, "APPLICATION/SDP");
 	osip_message_set_body(message, info.c_str(), info.length());
-	eXosip_call_send_answer(_sip_context, event->tid, 200, message);
-
+	eXosip_lock(_sip_context);
+	eXosip_message_send_answer(_sip_context, event->tid, 200, message);
+	eXosip_unlock(_sip_context);
 	SPDLOG_INFO("SDP Response: {}", info);
 }
 
-/// @brief 返回成功消息
-/// @param event
-void SipDevice::send_response_ok(eXosip_event_t* event)
+
+void SipDevice::SendResponseOK(eXosip_event_t* event)
 {
 	osip_message_t* message = event->request;
 	eXosip_message_build_answer(_sip_context, event->tid, 200, &message);
@@ -756,7 +514,7 @@ void SipDevice::send_response_ok(eXosip_event_t* event)
 }
 
 /// @brief 心跳
-void SipDevice::heartbeat_task()
+void SipDevice::HeartbeatTask()
 {
 	while (_is_running && _register_success && _is_heartbeat_running)
 	{
@@ -794,7 +552,8 @@ void SipDevice::heartbeat_task()
 	}
 }
 
-void SipDevice::mobile_position_task()
+
+void SipDevice::MobilePositionTask()
 {
 	while (_is_running && _register_success && _subscription_dialog_id > 0)
 	{
@@ -837,10 +596,78 @@ void SipDevice::mobile_position_task()
 	}
 }
 
-/// @brief 生成目录信息
-/// @param sn
-/// @return
-std::string SipDevice::generate_catalog_xml(const std::string& sn)
+
+void SipDevice::OnQueryMessage(pugi::xml_document& doc)
+{
+	std::string response_body = "";
+	auto root = doc.first_child();
+	auto cmd_node = root.child("CmdType");
+	if (cmd_node.empty())
+		return;
+	std::string cmd = cmd_node.child_value();
+	auto sn_node = root.child("SN");
+	std::string sn = sn_node.child_value();
+	SPDLOG_INFO("SN: {}", sn);
+	// 目录查询，返回channels信息
+	if (cmd == "Catalog")
+	{
+		response_body = GenerateCatalogXML(sn);
+	}
+	// 设备信息查询，发送设备信息,主要包括设备id，设备名称，厂家，版本，channel数量等
+	else if (cmd == "DeviceInfo")
+	{
+		response_body = GenerateDeviceInfoXML(sn);
+	}
+	// 配置下载
+	else if (cmd == "ConfigDownload")
+	{
+		auto type_node = root.child("ConfigType");
+		if (type_node.empty())
+			return;
+		std::string type = type_node.child_value();
+		if (type == "BasicParam")
+		{
+			response_body = GenerateBasicParamXML(sn);
+		}
+		if (type == "VideoParamOpt")
+		{
+			response_body = GenerateVideoParamOptXML(sn);
+		}
+	}
+	// 录像文件查询
+	else if (cmd == "RecordInfo")
+	{
+		std::string device_id = root.child("DeviceID").child_value();
+		std::string start_time = root.child("StartTime").child_value();
+		std::string end_time = root.child("EndTime").child_value();
+
+		response_body = GenerateRecordInfoXML(sn, device_id, start_time, end_time);
+	}
+
+	if (!response_body.empty())
+	{
+		auto body = FormatXML(response_body);
+
+		osip_message_t* request = nullptr;
+		auto ret = eXosip_message_build_request(
+			_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
+		if (ret != OSIP_SUCCESS)
+		{
+			SPDLOG_ERROR("eXosip_message_build_request failed");
+			return;
+		}
+
+		osip_message_set_content_type(request, "Application/MANSCDP+xml");
+		osip_message_set_body(request, body.c_str(), body.length());
+
+		eXosip_lock(_sip_context);
+		eXosip_message_send_request(_sip_context, request);
+		eXosip_unlock(_sip_context);
+	}
+}
+
+
+std::string SipDevice::GenerateCatalogXML(const std::string& sn)
 {
 	auto text =
 		R"( <?xml version="1.0" encoding="GB2312"?>
@@ -862,6 +689,7 @@ std::string SipDevice::generate_catalog_xml(const std::string& sn)
 		return "";
 	}
 
+	//一些设备可能会带有多个通道
 	auto device = doc.child("Response").child("DeviceList");
 	for (auto&& channel : this->Channels)
 	{
@@ -879,9 +707,148 @@ std::string SipDevice::generate_catalog_xml(const std::string& sn)
 	return ss.str();
 }
 
-std::string SipDevice::parse_ssrc(std::string text)
+
+std::string SipDevice::GenerateDeviceInfoXML(const std::string& sn)
 {
-	text = nbase::StringTrim(text);
+	auto text =
+		R"( <?xml version="1.0" encoding="GB2312"?>
+			<Response>
+				<CmdType>DeviceInfo</CmdType>
+				<SN>{}</SN>
+				<DeviceID>{}</DeviceID>
+
+				<Result>OK</Result>
+				<DeviceName>{}</DeviceName>
+				<Manufacturer>{}</Manufacturer>
+
+				<Model>SipServer</Model>
+				<Firmware>V1.0.0</Firmware>
+				<Channel>{}</Channel>
+			</Response>
+			)"s;
+
+	return fmt::format(text, sn, this->ID, this->Name, this->Manufacturer, this->Channels.size());
+}
+
+
+std::string SipDevice::GenerateVideoParamOptXML(const std::string& sn)
+{
+	auto text =
+		R"( <?xml version="1.0" encoding="GB2312"?>
+			<Response>
+				<CmdType>ConfigDownload</CmdType>
+				<SN>{}</SN>
+				<DeviceID>{}</DeviceID>
+				<Result>OK</Result>
+				<VideoParamOpt>
+					<DownloadSpeed>1</DownloadSpeed>
+					<Resolution>5/6</Resolution>
+				</VideoParamOpt>
+			</Response>
+			)"s;
+	return fmt::format(text, sn, this->ID);
+}
+
+
+std::string SipDevice::GenerateBasicParamXML(const std::string& sn)
+{
+	auto text =
+		R"( <?xml version="1.0" encoding="GB2312"?>
+			<Response>
+				<CmdType>ConfigDownload</CmdType>
+				<SN>{}</SN>
+				<DeviceID>{}</DeviceID>
+
+				<Result>OK</Result>
+				<BasicParam>
+					<Name>{}</Name>
+					<DeviceID>{}</DeviceID>
+					<SIPServerID>{}</SIPServerID>
+					<SIPServerIP>{}</SIPServerIP>
+					<SIPServerPort>{}</SIPServerPort>
+					<DomainName>{}</DomainName>
+					<Expiration>3600</Expiration>
+					<Password>{}</Password>
+					<HeartBeatInterval>{}</HeartBeatInterval>
+					<HeartBeatCount>60</HeartBeatCount>
+				</BasicParam>
+			</Response>
+			)"s;
+
+	return fmt::format(text, sn, this->ID, this->Name, this->ID, _sip_server_info->ID, _sip_server_info->IP,
+								_sip_server_info->Port, _sip_server_domain, _sip_server_info->Password, this->HeartbeatInterval);
+}
+
+
+
+std::string SipDevice::GenerateRecordInfoXML(const std::string& sn,
+	const std::string& channel_id, const std::string& start_time, const std::string& end_time)
+{
+	std::shared_ptr<ChannelInfo> channel_info = FindChannel(channel_id);
+	if (channel_info == nullptr) return std::string();
+	// 向流媒体服务器发送请求
+	std::string response;
+	auto ret = HttpClient::GetInstance()->GetMp4RecordInfo(channel_info->Stream,
+														   start_time, end_time, response);
+	std::string response_body;
+	auto text =
+		R"( <?xml version="1.0" encoding="GB2312"?>
+			<Response>
+				<CmdType>RecordInfo</CmdType>
+				<SN>{}</SN>
+				<DeviceID>{}</DeviceID>
+				<Name>{}</Name>
+				<SumNum>{}</SumNum>
+				<RecordList Num="{}">
+				</RecordList>
+			</Response>
+		)"s;
+	try
+	{
+		pugi::xml_document doc;
+		nlohmann::json json_data = nlohmann::json::parse(response);
+		size_t record_size = json_data["data"]["fileInfo"].size();
+		response_body = fmt::format(text, sn, this->ID, channel_id, record_size, record_size);
+
+		auto doc_ret = doc.load_string(response_body.c_str());
+		if (doc_ret.status != pugi::status_ok)
+			return std::string();
+
+		auto record_list = doc.child("Response").child("RecordList");
+
+		for (const auto& file_item : json_data["data"]["fileInfo"])
+		{
+			//文件路径，这里只使用文件名称即可
+			std::string file_path = std::filesystem::path(file_item["file_path"].get<std::string>()).filename().u8string();
+			std::string str_begin_time = toolkit::CFileTime(file_item["begin_time"]).UTCToLocal().FormatTZ();
+			std::string str_end_time = toolkit::CFileTime(file_item["stop_time"]).UTCToLocal().FormatTZ();
+
+			auto node = record_list.append_child("Item");
+			node.append_child("DeviceID").text().set(this->ID.c_str());
+			node.append_child("Name").text().set(channel_id.c_str());
+			node.append_child("FilePath").text().set(file_path.c_str());
+			node.append_child("StartTime").text().set(str_begin_time.c_str());
+			node.append_child("EndTime").text().set(str_end_time.c_str());
+			node.append_child("Address").text().set("");
+			node.append_child("Secrecy").text().set("0");
+			node.append_child("Type").text().set("time");
+		}
+
+		std::stringstream ss;
+		doc.save(ss);
+		response_body = ss.str();
+	}
+	catch (const std::exception& ex)
+	{
+		//查询不到或不存在时，就回复空内容
+		response_body = fmt::format(text, sn, this->ID, channel_id, 0, 0);
+	}
+	return response_body;
+}
+
+
+std::string SipDevice::ParseSSRC(const std::string& text)
+{
 	auto tokens = nbase::StringTokenize(text.c_str(), "\n");
 	for (auto&& token : tokens)
 	{
@@ -896,7 +863,8 @@ std::string SipDevice::parse_ssrc(std::string text)
 	return std::string();
 }
 
-bool SipDevice::parse_time(std::string text, std::string& start_time, std::string& end_time)
+
+bool SipDevice::ParseTimeStr(std::string& text, std::string& start_time, std::string& end_time)
 {
 	text = nbase::StringTrim(text);
 	auto tokens = nbase::StringTokenize(text.c_str(), "\n");
@@ -915,7 +883,8 @@ bool SipDevice::parse_time(std::string text, std::string& start_time, std::strin
 	return false;
 }
 
-std::shared_ptr<ChannelInfo> SipDevice::find_channel(std::string id)
+
+std::shared_ptr<ChannelInfo> SipDevice::FindChannel(const std::string& id)
 {
 	std::shared_ptr<ChannelInfo> channel_info = nullptr;
 	for (auto&& channel : this->Channels)
@@ -930,7 +899,8 @@ std::shared_ptr<ChannelInfo> SipDevice::find_channel(std::string id)
 	return channel_info;
 }
 
-void SipDevice::on_in_subscription_new(eXosip_event_t* event)
+
+void SipDevice::OnInSubscriptionNew(eXosip_event_t* event)
 {
 	SPDLOG_INFO("on_in_subscription_new...");
 
@@ -940,74 +910,89 @@ void SipDevice::on_in_subscription_new(eXosip_event_t* event)
 		eXosip_insubscription_send_answer(_sip_context, event->tid, 200, answer);
 		_subscription_dialog_id = event->did;
 
-		// if (!_logout) {
 		//	if (_subscription_thread == nullptr) {
-		//		_subscription_thread = std::make_shared<std::thread>(&SipDevice::mobile_position_task, this);
+		//		_subscription_thread = std::make_shared<std::thread>(&SipDevice::MobilePositionTask, this);
 		//	}
-		// }
 	}
 }
 
-/// @brief 响应播放控制请求
-/// @param event
-/// @return
-void SipDevice::on_call_message_new(eXosip_event_t* event)
-{
-	if (MSG_IS_INFO(event->request))
-	{
-		if (_session_map.find(event->did) != _session_map.end())
-		{
-			auto session = _session_map[event->did];
-			if (session->Playback)
-			{
-				osip_body_t* body = nullptr;
-				osip_message_get_body(event->request, 0, &body);
-				if (body != nullptr)
-				{
-					SPDLOG_INFO("request -----> \n{}", body->body);
-					if (strstr(body->body, "PAUSE"))
-					{
-						// 向流媒体服务器发送暂停请求
-						auto ret = HttpClient::GetInstance()->SetPause("record", session->SSRC, true);
-					}
-					else if (strstr(body->body, "PLAY") && strstr(body->body, "Range"))
-					{
-						auto ret = HttpClient::GetInstance()->SetPause("record", session->SSRC, false);
-					}
-					else if (strstr(body->body, "PLAY") && strstr(body->body, "Scale"))
-					{
-						auto tokens = nbase::StringTokenize(body->body, "\n");
-						for (auto&& token : tokens)
-						{
-							if (strstr(token.c_str(), "Scale"))
-							{
-								auto text = token.substr(6);
-								nbase::StringTrim(text);
 
-								auto speed = std::stof(text);
-								auto ret = HttpClient::GetInstance()->SetSpeed("record", session->SSRC, speed);
-							}
-						}
-					}
+void SipDevice::OnCallMessageNew(eXosip_event_t* event)
+{
+	if (!MSG_IS_INFO(event->request))  return;
+
+	auto iter = _session_map.find(event->did);
+	if (iter == _session_map.end())
+	{
+		SendResponseOK(event);
+		return;
+	}
+
+	auto&& session = iter->second;
+	if (!session->Playback)//实时流不处理
+	{
+		SendResponseOK(event);
+		return;
+	}
+
+	osip_body_t* body = nullptr;
+	osip_message_get_body(event->request, 0, &body);
+	if (body == nullptr)
+	{
+		SPDLOG_ERROR("osip_message_get_body 错误");
+		SendResponseOK(event);
+		return;
+	}
+
+	SPDLOG_INFO("request -----> \n{}", body->body);
+	//暂停播放
+	if (strstr(body->body, "PAUSE"))
+	{
+		session->Pause(true);
+	}
+	else if (strstr(body->body, "PLAY"))
+	{
+		//播放
+		if (strstr(body->body, "Range"))
+		{
+			session->Pause(false);
+		}
+		else
+		{
+			//速度调整
+			auto tokens = nbase::StringTokenize(body->body, "\n");
+			for (auto&& token : tokens)
+			{
+				if (strstr(token.c_str(), "Scale"))
+				{
+					//解析速度
+					auto text = token.substr(6);
+					nbase::StringTrim(text);
+					session->Speed(std::stof(text));
+					break;
 				}
 			}
 		}
-		send_response_ok(event);
 	}
+	else
+	{
+		SPDLOG_WARN("Not Supported");
+	}
+	SendResponseOK(event);
 }
 
-///
-bool SipDevice::send_notify(std::shared_ptr<SessionInfo> session)
+
+bool SipDevice::SendStreamFinishedNotify(std::shared_ptr<Session> session)
 {
 	auto text =
 		R"(<?xml version="1.0" encoding="GB2312"?>
-				<Notify>
-					<CmdType>MediaStatus</CmdType>
-					<SN>{}</SN>
-					<DeviceID>{}</DeviceID>
-					<NotifyType>121</NotifyType>
-				</Notify>
-				)"s;
+			<Notify>
+				<CmdType>MediaStatus</CmdType>
+				<SN>{}</SN>
+				<DeviceID>{}</DeviceID>
+				<NotifyType>121</NotifyType>
+			</Notify>
+			)"s;
 	auto info = fmt::format(text, get_sn(), this->ID);
 
 	osip_message_t* request = nullptr;
@@ -1029,7 +1014,7 @@ bool SipDevice::send_notify(std::shared_ptr<SessionInfo> session)
 	return true;
 }
 
-std::string SipDevice::format_xml(std::string& xml)
+std::string SipDevice::FormatXML(const std::string& xml)
 {
 	pugi::xml_document doc;
 	auto ret = doc.load_string(xml.c_str());
@@ -1042,4 +1027,69 @@ std::string SipDevice::format_xml(std::string& xml)
 	doc.save(ss);
 
 	return ss.str();
+}
+
+
+void SipDevice::OnStreamChanedCallback(const std::string& app, const std::string& stream, bool regist)
+{
+	//只需要判断录像回放的流注销事件即可
+	if (!regist && app == "record")
+	{
+		std::scoped_lock<std::mutex> g(_session_mutex);
+		for (auto&& [id, session] : _session_map)
+		{
+			if (session->SSRC == stream)
+			{
+				SendStreamFinishedNotify(session);
+
+				//从map中删除此session，流注销已自动释放
+				_session_map.erase(id);
+				break;
+			}
+		}
+	}
+}
+
+
+/// @brief 开始播放。接收到ACK消息后，让流媒体服务器向指定地址发送视频数据。
+void Session::Start()
+{
+	if (this->Playback)
+	{
+		// 录像回放：向流媒体服务器发送回放请求，需要指定收发数据的端口，SSRC和时间范围
+		auto ret = HttpClient::GetInstance()->StartSendPlaybackRtp(
+			this->Channel, this->SSRC, this->TargetIP, this->TargetPort, this->LocalPort,
+			this->StartTime, this->EndTime, this->UseTcp);
+	}
+	else
+	{
+		// 实时流：向流媒体服务器发送实时推送请求，需要指定收发数据的端口，SSRC和时间范围
+		auto ret = HttpClient::GetInstance()->StartSendRtp(
+			this->Channel, this->SSRC, this->TargetIP, this->TargetPort, this->LocalPort, this->UseTcp);
+	}
+}
+
+/// @brief 停止播放，通过app和stream来区分是哪个流。
+void Session::Stop()
+{
+	HttpClient::GetInstance()->StopSendRtp(
+		this->Playback ? "record" : this->Channel->App,
+		this->Playback ? this->SSRC : this->Channel->Stream);
+}
+
+
+// 向流媒体服务器发送暂停请求
+void Session::Pause(bool flag)
+{
+	auto ret = HttpClient::GetInstance()->SetPause("record", this->SSRC, flag);
+}
+
+void Session::Seek(int64_t pos)
+{
+}
+
+// 设置媒体流速度
+void Session::Speed(float speed)
+{
+	auto ret = HttpClient::GetInstance()->SetSpeed("record", this->SSRC, speed);
 }

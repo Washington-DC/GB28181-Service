@@ -24,10 +24,12 @@ int main()
 	auto file_path = log_path / fmt::format("{:%Y%m%d%H%M%S}.log", fmt::localtime(std::time(nullptr)));
 	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(file_path.string(), 1024 * 1024 * 50, 12, true);
 	auto logger = std::make_shared<spdlog::logger>("logger", spdlog::sinks_init_list{ console_sink, file_sink });
-#ifdef _WIN32
+
+#if defined(_WIN32) && defined(_MSC_VER)
 	auto msvc_sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
 	logger->sinks().push_back(msvc_sink);
 #endif
+
 	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] [%t] [%s:%#] %v");
 	spdlog::set_default_logger(logger);
 
@@ -42,17 +44,20 @@ int main()
 	auto config = ConfigManager::GetInstance()->GetSipServerInfo();
 	SSRCConfig::GetInstance()->SetPrefix(config->ID.substr(3, 5));
 
-	SipServer sip_tcp_server, sip_udp_server;
+	SipServer sip_udp_server;
 
 	sip_udp_server.Init(config->ID, config->Port, false);
 	sip_udp_server.Start();
 
 #ifndef _WIN32
+	SipServer sip_tcp_server;
 	sip_tcp_server.Init(config->ID, config->Port, true);
 	sip_tcp_server.Start();
 #endif
+
 	HttpServer::GetInstance()->Start(ConfigManager::GetInstance()->GetHttpPort());
 	DeviceManager::GetInstance()->Start();
+
 #ifdef _DEBUG
 	getchar();
 #else

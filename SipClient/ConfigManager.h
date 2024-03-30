@@ -17,8 +17,11 @@ public:
 private:
     ConfigManager() = default;
 
-    std::shared_ptr<SipServerInfo> server_info = nullptr;
-    std::shared_ptr<MediaServerInfo> media_server_info = nullptr;
-    std::vector<std::shared_ptr<DeviceInfo>> devices;
-    int32_t http_port = 28080;
+    std::shared_ptr<SipServerInfo> server_info = nullptr;//SIP服务器信息
+
+    std::shared_ptr<MediaServerInfo> media_server_info = nullptr;//流媒体服务信息
+
+    std::vector<std::shared_ptr<DeviceInfo>> devices;//所有的设备信息
+
+    int32_t http_port = 28080;//HTTP服务使用的端口
 };

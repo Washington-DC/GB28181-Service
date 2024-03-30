@@ -39,10 +39,11 @@
 
  ## 编译安装
 
- [Install](Install.md)
+ 参考 [Install.md](Install.md)
 
 
 ## 依赖库：
+
  - [boost](https://github.com/boostorg/boost)
  - [osip](https://www.gnu.org/software/osip/osip.html)
  - [eXosip2](http://savannah.nongnu.org/projects/exosip)
@@ -60,6 +61,7 @@
 
 
 ## WebHook接口
+
  端口为配置文件中Http端口。
  - on_publish=http://127.0.0.1:8000/index/hook/on_publish
  - on_stream_changed=http://127.0.0.1:8000/index/hook/on_stream_changed
@@ -70,6 +72,7 @@
 
 
 ## 配置文件说明
+
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <Config>
@@ -340,6 +343,7 @@
 - 范例：[http://127.0.0.1:8000/v1/set/device/streamip?device_id=34020000001320000100](http://127.0.0.1:8000/v1/set/device/streamip?device_id=34020000001320000100)
 
 - 参数：
+
     |   参数    | 是否必选 |   释意   |
     | :-------: | :------: | :------: |
     | device_id |    Y     | 设备编码 |
@@ -364,6 +368,7 @@
 - 范例：[http://127.0.0.1:8000/v1/set/device/nickname?device_id=34020000001320000100&nickname=test](http://127.0.0.1:8000/v1/set/device/nickname?device_id=34020000001320000100&nickname=test)
 
 - 参数：
+
     |   参数    | 是否必选 |    释意    |
     | :-------: | :------: | :--------: |
     | device_id |    Y     |  设备编码  |
@@ -387,6 +392,7 @@
 - 范例：[http://127.0.0.1:8000/v1/set/device/nickname?device_id=34020000001320000100&channel_id=34020000001320000100&nickname=test](http://127.0.0.1:8000/v1/set/device/nickname?device_id=34020000001320000100&channel_id=34020000001320000100&nickname=test)
 
 - 参数：
+
     |    参数    | 是否必选 |    释意    |
     | :--------: | :------: | :--------: |
     | device_id  |    Y     |  设备编码  |
@@ -413,6 +419,7 @@
 - 范例：[http://127.0.0.1:8000/v1/defaultStreamID?device_id=34020000001320000100&channel_id=34020000001320000100](http://127.0.0.1:8000/v1/defaultStreamID?device_id=34020000001320000100&channel_id=34020000001320000100)
 
 - 参数：
+
     |    参数    | 是否必选 |   释意   |
     | :--------: | :------: | :------: |
     | device_id  |    Y     | 设备编码 |
@@ -438,6 +445,7 @@
 - 范例：[http://127.0.0.1:8000/v1/preset?device_id=34020000001320000100&channel_id=34020000001320000100&preset=1&command=goto](http://127.0.0.1:8000/v1/preset?device_id=34020000001320000100&channel_id=34020000001320000100&preset=1&command=goto)
 
 - 参数：
+ 
     |    参数    | 是否必选 |        释意        |
     | :--------: | :------: | :----------------: |
     | device_id  |    Y     |      设备编码      |
@@ -463,12 +471,13 @@
 - 范例：[http://127.0.0.1:8000/v1/preset/query?device_id=34020000001320000100&channel_id=34020000001320000100](http://127.0.0.1:8000/v1/preset/query?device_id=34020000001320000100&channel_id=34020000001320000100)
 
 - 参数：
+ 
     |    参数    | 是否必选 |   释意   |
     | :--------: | :------: | :------: |
     | device_id  |    Y     | 设备编码 |
     | channel_id |    Y     | 通道编码 |
 
-
+- 响应：
 ```json
 {
     "code": 0,
@@ -499,6 +508,7 @@
 - 范例：[http://127.0.0.1:8000/v1/ptz?device_id=34020000001320000100&channel_id=34020000001320000100&speed=1&command=stop](http://127.0.0.1:8000/v1/ptz?device_id=34020000001320000100&channel_id=34020000001320000100&speed=1&command=stop)
 
 - 参数：
+ 
     |    参数    | 是否必选 |                             释意                             |
     | :--------: | :------: | :----------------------------------------------------------: |
     | device_id  |    Y     |                           设备编码                           |
@@ -517,6 +527,7 @@
 &end_time=1679774800)
 
 - 参数：
+
     |    参数    | 是否必选 |                             释意                             |
     | :--------: | :------: | :----------------------------------------------------------: |
     | device_id  |    Y     |                           设备编码                           |
@@ -533,6 +544,7 @@
 - 范例：[http://127.0.0.1:8000/v1/record/query?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800](http://127.0.0.1:8000/v1/record/query?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800)
 
 - 参数：
+
     |    参数    | 是否必选 |     释意     |
     | :--------: | :------: | :----------: |
     | device_id  |    Y     |   设备编码   |
@@ -548,6 +560,7 @@
 - 范例：[http://127.0.0.1:8000/v1/record/play/stop?ssrc=1200000003](http://127.0.0.1:8000/v1/record/play/stop?ssrc=1200000003)
 
 - 参数：
+
     | 参数 | 是否必选 | 释意 |
     | :--: | :------: | :--: |
     | ssrc |    Y     | SSRC |

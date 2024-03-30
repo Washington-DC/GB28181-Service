@@ -2,19 +2,19 @@
 
 #### Windows
 
-直接打开SipClient.sln即可。
+VS2022直接打开SipClient.sln即可。
 
 #### Ubuntu
 
-##### 下载安装依赖：
+下载安装依赖：
 
 ```shell
- sudo apt-get update && sudo apt-get install -y build-essential libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev git wget pkg-config
+sudo apt-get update && sudo apt-get install -y build-essential libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev git wget pkg-config
 
- git clone https://github.com/Washington-DC/GB28181-Service.git
- cd GB28181-Service
+git clone https://github.com/Washington-DC/GB28181-Service.git
+cd GB28181-Service
 
- mkdir opensource && cd opensource
+mkdir opensource && cd opensource
 
 git clone https://github.com/zeux/pugixml.git
 cd pugixml && mkdir build && cd build
@@ -37,6 +37,7 @@ cmake --build . --parallel
 sudo cmake --install .
 cd ../..
 
+
 wget https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz
 tar -zxvf boost_1_84_0.tar.gz
 cd boost_1_84_0/
@@ -52,6 +53,7 @@ cd libosip2-5.3.1
 make && make install
 cd ..
 
+
 wget http://download.savannah.nongnu.org/releases/exosip/libexosip2-5.3.0.tar.gz
 tar -zxvf libexosip2-5.3.0.tar.gz
 cd libexosip2-5.3.0
@@ -60,14 +62,15 @@ cd libexosip2-5.3.0
 make CFLAGS="-DENABLE_MAIN_SOCKET=1" && make install
 cd ../..
 
+
 cp libexosip2.pc /usr/local/lib/pkgconfig/libexosip2.pc
 # 更新submodule
 git submodule update --init --recursive
 
+
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make
-
 
 ```
 

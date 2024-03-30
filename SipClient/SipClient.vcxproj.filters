@@ -27,9 +27,6 @@
     <ClCompile Include="Device.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="NetUtils.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="HttpClient.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -40,6 +37,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="WinApi.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NetUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,9 +56,6 @@
     <ClInclude Include="Device.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="NetUtils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="HttpClient.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -69,6 +66,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="WinApi.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NetUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

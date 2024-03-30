@@ -18,6 +18,7 @@ void HttpClient::Init(std::shared_ptr<MediaServerInfo> info) {
 	_base_url = fmt::format("http://{}:{}", _server_info->IP, _server_info->Port);
 }
 
+
 bool HttpClient::StartSendRtp(
 	std::shared_ptr<ChannelInfo> channel_info, std::string ssrc,
 	std::string dst_ip, int dst_port, int local_port, bool use_tcp)
@@ -27,7 +28,7 @@ bool HttpClient::StartSendRtp(
 		cpr::Parameters{
 			{"secret",_server_info->Secret},
 			{"vhost","__defaultVhost__"},
-			{"app", channel_info->App},
+			{"app",channel_info->App},
 			{"stream",channel_info->Stream},
 			{"ssrc",ssrc},
 			{"dst_url",dst_ip},
@@ -47,19 +48,24 @@ bool HttpClient::StartSendRtp(
 }
 
 
-bool HttpClient::StopSendRtp(std::shared_ptr<SessionInfo> session_info) {
+bool HttpClient::StopSendRtp(const std::string& app, const std::string& stream) {
 	cpr::Response res = cpr::Get(
 		cpr::Url{ _base_url,"/index/api/stopSendRtp" },
 		cpr::Parameters{
 			{"secret",_server_info->Secret},
 			{"vhost","__defaultVhost__"},
-			{"app", session_info->Playback ? "record" : session_info->Channel->App},
-			{"stream", session_info->Playback ? session_info->SSRC : session_info->Channel->Stream}
+			{"app",app},
+			{"stream", stream}
 		},
 		cpr::Timeout{ 3s }
 	);
 
-	return true;
+	if (res.status_code == 200)
+	{
+		SPDLOG_INFO("返回: {}", res.text);
+		return true;
+	}
+	return false;
 }
 
 
@@ -72,7 +78,7 @@ bool HttpClient::StartSendPlaybackRtp(
 		cpr::Parameters{
 			{"secret",_server_info->Secret},
 			{"vhost","__defaultVhost__"},
-			{"app", channel_info->App},
+			{"app",channel_info->App},
 			{"stream",channel_info->Stream},
 			{"ssrc",ssrc},
 			{"dst_url",dst_ip},
@@ -117,6 +123,7 @@ bool HttpClient::GetMp4RecordInfo(std::string stream,
 	return false;
 }
 
+
 bool HttpClient::SetPause(std::string app, std::string stream, bool pause)
 {
 	cpr::Response res = cpr::Get(
@@ -124,7 +131,7 @@ bool HttpClient::SetPause(std::string app, std::string stream, bool pause)
 		cpr::Parameters{
 			{"secret",_server_info->Secret},
 			{"vhost","__defaultVhost__"},
-			{"app", app},
+			{"app",app},
 			{"stream",stream},
 			{"pause",pause ? "true" : "false"}
 		},
@@ -134,6 +141,7 @@ bool HttpClient::SetPause(std::string app, std::string stream, bool pause)
 	return true;
 }
 
+
 bool HttpClient::SetSpeed(std::string app, std::string stream, float speed)
 {
 	cpr::Response res = cpr::Get(
@@ -141,7 +149,7 @@ bool HttpClient::SetSpeed(std::string app, std::string stream, float speed)
 		cpr::Parameters{
 			{"secret",_server_info->Secret},
 			{"vhost","__defaultVhost__"},
-			{"app", app},
+			{"app",app},
 			{"stream",stream},
 			{"speed", std::to_string(speed)}
 		},

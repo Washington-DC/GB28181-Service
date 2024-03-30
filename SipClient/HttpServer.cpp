@@ -3,6 +3,9 @@
 
 namespace dto
 {
+	/// @brief 将json信息反序列化到实际对象
+	/// @param j json内容
+	/// @param info 输出的实例
 	void from_json(const nlohmann::json& j, ZlmStreamInfo& info)
 	{
 		j.at("mediaServerId").get_to(info.MediaServerID);
@@ -34,13 +37,14 @@ namespace dto
 		}
 	}
 
+	//用不到，但是要有这个接口
 	void to_json(nlohmann::json& j, const ZlmStreamInfo& p)
 	{
 
 	}
 }
 
-/// @brief 
+
 HttpServer::HttpServer()
 	:_hook_blueprint("index/hook")
 {
@@ -48,6 +52,7 @@ HttpServer::HttpServer()
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_changed").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
+			std::scoped_lock<std::mutex> g(_mtx);
 			if (!_vec_stream_changed_callback.empty())
 			{
 				for (auto&& func : _vec_stream_changed_callback) {
@@ -66,6 +71,7 @@ std::future<void> HttpServer::Start(int port)
 {
 	return _app.loglevel(crow::LogLevel::Critical).port(port).multithreaded().run_async();
 }
+
 
 void HttpServer::AddStreamChangedCallback(OnStreamChangedCallback func)
 {

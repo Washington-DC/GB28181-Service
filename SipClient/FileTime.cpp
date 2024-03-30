@@ -196,19 +196,22 @@ CFileTime CFileTime::LocalToUTC() {
     return (ftUTC);
 }
 
+/// @brief 时间格式化
+/// @return 格式化后的字符串
 std::string CFileTime::Format() {
     auto st = ToSystemTime();
-    char sz[50] = { 0 };
+    char sz[50]{};
     sprintf(
         sz, "%04d-%02d-%02d %02d:%02d:%02d.%03d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
         st.wMilliseconds);
     return std::string(sz);
 }
 
-
+/// @brief 时间格式化，使用T和Z标识的时间
+/// @return 格式化后的字符串
 std::string CFileTime::FormatTZ() {
     auto st = ToSystemTime();
-    char sz[50] = { 0 };
+    char sz[50]{};
     sprintf(
         sz, "%04d-%02d-%02dT%02d:%02d:%02d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
     return std::string(sz);
