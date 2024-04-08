@@ -250,11 +250,16 @@ void SipDevice::SipRecvEventThread()
 			_event_processor_map[event->type](event);
 		}
 
-		if (event)
+		toolkit::EventPollerPool::Instance().getExecutor()->async([this,event]()
 		{
+			auto proc = _event_processor_map.find(event->type);
+			if (proc != _event_processor_map.end())
+			{
+				_event_processor_map[event->type](event);
+			}
+
 			eXosip_event_free(event);
-			event = nullptr;
-		}
+		});
 	}
 }
 

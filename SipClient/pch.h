@@ -38,6 +38,10 @@
 #include <nlohmann/json.hpp>
 #include <pugixml.hpp>
 
+#include <Poller/EventPoller.h>
+#include <Poller/Timer.h>
+#include <Util/File.h>
+
 using namespace std::string_literals;
 using namespace std::chrono_literals;
 
@@ -54,15 +58,20 @@ namespace fs = std::filesystem;
 #pragma comment(lib, "eXosip.lib")
 #pragma comment(lib, "libcares.lib")
 
+#pragma comment(lib, "sqlite3.lib")
 #pragma comment(lib, "libssl.lib")
 #pragma comment(lib, "libcrypto.lib")
+#pragma comment(lib, "ZLToolKit.lib")
 
 #ifdef _DEBUG
 #pragma comment(lib, "pugixmld.lib")
+#pragma comment(lib, "libcurl-d_imp.lib")
+#pragma comment(lib,"cpr-d.lib")
 #else
 #pragma comment(lib, "pugixml.lib")
+#pragma comment(lib, "libcurl_imp.lib")
+#pragma comment(lib,"cpr.lib")
 #endif
 
-#endif
-
+#endif 
 #endif // PCH_H

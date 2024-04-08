@@ -9,8 +9,6 @@ add_executable(SipService ${files} ${sqlite})
 
 target_link_libraries(SipService base)
 target_link_libraries(SipService zltoolkit)
-# target_link_libraries(SipService fmt)
-# target_link_libraries(SipService spdlog)
 target_link_libraries(SipService pugixml)
 target_link_libraries(SipService cpr)
 target_link_libraries(SipService ${Boost_LIBRARIES})

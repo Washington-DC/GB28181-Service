@@ -71,14 +71,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\crow;..\depends\boost-1.75\include;..\depends\cpr\include;..\depends\spdlog\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\openssl\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\depends\sqlite\include;..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\crow;..\depends\boost-1.75\include;..\depends\cpr\include;..\depends\spdlog\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;..\depends\ZLTookit\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\sqlite\lib;..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\openssl\debug;..\depends\ZLTookit\lib\debug;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)release\windows\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\crow;..\depends\boost-1.75\include;..\depends\cpr\include;..\depends\spdlog\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\openssl\release;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\depends\sqlite\include;..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\crow;..\depends\boost-1.75\include;..\depends\cpr\include;..\depends\spdlog\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;..\depends\ZLTookit\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\depends\ZLTookit\lib\release;..\depends\sqlite\lib;..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\openssl\release;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)release\windows\$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -118,7 +118,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;ENABLE_MAIN_SOCKET;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;ENABLE_MAIN_SOCKET;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -135,7 +135,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;ENABLE_MAIN_SOCKET;_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -151,6 +151,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="DbManager.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="FileTime.cpp" />
     <ClCompile Include="HttpClient.cpp" />
@@ -163,10 +164,12 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="WinApi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="DbManager.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="FileTime.h" />
     <ClInclude Include="HttpClient.h" />
@@ -174,6 +177,7 @@
     <ClInclude Include="NetUtils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Structs.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="WinApi.h" />
   </ItemGroup>
   <ItemGroup>

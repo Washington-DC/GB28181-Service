@@ -42,6 +42,26 @@ namespace dto
 	{
 
 	}
+
+	void from_json(const nlohmann::json& j, ZlmMP4Item& info)
+	{
+		j.at("mediaServerId").get_to(info.MediaServerID);
+		j.at("app").get_to(info.App);
+		j.at("stream").get_to(info.Stream);
+		j.at("file_name").get_to(info.FileName);
+		j.at("file_path").get_to(info.FilePath);
+		j.at("file_size").get_to(info.FileSize);
+		j.at("folder").get_to(info.Folder);
+		j.at("start_time").get_to(info.StartTime);
+		j.at("time_len").get_to(info.TimeDuration);
+		j.at("url").get_to(info.URL);
+	}
+
+	//用不到，但是要有这个接口
+	void to_json(nlohmann::json& j, const ZlmMP4Item& p)
+	{
+
+	}
 }
 
 
@@ -59,6 +79,15 @@ HttpServer::HttpServer()
 					func(info.App, info.Stream, info.Regist);
 				}
 			}
+			return crow::json::wvalue({ {"code", 0}, {"msg", "success"} });
+		}
+	);
+
+	//MP4录制完成
+	CROW_BP_ROUTE(_hook_blueprint, "/on_record_mp4").methods("POST"_method)([this](const crow::request& req)
+		{
+			auto info = nlohmann::json::parse(req.body).get<dto::ZlmMP4Item>();
+
 			return crow::json::wvalue({ {"code", 0}, {"msg", "success"} });
 		}
 	);

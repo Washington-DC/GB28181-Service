@@ -26,6 +26,22 @@ namespace dto
 		std::string Path() { return App + "/" + Stream; }
 	};
 
+
+	struct ZlmMP4Item
+	{
+		std::string MediaServerID;//服务器ID
+		std::string App;	//媒体流路径
+		std::string Stream; //媒体流路径
+		std::string FileName; //文件名
+		std::string FilePath; //文件绝对路径
+		std::string FileSize;  //文件大小，单位字节
+		std::string Folder;  //文件所在目录路径
+		std::string StartTime;  //开始录制时间戳
+		std::string TimeDuration;  //录制时长，单位秒
+		std::string URL;  //http/rtsp/rtmp点播相对url路径
+		std::string Path() { return App + "/" + Stream; }
+	};
+
 	/// @brief 将json信息反序列化到实际对象
 	/// @param j json内容
 	/// @param info 输出的实例
@@ -35,6 +51,17 @@ namespace dto
 	/// @param j 
 	/// @param p 
 	void to_json(nlohmann::json& j, const ZlmStreamInfo& p);
+
+
+	/// @brief 将json信息反序列化到实际对象
+	/// @param j json内容
+	/// @param info 输出的实例
+	void from_json(const nlohmann::json& j, ZlmMP4Item& info);
+
+	/// @brief 将实例对象序列化为json，用不到，但是要有这个接口
+	/// @param j 
+	/// @param p 
+	void to_json(nlohmann::json& j, const ZlmMP4Item& p);
 }
 
 class HttpServer
