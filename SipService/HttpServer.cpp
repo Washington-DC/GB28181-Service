@@ -125,7 +125,7 @@ HttpServer::HttpServer()
 			}
 
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
-			if (stream)
+			if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 			{
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
 				if (!session->IsConnected())
@@ -408,7 +408,7 @@ HttpServer::HttpServer()
 			auto stream_id = fmt::format("{}_{}", device_id, channel_id);
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
 
-			if (stream)
+			if (stream && stream->GetType() == STREAM_TYPE_GB)
 			{
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
 				return _mk_response(0, nlohmann::json{ {"ssrc",session->GetSSRCInfo()->GetSSRC()} }, "ok");
@@ -511,7 +511,7 @@ HttpServer::HttpServer()
 			}
 
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
-			if (stream)
+			if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 			{
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
 				if (!session->IsConnected())
@@ -603,12 +603,15 @@ HttpServer::HttpServer()
 			SPDLOG_INFO("on_stream_none_reader: {}", info.Path());
 
 			auto stream = StreamManager::GetInstance()->GetStream(info.Stream);
-			if (stream)
+			if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 			{
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
-				eXosip_call_terminate(session->exosip_context,
+				if (session)
+				{
+					eXosip_call_terminate(session->exosip_context,
 					session->GetCallID(), session->GetDialogID());
-				session->SetConnected(false);
+					session->SetConnected(false);
+				}
 			}
 
 			return nlohmann::json{
