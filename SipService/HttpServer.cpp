@@ -576,10 +576,10 @@ HttpServer::HttpServer()
 				if (info.OriginType == 3)
 				{
 					auto stream = StreamManager::GetInstance()->GetStream(info.Stream);
-					if (stream)
+					if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 					{
 						auto session = std::dynamic_pointer_cast<CallSession>(stream);
-						session->NotifyStreamReady();
+						if(session) session->NotifyStreamReady();
 					}
 				}
 			}
