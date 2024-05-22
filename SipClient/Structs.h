@@ -27,7 +27,7 @@ struct ChannelInfo {
 /// @brief 设备信息
 struct DeviceInfo {
 	std::string IP;     //设备IP，也就是计算机IP，这个字段不需要
-	int Port;           //SIP通信端口，保持为0即可
+	int Port;           //SIP通信端口，0：则随机选择一个端口，其他则会使用指定的端口，根据需要来设置
 	std::string ID;     //设备ID
 	int Protocol;       //sip通信协议，TCP or UDP
 	std::string Name;   //设备名称
@@ -40,10 +40,10 @@ struct DeviceInfo {
 /// @brief 播放会话信息
 struct SessionInfo {
 	int32_t DialogID; //会话ID
-	std::string SSRC;   //
-	std::string TargetIP;   //目的IP
-	int TargetPort;         //目的端口
-	int LocalPort;          //本地端口
+	std::string SSRC;   // 媒体标识符，使用此字段区分不同的媒体流
+	std::string TargetIP;   //目的IP,也就是rtp数据需要向这个IP发送
+	int TargetPort;         //目的端口,rtp数据需要向这个port发送
+	int LocalPort;          //本地端口，本地发送rtp数据的端口
 	bool UseTcp = false;    //使用TCP协议？
 
 	bool Playback = false;  //是否为回放

@@ -74,7 +74,7 @@ bool SipDevice::Init()
 
 bool SipDevice::StartSipClient()
 {
-	//创建socket，Port如果是0，则会随机使用端口
+	//创建socket，Port如果是0，则会随机使用端口，一些项目上会使用固定端口
 	if (OSIP_SUCCESS != eXosip_listen_addr(_sip_context, this->Protocol, NULL, this->Port, AF_INET, 0))
 	{
 		SPDLOG_ERROR("eXosip_listen_addr");
@@ -222,7 +222,10 @@ void SipDevice::SipRecvEventThread()
 		// 关闭推流
 		{EXOSIP_CALL_CLOSED,			CALLBACK_TEMPLATE(OnCallClosed)},
 		// 播放命令(暂停、继续播放)
-		{EXOSIP_CALL_MESSAGE_NEW,		CALLBACK_TEMPLATE(OnCallMessageNew)}
+		{EXOSIP_CALL_MESSAGE_NEW,		CALLBACK_TEMPLATE(OnCallMessageNew)},
+		// invite后长时间未响应
+		{EXOSIP_CALL_CANCELLED,			CALLBACK_TEMPLATE(OnCallCancelled)}
+
 	};
 
 	eXosip_event_t* event = nullptr;
@@ -250,7 +253,8 @@ void SipDevice::SipRecvEventThread()
 			_event_processor_map[event->type](event);
 		}
 
-		toolkit::EventPollerPool::Instance().getExecutor()->async([this,event]()
+		//投递到线程池处理
+		toolkit::EventPollerPool::Instance().getExecutor()->async([this, event]()
 		{
 			auto proc = _event_processor_map.find(event->type);
 			if (proc != _event_processor_map.end())
@@ -259,7 +263,8 @@ void SipDevice::SipRecvEventThread()
 			}
 
 			eXosip_event_free(event);
-		});
+		}
+		);
 	}
 }
 
@@ -340,6 +345,10 @@ void SipDevice::OnMessageNew(eXosip_event_t* event)
 		{
 			OnQueryMessage(doc);
 		}
+		else//其他，还有Control信息，包括预置点添加、删除、调用；云台控制；等
+		{
+			//TODO: 暂时不需要实现
+		}
 	}
 	else if (MSG_IS_BYE(event->request))
 	{
@@ -356,6 +365,8 @@ void SipDevice::OnMessageRequestFailed(eXosip_event_t* event)
 	{
 		SPDLOG_ERROR("eXosip_register_build_initial_register failed");
 	}
+	//重新发送注册信息
+	eXosip_lock(_sip_context);
 	ret = eXosip_register_send_register(_sip_context, _register_id, register_msg);
 	eXosip_unlock(_sip_context);
 
@@ -373,6 +384,7 @@ void SipDevice::OnCallACK(eXosip_event_t* event)
 	auto iter = _session_map.find(event->did);
 	if (iter != _session_map.end())
 	{
+		//查找到对应的session后，通知流媒体服务器开始推流
 		iter->second->Start();
 	}
 }
@@ -389,6 +401,21 @@ void SipDevice::OnCallClosed(eXosip_event_t* event)
 	{
 		//向流媒体服务器发送请求，停止发送RTP数据
 		iter->second->Stop();
+		// 删除此会话
+		_session_map.erase(event->did);
+	}
+}
+
+
+void SipDevice::OnCallCancelled(eXosip_event_t* event)
+{
+	SPDLOG_INFO("接收到 CallCancelled");
+	std::cout << "close: did: " << event->did << "\n";
+
+	std::scoped_lock<std::mutex> g(_session_mutex);
+	auto iter = _session_map.find(event->did);
+	if (iter != _session_map.end())
+	{
 		// 删除此会话
 		_session_map.erase(event->did);
 	}
@@ -502,7 +529,8 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 	osip_message_set_content_type(message, "APPLICATION/SDP");
 	osip_message_set_body(message, info.c_str(), info.length());
 	eXosip_lock(_sip_context);
-	eXosip_message_send_answer(_sip_context, event->tid, 200, message);
+	//发送sdp信息到服务端，状态200。
+	eXosip_call_send_answer(_sip_context, event->tid, 200, message);
 	eXosip_unlock(_sip_context);
 	SPDLOG_INFO("SDP Response: {}", info);
 }
@@ -523,6 +551,7 @@ void SipDevice::HeartbeatTask()
 {
 	while (_is_running && _register_success && _is_heartbeat_running)
 	{
+		//生成心跳xml
 		auto text =
 			R"(<?xml version="1.0" encoding="GB2312"?>
 				<Notify>
@@ -552,6 +581,7 @@ void SipDevice::HeartbeatTask()
 
 		SPDLOG_INFO("Heartbeat");
 
+		//定时重新发送
 		std::unique_lock<std::mutex> lck(_heartbeat_mutex);
 		_heartbeat_condition.wait_for(lck, std::chrono::seconds(this->HeartbeatInterval));
 	}
@@ -647,6 +677,10 @@ void SipDevice::OnQueryMessage(pugi::xml_document& doc)
 		std::string end_time = root.child("EndTime").child_value();
 
 		response_body = GenerateRecordInfoXML(sn, device_id, start_time, end_time);
+	}
+	else if (cmd == "PresetQuery")
+	{
+		response_body = GeneratePresetListXML(sn);
 	}
 
 	if (!response_body.empty())
@@ -784,6 +818,26 @@ std::string SipDevice::GenerateBasicParamXML(const std::string& sn)
 								_sip_server_info->Port, _sip_server_domain, _sip_server_info->Password, this->HeartbeatInterval);
 }
 
+
+std::string SipDevice::GeneratePresetListXML(const std::string& sn)
+{
+	auto text =
+		R"( <?xml version="1.0" encoding="GB2312"?>
+			<Response>
+			  <CmdType>PresetQuery</CmdType>
+			  <SN>{}</SN>
+			  <DeviceID>{}</DeviceID>
+			  <Result>OK</Result>
+			  <PresetList Num="1">
+				<Item>
+					<PresetID>1</PresetID>
+					<PresetName>test</PresetName>
+				</Preset>
+			  </PresetList>
+			</Response>
+			)"s;
+	return fmt::format(text, sn, this->ID);
+}
 
 
 std::string SipDevice::GenerateRecordInfoXML(const std::string& sn,
@@ -1056,6 +1110,13 @@ void SipDevice::OnStreamChanedCallback(const std::string& app, const std::string
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 /// @brief 开始播放。接收到ACK消息后，让流媒体服务器向指定地址发送视频数据。
 void Session::Start()
 {
@@ -1089,6 +1150,7 @@ void Session::Pause(bool flag)
 	auto ret = HttpClient::GetInstance()->SetPause("record", this->SSRC, flag);
 }
 
+// 跳转到某个位置，暂时没有这个需求
 void Session::Seek(int64_t pos)
 {
 }
