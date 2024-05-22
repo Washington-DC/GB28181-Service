@@ -370,3 +370,7 @@ SipDevice.bak
 
 build
 .vscode
+*.http
+/release/windows/Debug/config.xml
+/release/windows/Release/config.xml
+/release/windows/Release/server.xml
