@@ -28,6 +28,7 @@ bool HttpClient::StartSendRtp(
 		cpr::Timeout{ 3s }
 	);
 
+	SPDLOG_WARN("--------------: {}", res.url.str());
 	if (res.status_code == 200)
 	{
 		SPDLOG_INFO("返回: {}", res.text);
@@ -48,6 +49,7 @@ bool HttpClient::StopSendRtp(const std::string& app, const std::string& stream) 
 		},
 		cpr::Timeout{ 3s }
 	);
+	SPDLOG_WARN("--------------: {}", res.url.str());
 
 	if (res.status_code == 200)
 	{
@@ -79,6 +81,7 @@ bool HttpClient::StartSendPlaybackRtp(
 		},
 		cpr::Timeout{ 3s }
 	);
+	SPDLOG_WARN("--------------: {}", res.url.str());
 
 	if (res.status_code == 200)
 	{
@@ -103,6 +106,7 @@ bool HttpClient::GetMp4RecordInfo(std::string stream,
 		},
 		cpr::Timeout{ 3s }
 	);
+	SPDLOG_WARN("--------------: {}", res.url.str());
 
 	response = res.text;
 	if (res.status_code == 200)
@@ -126,6 +130,7 @@ bool HttpClient::SetPause(std::string app, std::string stream, bool pause)
 		},
 		cpr::Timeout{ 3s }
 	);
+	SPDLOG_WARN("--------------: {}", res.url.str());
 
 	return true;
 }
@@ -144,6 +149,7 @@ bool HttpClient::SetSpeed(std::string app, std::string stream, float speed)
 		},
 		cpr::Timeout{ 3s }
 	);
+	SPDLOG_WARN("--------------: {}", res.url.str());
 
 	return true;
 }

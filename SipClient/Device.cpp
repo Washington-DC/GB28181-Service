@@ -228,10 +228,11 @@ void SipDevice::SipRecvEventThread()
 
 	};
 
-	eXosip_event_t* event = nullptr;
 	while (_is_running)
 	{
-		event = eXosip_event_wait(_sip_context, 0, 50);
+		//这里必须每次循环时声明一个event，后期在线程池中传递
+		eXosip_event_t* event = nullptr;
+		event = eXosip_event_wait(_sip_context, 0, 20);
 		if (event)
 		{
 			SPDLOG_INFO("------------- Receive: {}", magic_enum::enum_name<eXosip_event_type>(event->type));
@@ -530,7 +531,12 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 	osip_message_set_body(message, info.c_str(), info.length());
 	eXosip_lock(_sip_context);
 	//发送sdp信息到服务端，状态200。
-	eXosip_call_send_answer(_sip_context, event->tid, 200, message);
+	ret = eXosip_call_send_answer(_sip_context, event->tid, 200, message);
+	if (ret != OSIP_SUCCESS)
+	{
+		SPDLOG_ERROR("eXosip_call_send_answer failed");
+		return;
+	}
 	eXosip_unlock(_sip_context);
 	SPDLOG_INFO("SDP Response: {}", info);
 }
