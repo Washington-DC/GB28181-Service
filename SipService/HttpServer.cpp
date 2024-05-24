@@ -562,7 +562,7 @@ HttpServer::HttpServer()
 				{"msg",""},
 				{"enable_rtsp",true},
 				{"enable_rtmp",true},
-				{"enable_hls",true}
+				{"enable_hls",false}
 			}.dump();
 		}
 	);

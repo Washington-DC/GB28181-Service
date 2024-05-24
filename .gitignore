@@ -374,3 +374,4 @@ build
 /release/windows/Debug/config.xml
 /release/windows/Release/config.xml
 /release/windows/Release/server.xml
+/test.http

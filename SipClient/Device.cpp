@@ -262,6 +262,10 @@ void SipDevice::SipRecvEventThread()
 			{
 				_event_processor_map[event->type](event);
 			}
+			else
+			{
+				SendResponseOK(event);
+			}
 
 			eXosip_event_free(event);
 		}
