@@ -557,12 +557,13 @@ HttpServer::HttpServer()
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
 			SPDLOG_INFO("Hook on_publish: {}  \tParams:{}  ", info.Path(), info.Params);
+			//根据需要来，这里暂时只需要rtsp和rtmp的协议
 			return nlohmann::json{
 				{"code",0},
 				{"msg",""},
 				{"enable_rtsp",true},
 				{"enable_rtmp",true},
-				{"enable_hls",true}
+				{"enable_hls",false}
 			}.dump();
 		}
 	);
