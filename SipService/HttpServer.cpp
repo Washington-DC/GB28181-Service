@@ -7,6 +7,7 @@
 #include "DTO.h"
 #include "Utils.h"
 #include "DbManager.h"
+#include "ConfigManager.h"
 
 HttpServer::HttpServer()
 	:_api_blueprint("v1")
@@ -15,6 +16,8 @@ HttpServer::HttpServer()
 	CROW_ROUTE(_app, "/")([]() {return "Hello World!"; });
 
 	CROW_BP_ROUTE(_api_blueprint, "/")([]() {return "Hello World !"; });
+
+	CROW_BP_ROUTE(_api_blueprint, "/config")([]() {return ConfigManager::GetInstance()->GetConfigXML(); });
 
 	//查询设备列表
 	CROW_BP_ROUTE(_api_blueprint, "/device/list")([this]()
@@ -545,6 +548,7 @@ HttpServer::HttpServer()
 	//服务器定时上报，确认服务器是否在线
 	CROW_BP_ROUTE(_hook_blueprint, "/on_server_keepalive").methods("POST"_method)([this](const crow::request& req)
 		{
+			SPDLOG_INFO("mediaserver keepalive...");
 			toolkit::EventPollerPool::Instance().getExecutor()->async([this]()
 				{
 					ZlmServer::GetInstance()->UpdateHeartbeatTime();

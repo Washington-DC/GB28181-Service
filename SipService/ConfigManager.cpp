@@ -5,15 +5,14 @@
 bool ConfigManager::LoadConfig(std::string filepath)
 {
 	SPDLOG_INFO("配置文件解析...");
-	pugi::xml_document doc;
-	auto ret = doc.load_file(filepath.c_str(), pugi::parse_full);
+	auto ret = _doc.load_file(filepath.c_str(), pugi::parse_full);
 	if (ret.status != pugi::status_ok)
 	{
 		SPDLOG_ERROR("配置文件解析失败");
 		return false;
 	}
 
-	auto root = doc.child("Config");
+	auto root = _doc.child("Config");
 	// SIP 服务器
 	auto sip_server_node = root.child("SipServer");
 	if (sip_server_node)
@@ -82,4 +81,11 @@ bool ConfigManager::LoadConfig(std::string filepath)
 
 	SPDLOG_INFO("配置文件解析完成");
 	return true;
+}
+
+std::string ConfigManager::GetConfigXML()
+{
+	std::stringstream ss;
+	_doc.save(ss);
+	return ss.str();
 }

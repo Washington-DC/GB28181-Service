@@ -435,13 +435,15 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 	if (sdp_body == nullptr)
 	{
 		SPDLOG_ERROR("SDP Error");
+		SendInviteResponse(event, "", 400);
 		return;
 	}
 	SPDLOG_INFO("invite -----> \n {}", sdp_body->body);
-	sdp_message_t* sdp = NULL;
+	sdp_message_t* sdp = nullptr;
 	if (OSIP_SUCCESS != sdp_message_init(&sdp))
 	{
 		SPDLOG_ERROR("sdp_message_init failed");
+		SendInviteResponse(event, "", 400);
 		return;
 	}
 
@@ -456,12 +458,14 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 		if (channel_info == nullptr)
 		{
 			SPDLOG_ERROR("未找到对应Channel: {}", invite_video_channel_id);
+			SendInviteResponse(event, "", 404);
 			return;
 		}
 	}
 	else
 	{
 		SPDLOG_ERROR("event->request->req_uri错误");
+		SendInviteResponse(event, "", 400);
 		return;
 	}
 
@@ -472,6 +476,7 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 	if (ssrc.empty())
 	{
 		SPDLOG_ERROR("未找到SSRC");
+		SendInviteResponse(event, "", 400);
 		return;
 	}
 	//获取流媒体服务器地址和协议类型
@@ -524,25 +529,54 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 		ss.str(), invite_video_channel_id, this->IP, session->Playback ? "Playback" : "Play", this->IP,
 		session->LocalPort, session->UseTcp ? "TCP/RTP/AVP" : "RTP/AVP", ssrc);
 
-	osip_message_t* message = event->request;
-	ret = eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
-	if (ret != OSIP_SUCCESS)
+	SendInviteResponse(event, info, 200);
+}
+
+
+void SipDevice::SendInviteResponse(eXosip_event_t* event, const std::string& sdp, int status)
+{
+	osip_message_t* message = nullptr;
+	int ret = OSIP_SUCCESS;
+	if (status != 200)
 	{
-		SPDLOG_ERROR("eXosip_call_build_answer failed");
-		return;
+		ret = eXosip_call_build_answer(_sip_context, event->tid, status, &message);
+		if (ret != OSIP_SUCCESS)
+		{
+			SPDLOG_ERROR("eXosip_call_build_answer failed");
+			return;
+		}
+
+		eXosip_lock(_sip_context);
+		ret = eXosip_call_send_answer(_sip_context, event->tid, status, message);
+		if (ret != OSIP_SUCCESS)
+		{
+			SPDLOG_ERROR("eXosip_call_send_answer failed");
+			return;
+		}
+		eXosip_unlock(_sip_context);
 	}
-	osip_message_set_content_type(message, "APPLICATION/SDP");
-	osip_message_set_body(message, info.c_str(), info.length());
-	eXosip_lock(_sip_context);
-	//发送sdp信息到服务端，状态200。
-	ret = eXosip_call_send_answer(_sip_context, event->tid, 200, message);
-	if (ret != OSIP_SUCCESS)
+	else
 	{
-		SPDLOG_ERROR("eXosip_call_send_answer failed");
-		return;
+		ret = eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
+		if (ret != OSIP_SUCCESS)
+		{
+			SPDLOG_ERROR("eXosip_call_build_answer failed");
+			return;
+		}
+		osip_message_set_content_type(message, "APPLICATION/SDP");
+
+		osip_message_set_body(message, sdp.c_str(), sdp.length());
+		eXosip_lock(_sip_context);
+		//发送sdp信息到服务端，状态200。
+		ret = eXosip_call_send_answer(_sip_context, event->tid, 200, message);
+		if (ret != OSIP_SUCCESS)
+		{
+			SPDLOG_ERROR("eXosip_call_send_answer failed");
+			return;
+		}
+		eXosip_unlock(_sip_context);
+		SPDLOG_INFO("SDP Response: {}", sdp);
 	}
-	eXosip_unlock(_sip_context);
-	SPDLOG_INFO("SDP Response: {}", info);
 }
 
 
@@ -1118,6 +1152,8 @@ void SipDevice::OnStreamChanedCallback(const std::string& app, const std::string
 		}
 	}
 }
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

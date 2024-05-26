@@ -111,6 +111,9 @@ private:
 	/// @param regist 注册或注销
 	void OnStreamChanedCallback(const std::string& app, const std::string& stream, bool regist);
 
+	void SendInviteResponse(eXosip_event_t* event, const std::string& sdp,int status = 200);
+
+
 private:
 	/// @brief 返回成功消息
 	/// @param event  sip事件
