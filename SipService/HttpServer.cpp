@@ -673,6 +673,8 @@ HttpServer::HttpServer()
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::RtpServerInfo>();
 			SPDLOG_INFO("on_rtp_server_timeout: {}", info.StreamID);
+			//超时时，删除此流，不然会判断依然存在
+			StreamManager::GetInstance()->RemoveStream(info.Stream);
 			return _mk_response(0, "", "success");
 		}
 	);
