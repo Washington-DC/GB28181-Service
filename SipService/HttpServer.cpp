@@ -7,6 +7,7 @@
 #include "DTO.h"
 #include "Utils.h"
 #include "DbManager.h"
+#include "ConfigManager.h"
 
 HttpServer::HttpServer()
 	:_api_blueprint("v1")
@@ -15,6 +16,8 @@ HttpServer::HttpServer()
 	CROW_ROUTE(_app, "/")([]() {return "Hello World!"; });
 
 	CROW_BP_ROUTE(_api_blueprint, "/")([]() {return "Hello World !"; });
+
+	CROW_BP_ROUTE(_api_blueprint, "/config")([]() {return ConfigManager::GetInstance()->GetConfigXML(); });
 
 	//查询设备列表
 	CROW_BP_ROUTE(_api_blueprint, "/device/list")([this]()
@@ -125,7 +128,7 @@ HttpServer::HttpServer()
 			}
 
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
-			if (stream)
+			if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 			{
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
 				if (!session->IsConnected())
@@ -408,7 +411,7 @@ HttpServer::HttpServer()
 			auto stream_id = fmt::format("{}_{}", device_id, channel_id);
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
 
-			if (stream)
+			if (stream && stream->GetType() == STREAM_TYPE_GB)
 			{
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
 				return _mk_response(0, nlohmann::json{ {"ssrc",session->GetSSRCInfo()->GetSSRC()} }, "ok");
@@ -511,7 +514,7 @@ HttpServer::HttpServer()
 			}
 
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
-			if (stream)
+			if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 			{
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
 				if (!session->IsConnected())
@@ -545,6 +548,7 @@ HttpServer::HttpServer()
 	//服务器定时上报，确认服务器是否在线
 	CROW_BP_ROUTE(_hook_blueprint, "/on_server_keepalive").methods("POST"_method)([this](const crow::request& req)
 		{
+			SPDLOG_INFO("mediaserver keepalive...");
 			toolkit::EventPollerPool::Instance().getExecutor()->async([this]()
 				{
 					ZlmServer::GetInstance()->UpdateHeartbeatTime();
@@ -562,7 +566,7 @@ HttpServer::HttpServer()
 				{"msg",""},
 				{"enable_rtsp",true},
 				{"enable_rtmp",true},
-				{"enable_hls",true}
+				{"enable_hls",false}
 			}.dump();
 		}
 	);
@@ -576,10 +580,10 @@ HttpServer::HttpServer()
 				if (info.OriginType == 3)
 				{
 					auto stream = StreamManager::GetInstance()->GetStream(info.Stream);
-					if (stream)
+					if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 					{
 						auto session = std::dynamic_pointer_cast<CallSession>(stream);
-						session->NotifyStreamReady();
+						if(session) session->NotifyStreamReady();
 					}
 				}
 			}
@@ -603,12 +607,15 @@ HttpServer::HttpServer()
 			SPDLOG_INFO("on_stream_none_reader: {}", info.Path());
 
 			auto stream = StreamManager::GetInstance()->GetStream(info.Stream);
-			if (stream)
+			if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 			{
 				auto session = std::dynamic_pointer_cast<CallSession>(stream);
-				eXosip_call_terminate(session->exosip_context,
+				if (session)
+				{
+					eXosip_call_terminate(session->exosip_context,
 					session->GetCallID(), session->GetDialogID());
-				session->SetConnected(false);
+					session->SetConnected(false);
+				}
 			}
 
 			return nlohmann::json{
@@ -666,6 +673,8 @@ HttpServer::HttpServer()
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::RtpServerInfo>();
 			SPDLOG_INFO("on_rtp_server_timeout: {}", info.StreamID);
+			//超时时，删除此流，不然会判断依然存在
+			StreamManager::GetInstance()->RemoveStream(info.Stream);
 			return _mk_response(0, "", "success");
 		}
 	);

@@ -119,9 +119,9 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			{
 				//如果设备已经存在的话，就只更新在线状态和注册时间
 				find = true;
-				if (device->GetIP() != client_host)
+				if (device->GetIP() != client_host || device->GetPort() != client_port)
 				{
-					SPDLOG_WARN("设备IP变化:  {}  {}->{}", client_device_id, device->GetIP(), client_host);
+					SPDLOG_WARN("设备地址变化:  {}  {}->{}", client_device_id, device->GetIP(), client_host);
 					device->SetIP(client_host);
 					device->SetPort(client_port);
 				}

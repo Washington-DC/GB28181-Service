@@ -12,6 +12,13 @@
 - 其他消息响应，DeviceInfo、ConfigDownload等。
 
 
+## 工作方式
+- 常用的SIP功能实现
+- 接收ZLM的hook事件：流的注册注销、文件录制完成
+- Sqlite数据库存储文件信息
+- 
+
+
 ## 依赖库：
 
 - [osip](https://www.gnu.org/software/osip/osip.html)

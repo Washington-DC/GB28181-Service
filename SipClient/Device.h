@@ -89,6 +89,10 @@ private:
 	/// @param event  sip事件
 	void OnCallClosed(eXosip_event_t* event);
 
+	/// @brief Invite之后长时间没有响应，则会触发此事件
+	/// @param event 
+	void OnCallCancelled(eXosip_event_t* event);
+
 	/// @brief 请求会话，发送sdp信息
 	/// @param event  sip事件
 	void OnCallInvite(eXosip_event_t* event);
@@ -106,6 +110,14 @@ private:
 	/// @param stream 媒体流标识二级路径
 	/// @param regist 注册或注销
 	void OnStreamChanedCallback(const std::string& app, const std::string& stream, bool regist);
+
+
+	/// @brief 回复INVITE请求，如果正常(200)时，需要回复SDP内容
+	/// @param event 
+	/// @param sdp 
+	/// @param status 状态值，默认200，其他有错误:400,Not Found:404
+	void SendInviteResponse(eXosip_event_t* event, const std::string& sdp,int status = 200);
+
 
 private:
 	/// @brief 返回成功消息
@@ -129,6 +141,11 @@ private:
 	/// @param doc  服务端发送的xml信息
 	void OnQueryMessage(pugi::xml_document& doc);
 
+
+	/// @brief 设备控制请求，如：预置点查询、调用、删除
+	/// @param doc 
+	void OnDeviceControl(pugi::xml_document& doc);
+
 	/// @brief 生成目录信息
 	/// @param sn 消息编号
 	/// @return 生成xml
@@ -144,10 +161,17 @@ private:
 	/// @return 生成xml
 	std::string GenerateVideoParamOptXML(const std::string& sn);
 
-	/// @brief 生成基本配置的xml回复
+	/// @brief 生成基本配置的xml回复，包括服务器信息、域、密码等
 	/// @param sn 消息编号
 	/// @return 生成xml
 	std::string GenerateBasicParamXML(const std::string& sn);
+
+
+	/// @brief 生成预置点列表xml
+	/// @param sn 
+	/// @return 
+	std::string GeneratePresetListXML(const std::string& sn);
+
 
 	/// @brief 生成录像内容查询的回复xml
 	/// @param sn 消息编号

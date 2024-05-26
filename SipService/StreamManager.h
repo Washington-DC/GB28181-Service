@@ -79,7 +79,6 @@ private:
 
 	std::mutex _mutex;
 	std::condition_variable _cv;
-
 };
 
 class StreamManager

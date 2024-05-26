@@ -65,6 +65,7 @@ int ZlmServer::OpenRtpServer(const std::string& stream_id)
 			{"secret",_info->Secret},
 			{"port","0"},
 			{"tcp_mode", "0"},
+			{"enable_tcp","0"}, // 兼容旧版本ZLM
 			{"stream_id",stream_id}
 		},
 		cpr::Timeout{ 3s }

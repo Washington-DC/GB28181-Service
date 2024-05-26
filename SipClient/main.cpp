@@ -1,7 +1,7 @@
 ﻿/*****************************************************************//**
  * \file   main.cpp
- * \brief  
- * 
+ * \brief
+ *
  * \author yszs
  * \date   March 2024
  *********************************************************************/
@@ -11,26 +11,22 @@
 #include "Device.h"
 #include "HttpClient.h"
 #include "HttpServer.h"
-
-/// @brief 获取软件当前路径
-/// @return 软件当前路径
-std::string GetCurrentModuleDirectory()
-{
-#ifdef _WIN32
-	return nbase::win32::GetCurrentModuleDirectoryA();
-#else
-	char cwd[1024];
-	getcwd(cwd, sizeof(cwd));
-	return std::string(cwd);
-#endif
-}
+#include "Utils.h"
+#include "DbManager.h"
 
 int main()
 {
-	auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-	auto logger = std::make_shared<spdlog::logger>("logger", spdlog::sinks_init_list{ console_sink });
+	auto root = fs::path(GetCurrentModuleDirectory());
+	auto log_path = root / "logs";
+	auto config_file = root / "config.xml";
+	auto db_file = root / "record.db";
 
-	//VS编译器，添加输出
+	fs::create_directories(log_path);
+	auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	auto file_path = log_path / fmt::format("{:%Y%m%d%H%M%S}.log", fmt::localtime(std::time(nullptr)));
+	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(file_path.string(), 1024 * 1024 * 50, 12, true);
+	auto logger = std::make_shared<spdlog::logger>("logger", spdlog::sinks_init_list{ console_sink, file_sink });
+
 #if defined(_WIN32) && defined(_MSC_VER)
 	auto msvc_sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
 	logger->sinks().push_back(msvc_sink);
@@ -38,9 +34,6 @@ int main()
 
 	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] [%t] [%s:%#] %v");
 	spdlog::set_default_logger(logger);
-
-	auto root = GetCurrentModuleDirectory();
-	auto config_file = fs::path(root) / "config.xml";
 
 	//加载配置文件
 	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file.string());
@@ -50,7 +43,7 @@ int main()
 	auto sip_server_info = ConfigManager::GetInstance()->GetSipServerInfo();
 	auto media_server_info = ConfigManager::GetInstance()->GetMediaServerInfo();
 	auto device_infos = ConfigManager::GetInstance()->GetAllDeviceInfo();
-
+	DbManager::GetInstance()->Init(db_file.string());
 	//设备初始化
 	HttpClient::GetInstance()->Init(media_server_info);
 	std::vector<std::shared_ptr<SipDevice>> devices;
@@ -58,6 +51,13 @@ int main()
 	{
 		auto device = std::make_shared<SipDevice>(info, sip_server_info);
 		device->Init();
+
+		for (auto&& channel : info->Channels)
+		{
+			auto table_name = fmt::format("{}_{}",info->ID,channel->ID);
+			DbManager::GetInstance()->CreateTable(table_name);
+		}
+
 		device->StartSipClient();
 		devices.push_back(device);
 	}

@@ -12,11 +12,9 @@ class HttpClient {
 public:
     SINGLETON_DEFINE(HttpClient);
 
-
     /// @brief 初始化，传入流媒体服务器信息
     /// @param info 流媒体服务器信息
     void Init(std::shared_ptr<MediaServerInfo> server_info);
-
 
     /// @brief 开始发送RTP数据
     /// @param channel_info 通道信息
@@ -30,13 +28,11 @@ public:
         std::shared_ptr<ChannelInfo> info, std::string ssrc, std::string dst_ip, int dst_port, int local_port,
         bool use_tcp = false);
 
-
     /// @brief 停止RTP数据发送
     /// @param app 媒体流一级目录
     /// @param stream  媒体流二级目录
     /// @return 是否成功，只有在流媒体服务器不在线时，会返回失败，不影响
     bool StopSendRtp(const std::string& app, const std::string& stream);
-
 
     /// @brief 录像回放开始发送RTP数据包
     /// @param channel_info 通道信息
@@ -51,7 +47,6 @@ public:
     bool StartSendPlaybackRtp(
         std::shared_ptr<ChannelInfo> channel_info, std::string ssrc, std::string dst_ip,
         int dst_port, int local_port, std::string& start_time, std::string& end_time, bool use_tcp);
-
 
     /// @brief 获取录像文件信息
     /// @param stream 媒体流路径
