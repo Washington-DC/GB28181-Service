@@ -46,11 +46,12 @@ int main()
 	auto device_infos = ConfigManager::GetInstance()->GetAllDeviceInfo();
 	DbManager::GetInstance()->Init(db_file.string());
 
+	HttpClient::GetInstance()->Init(media_server_info);
+
 	//检查拉流分发参数
 	DistributeManager::GetInstance()->Start();
 
 	//设备初始化
-	HttpClient::GetInstance()->Init(media_server_info);
 	std::vector<std::shared_ptr<SipDevice>> devices;
 	for (auto&& info : device_infos)
 	{

@@ -192,12 +192,14 @@ std::vector<media::mediaserver_stream_item> HttpClient::GetMediaList()
 	{
 		SPDLOG_ERROR(e.what());
 	}
+
+	return items;
 }
 
 bool HttpClient::AddDistributeStream(std::shared_ptr<DistributeItem> item)
 {
 	cpr::Response res = cpr::Get(
-		cpr::Url{ _base_url,"/index/api/getMp4RecordInfo" },
+		cpr::Url{ _base_url,"/index/api/addStreamProxy" },
 		cpr::Parameters{
 			{"secret",_server_info->Secret},
 			{"vhost","__defaultVhost__"},
@@ -217,7 +219,11 @@ bool HttpClient::AddDistributeStream(std::shared_ptr<DistributeItem> item)
 	auto response = res.text;
 	if (res.status_code == 200)
 	{
-		return true;
+		auto doc = nlohmann::json::parse(res.text);
+		if (doc["code" == 0])
+		{
+			return true;
+		}
 	}
 	return false;
 }

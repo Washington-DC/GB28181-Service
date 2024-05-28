@@ -8,15 +8,15 @@ void DistributeManager::Start()
 	auto&& items = ConfigManager::GetInstance()->GetAllDistributeItems();
 	auto&& streams = HttpClient::GetInstance()->GetMediaList();
 
-	for (auto&& s : streams)
+	for (auto&& s : items)
 	{
-		auto iter = std::find_if(items.begin(), items.end(), [s](std::shared_ptr<DistributeItem> di) {
-			return di->App == s.app && di->Stream == s.stream;
+		auto iter = std::find_if(streams.begin(), streams.end(), [s](const media::mediaserver_stream_item& si) {
+			return s->App == si.app && s->Stream == si.stream;
 			});
 
-		if (iter != items.end())
+		if (iter == streams.end())
 		{
-			HttpClient::GetInstance()->AddDistributeStream(*iter);
+			HttpClient::GetInstance()->AddDistributeStream(s);
 		}
 	}
 

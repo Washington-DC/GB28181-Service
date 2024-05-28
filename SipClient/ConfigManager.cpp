@@ -101,7 +101,7 @@ bool ConfigManager::LoadConfig(std::string filepath) {
 
 	auto distribute_node = root.child("Distribute");
 	if (distribute_node) {
-		auto nodes = devicelist_node.children("Item");
+		auto nodes = distribute_node.children("Item");
 		for (auto&& node : nodes)
 		{
 			auto item = std::make_shared<DistributeItem>();
