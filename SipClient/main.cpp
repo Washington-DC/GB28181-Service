@@ -13,6 +13,7 @@
 #include "HttpServer.h"
 #include "Utils.h"
 #include "DbManager.h"
+#include "DistributeManager.h"
 
 int main()
 {
@@ -44,6 +45,10 @@ int main()
 	auto media_server_info = ConfigManager::GetInstance()->GetMediaServerInfo();
 	auto device_infos = ConfigManager::GetInstance()->GetAllDeviceInfo();
 	DbManager::GetInstance()->Init(db_file.string());
+
+	//检查拉流分发参数
+	DistributeManager::GetInstance()->Start();
+
 	//设备初始化
 	HttpClient::GetInstance()->Init(media_server_info);
 	std::vector<std::shared_ptr<SipDevice>> devices;

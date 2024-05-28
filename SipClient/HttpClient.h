@@ -8,6 +8,38 @@
 #pragma once
 #include "Structs.h"
 
+namespace media
+{
+    struct mediaserver_stream_item
+    {
+        int64_t aliveSecond;
+        std::string app;
+        int64_t bytesSpeed;
+        int64_t createStamp;
+        bool isRecordingHLS;
+        bool isRecordingMP4;
+        std::string originUrl;
+        int readerCount;
+        int originType;
+        std::string originTypeStr;
+        std::string schema;
+        std::string stream;
+        int codec_id;
+        std::string codec_id_name;
+        int fps;
+        int width;
+        int height;
+        std::string vhost;
+
+        std::string resolution;
+        std::string path;
+        std::string url;
+    };
+
+    void to_json(nlohmann::json& j, const mediaserver_stream_item& p);
+    void from_json(const nlohmann::json& j, mediaserver_stream_item& p);
+}
+
 class HttpClient {
 public:
     SINGLETON_DEFINE(HttpClient);
@@ -70,6 +102,10 @@ public:
     /// @param speed 播放速度
     /// @return 调用是否成功，直接返回true，不影响
     bool SetSpeed(std::string app, std::string stream, float speed);
+
+    std::vector<media::mediaserver_stream_item> GetMediaList();
+
+    bool AddDistributeStream(std::shared_ptr<DistributeItem> item);
 
 private:
     //流媒体服务器信息

@@ -57,3 +57,14 @@ struct SessionInfo {
 			"DialogID:{}\nID:{}\nSSRC:{}\nDstIP:{}\nDstPort:{}\nLocalPort:{}", DialogID, Channel->ID, SSRC, TargetIP, TargetPort, LocalPort);
 	}
 };
+
+/// @brief 拉流分发配置
+struct DistributeItem
+{
+	std::string Source;  //源地址
+	std::string App;
+	std::string Stream;
+	int Protocol; //针对RTSP时，使用TCP or UDP，默认TCP
+	bool RecordMP4 = false;
+	int RetryTimes = -1;  //无限重试
+};
