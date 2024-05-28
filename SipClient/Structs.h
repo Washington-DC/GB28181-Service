@@ -64,7 +64,7 @@ struct DistributeItem
 	std::string Source;  //源地址
 	std::string App;
 	std::string Stream;
-	int Protocol; //针对RTSP时，使用TCP or UDP，默认TCP
+	int Protocol; //针对RTSP时，使用TCP:0 or UDP:1，默认TCP:0
 	bool RecordMP4 = false;
 	int RetryTimes = -1;  //无限重试
 };

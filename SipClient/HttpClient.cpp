@@ -207,6 +207,7 @@ bool HttpClient::AddDistributeStream(std::shared_ptr<DistributeItem> item)
 			{"retry_count",std::to_string(item->RetryTimes)},
 			{"enable_mp4",item->RecordMP4 ? "true" : "false"},
 			{"mp4_as_player","true"},
+			{"rtp_type",std::to_string(item->Protocol)},
 			{"auto_close","false"}
 		},
 		cpr::Timeout{ 3s }

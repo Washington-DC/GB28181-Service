@@ -119,13 +119,14 @@ bool ConfigManager::LoadConfig(std::string filepath) {
 			}
 
 			text = node.child_value("Protocol");
-			item->Protocol = (text.compare("TCP") == 0 ? IPPROTO_TCP : IPPROTO_UDP);
+			item->Protocol = (text.compare("UDP") == 0 ? 1 : 0);
 			item->RecordMP4 = node.child("RecordMP4").text().as_bool();
 			item->RetryTimes = node.child("RetryTimes").text().as_int(-1);
 
 			_vec_distribute_items.push_back(item);
 		}
-
-		SPDLOG_INFO("配置文件解析完成");
-		return true;
 	}
+
+	SPDLOG_INFO("配置文件解析完成");
+	return true;
+}

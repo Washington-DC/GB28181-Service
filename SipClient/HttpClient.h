@@ -103,8 +103,14 @@ public:
     /// @return 调用是否成功，直接返回true，不影响
     bool SetSpeed(std::string app, std::string stream, float speed);
 
+    /// @brief 获取流列表
+    /// @return 所有流信息
     std::vector<media::mediaserver_stream_item> GetMediaList();
 
+
+    /// @brief 添加拉流代理
+    /// @param item 拉流代理参数
+    /// @return 是否添加成功
     bool AddDistributeStream(std::shared_ptr<DistributeItem> item);
 
 private:
