@@ -924,6 +924,7 @@ std::string SipDevice::ParseSSRC(const std::string& text)
 		if (strstr(token.c_str(), "y=0") || strstr(token.c_str(), "y=1"))
 		{
 			auto result = token.substr(2);
+			result = nbase::StringTrim(result);
 			SPDLOG_INFO("---Y: {}", result);
 			return result;
 		}
