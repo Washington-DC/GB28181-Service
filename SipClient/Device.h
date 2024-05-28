@@ -111,6 +111,14 @@ private:
 	/// @param regist 注册或注销
 	void OnStreamChanedCallback(const std::string& app, const std::string& stream, bool regist);
 
+
+	/// @brief 回复INVITE请求，如果正常(200)时，需要回复SDP内容
+	/// @param event 
+	/// @param sdp 
+	/// @param status 状态值，默认200，其他有错误:400,Not Found:404
+	void SendInviteResponse(eXosip_event_t* event, const std::string& sdp,int status = 200);
+
+
 private:
 	/// @brief 返回成功消息
 	/// @param event  sip事件

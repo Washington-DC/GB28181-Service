@@ -232,7 +232,7 @@ void SipDevice::SipRecvEventThread()
 	{
 		//这里必须每次循环时声明一个event，后期在线程池中传递
 		eXosip_event_t* event = nullptr;
-		event = eXosip_event_wait(_sip_context, 0, 20);
+		event = eXosip_event_wait(_sip_context, 0, 50);
 		if (event)
 		{
 			SPDLOG_INFO("------------- Receive: {}", magic_enum::enum_name<eXosip_event_type>(event->type));
@@ -350,6 +350,10 @@ void SipDevice::OnMessageNew(eXosip_event_t* event)
 		{
 			OnQueryMessage(doc);
 		}
+		else if (root_name == "Control")
+		{
+			OnDeviceControl(doc);
+		}
 		else//其他，还有Control信息，包括预置点添加、删除、调用；云台控制；等
 		{
 			//TODO: 暂时不需要实现
@@ -435,13 +439,15 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 	if (sdp_body == nullptr)
 	{
 		SPDLOG_ERROR("SDP Error");
+		SendInviteResponse(event, "", 400);
 		return;
 	}
 	SPDLOG_INFO("invite -----> \n {}", sdp_body->body);
-	sdp_message_t* sdp = NULL;
+	sdp_message_t* sdp = nullptr;
 	if (OSIP_SUCCESS != sdp_message_init(&sdp))
 	{
 		SPDLOG_ERROR("sdp_message_init failed");
+		SendInviteResponse(event, "", 400);
 		return;
 	}
 
@@ -456,12 +462,14 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 		if (channel_info == nullptr)
 		{
 			SPDLOG_ERROR("未找到对应Channel: {}", invite_video_channel_id);
+			SendInviteResponse(event, "", 404);
 			return;
 		}
 	}
 	else
 	{
 		SPDLOG_ERROR("event->request->req_uri错误");
+		SendInviteResponse(event, "", 400);
 		return;
 	}
 
@@ -472,6 +480,7 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 	if (ssrc.empty())
 	{
 		SPDLOG_ERROR("未找到SSRC");
+		SendInviteResponse(event, "", 400);
 		return;
 	}
 	//获取流媒体服务器地址和协议类型
@@ -524,25 +533,56 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 		ss.str(), invite_video_channel_id, this->IP, session->Playback ? "Playback" : "Play", this->IP,
 		session->LocalPort, session->UseTcp ? "TCP/RTP/AVP" : "RTP/AVP", ssrc);
 
-	osip_message_t* message = event->request;
-	ret = eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
-	if (ret != OSIP_SUCCESS)
+	SendInviteResponse(event, info, 200);
+}
+
+
+void SipDevice::SendInviteResponse(eXosip_event_t* event, const std::string& sdp, int status)
+{
+	osip_message_t* message = nullptr;
+	int ret = OSIP_SUCCESS;
+	if (status != 200)
 	{
-		SPDLOG_ERROR("eXosip_call_build_answer failed");
-		return;
+		//其他值的时候，就直接回复
+		ret = eXosip_call_build_answer(_sip_context, event->tid, status, &message);
+		if (ret != OSIP_SUCCESS)
+		{
+			SPDLOG_ERROR("eXosip_call_build_answer failed");
+			return;
+		}
+
+		eXosip_lock(_sip_context);
+		ret = eXosip_call_send_answer(_sip_context, event->tid, status, message);
+		if (ret != OSIP_SUCCESS)
+		{
+			SPDLOG_ERROR("eXosip_call_send_answer failed");
+			return;
+		}
+		eXosip_unlock(_sip_context);
 	}
-	osip_message_set_content_type(message, "APPLICATION/SDP");
-	osip_message_set_body(message, info.c_str(), info.length());
-	eXosip_lock(_sip_context);
-	//发送sdp信息到服务端，状态200。
-	ret = eXosip_call_send_answer(_sip_context, event->tid, 200, message);
-	if (ret != OSIP_SUCCESS)
+	else
 	{
-		SPDLOG_ERROR("eXosip_call_send_answer failed");
-		return;
+		ret = eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
+		if (ret != OSIP_SUCCESS)
+		{
+			// 经常会出现重复接收到INVITE的情况？第二次就收到重复的INVITE时，这里会build失败，然后直接返回即可。
+			SPDLOG_ERROR("eXosip_call_build_answer failed");
+			return;
+		}
+		osip_message_set_content_type(message, "APPLICATION/SDP");
+
+		osip_message_set_body(message, sdp.c_str(), sdp.length());
+		eXosip_lock(_sip_context);
+		//发送sdp信息到服务端，状态200。
+		ret = eXosip_call_send_answer(_sip_context, event->tid, 200, message);
+		if (ret != OSIP_SUCCESS)
+		{
+			SPDLOG_ERROR("eXosip_call_send_answer failed");
+			return;
+		}
+		eXosip_unlock(_sip_context);
+		SPDLOG_INFO("SDP Response: {}", sdp);
 	}
-	eXosip_unlock(_sip_context);
-	SPDLOG_INFO("SDP Response: {}", info);
 }
 
 
@@ -713,6 +753,21 @@ void SipDevice::OnQueryMessage(pugi::xml_document& doc)
 		eXosip_message_send_request(_sip_context, request);
 		eXosip_unlock(_sip_context);
 	}
+}
+
+void SipDevice::OnDeviceControl(pugi::xml_document& doc)
+{
+	std::string response_body = "";
+	auto root = doc.first_child();
+	auto cmd_node = root.child("CmdType");
+	if (cmd_node.empty())
+		return;
+	std::string cmd = cmd_node.child_value();
+	auto sn_node = root.child("SN");
+	std::string sn = sn_node.child_value();
+	SPDLOG_INFO("SN: {}", sn);
+
+	//SendResponseOK();
 }
 
 
@@ -974,15 +1029,20 @@ void SipDevice::OnInSubscriptionNew(eXosip_event_t* event)
 {
 	SPDLOG_INFO("on_in_subscription_new...");
 
-	osip_message_t* answer = NULL;
-	if (OSIP_SUCCESS == eXosip_insubscription_build_answer(_sip_context, event->tid, 200, &answer))
+	osip_header_t* header = nullptr;
+	auto ret = osip_message_get_header(event->request, 0, &header);
+	if (ret != NULL && header->hvalue != nullptr) {
+		// 确定订阅的事件类型
+		SPDLOG_INFO("Subscription for event package: {}", header->hvalue);
+	}
+	// 构建并发送响应
+	osip_message_t* answer = nullptr;
+	eXosip_insubscription_build_answer(_sip_context, event->tid, 202, &answer);
+	if (answer != nullptr)
 	{
-		eXosip_insubscription_send_answer(_sip_context, event->tid, 200, answer);
-		_subscription_dialog_id = event->did;
-
-		//	if (_subscription_thread == nullptr) {
-		//		_subscription_thread = std::make_shared<std::thread>(&SipDevice::MobilePositionTask, this);
-		//	}
+		eXosip_lock(_sip_context);
+		eXosip_insubscription_send_answer(_sip_context, event->tid, 202, answer);
+		eXosip_unlock(_sip_context);
 	}
 }
 
@@ -1119,6 +1179,8 @@ void SipDevice::OnStreamChanedCallback(const std::string& app, const std::string
 		}
 	}
 }
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
