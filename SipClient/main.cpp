@@ -88,6 +88,8 @@ int main()
 		device->StopSipClient();
 	}
 
+	DistributeManager::GetInstance()->Stop();
+
 	return 0;
 }
 

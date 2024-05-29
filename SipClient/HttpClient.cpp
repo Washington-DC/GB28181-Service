@@ -199,20 +199,20 @@ std::vector<media::mediaserver_stream_item> HttpClient::GetMediaList()
 bool HttpClient::AddDistributeStream(std::shared_ptr<DistributeItem> item)
 {
 	cpr::Response res = cpr::Get(
-		cpr::Url{ _base_url,"/index/api/addStreamProxy" },
-		cpr::Parameters{
-			{"secret",_server_info->Secret},
-			{"vhost","__defaultVhost__"},
-			{"app",item->App},
-			{"stream",item->Stream},
-			{"url",item->Source},
-			{"retry_count",std::to_string(item->RetryTimes)},
-			{"enable_mp4",item->RecordMP4 ? "true" : "false"},
-			{"mp4_as_player","true"},
-			{"rtp_type",std::to_string(item->Protocol)},
-			{"auto_close","false"}
-		},
-		cpr::Timeout{ 3s }
+			cpr::Url{ _base_url,"/index/api/addStreamProxy" },
+			cpr::Parameters{
+				{"secret",_server_info->Secret},
+				{"vhost","__defaultVhost__"},
+				{"app",item->App},
+				{"stream",item->Stream},
+				{"url",item->Source},
+				{"retry_count",std::to_string(item->RetryTimes)},
+				{"enable_mp4",item->RecordMP4 ? "true" : "false"},
+				{"mp4_as_player","true"},
+				{"rtp_type",std::to_string(item->Protocol)},
+				{"auto_close","false"}
+			},
+			cpr::Timeout{ 3s }
 	);
 	SPDLOG_WARN("--------------: {}", res.url.str());
 
@@ -220,11 +220,12 @@ bool HttpClient::AddDistributeStream(std::shared_ptr<DistributeItem> item)
 	if (res.status_code == 200)
 	{
 		auto doc = nlohmann::json::parse(res.text);
-		if (doc["code" == 0])
+		if (doc["code"] == 0)
 		{
 			return true;
 		}
 	}
+
 	return false;
 }
 
