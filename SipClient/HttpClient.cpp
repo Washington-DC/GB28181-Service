@@ -168,7 +168,7 @@ std::vector<media::mediaserver_stream_item> HttpClient::GetMediaList()
 			cpr::Timeout{ 2s }
 		);
 
-		SPDLOG_WARN("--------------: {}", res.url.str());
+		//SPDLOG_WARN("--------------: {}", res.url.str());
 		if (res.status_code == 200 && !res.text.empty())
 		{
 			nlohmann::json doc = nlohmann::json::parse(res.text);
@@ -221,6 +221,62 @@ bool HttpClient::AddDistributeStream(std::shared_ptr<DistributeItem> item)
 	{
 		auto doc = nlohmann::json::parse(res.text);
 		if (doc["code"] == 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool HttpClient::StartRecord(const std::string& app, const std::string& stream, bool is_mp4)
+{
+	cpr::Response res = cpr::Get(
+			cpr::Url{ _base_url,"/index/api/startRecord" },
+			cpr::Parameters{
+				{"secret",_server_info->Secret},
+				{"vhost","__defaultVhost__"},
+				{"app",app},
+				{"stream",stream},
+				{"type",is_mp4 ? "1" : "0"}
+			},
+			cpr::Timeout{ 3s }
+	);
+	SPDLOG_WARN("--------------: {}", res.url.str());
+
+	auto response = res.text;
+	if (res.status_code == 200)
+	{
+		auto doc = nlohmann::json::parse(res.text);
+		if (doc["code"] == 0 && doc["result"] == true)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool HttpClient::StopRecord(const std::string& app, const std::string& stream, bool is_mp4)
+{
+	cpr::Response res = cpr::Get(
+		cpr::Url{ _base_url,"/index/api/stopRecord" },
+		cpr::Parameters{
+			{"secret",_server_info->Secret},
+			{"vhost","__defaultVhost__"},
+			{"app",app},
+			{"stream",stream},
+			{"type",is_mp4 ? "1" : "0"}
+		},
+		cpr::Timeout{ 3s }
+	);
+	SPDLOG_WARN("--------------: {}", res.url.str());
+
+	auto response = res.text;
+	if (res.status_code == 200)
+	{
+		auto doc = nlohmann::json::parse(res.text);
+		if (doc["code"] == 0 && doc["result"] == true)
 		{
 			return true;
 		}

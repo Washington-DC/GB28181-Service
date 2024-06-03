@@ -65,7 +65,7 @@ bool SipDevice::Init()
 	_contact_url = fmt::format("sip:{}@{}:{}", this->ID, this->IP, this->Port);
 	_proxy_uri = fmt::format("sip:{}@{}:{}", _sip_server_info->ID, _sip_server_info->IP, _sip_server_info->Port);
 
-	HttpServer::GetInstance()->AddStreamChangedCallback(std::bind(&SipDevice::OnStreamChanedCallback, this,
+	HttpServer::GetInstance()->AddStreamChangedCallback(std::bind(&SipDevice::OnStreamChangedCallback, this,
 		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 	return true;
@@ -230,7 +230,6 @@ void SipDevice::SipRecvEventThread()
 
 	while (_is_running)
 	{
-		//这里必须每次循环时声明一个event，后期在线程池中传递
 		eXosip_event_t* event = nullptr;
 		event = eXosip_event_wait(_sip_context, 0, 50);
 		if (event)
@@ -254,7 +253,7 @@ void SipDevice::SipRecvEventThread()
 			_event_processor_map[event->type](event);
 		}
 
-		//投递到线程池处理
+		//投递到线程池处理，这里会存在这样一个问题：如果此事件处理稍慢的话，可能会重复收到此事件消息，需要在处理时判断过滤一下。
 		toolkit::EventPollerPool::Instance().getExecutor()->async([this, event]()
 		{
 			auto proc = _event_processor_map.find(event->type);
@@ -285,11 +284,13 @@ void SipDevice::OnRegistrationFailed(eXosip_event_t* event)
 	}
 	SPDLOG_ERROR("注册失败: {}", event->response->status_code);
 	_is_heartbeat_running = false;
-	if (_heartbeat_thread)
-	{
-		_heartbeat_thread->join();
-		_heartbeat_thread = nullptr;
-	}
+
+	// 中途注册失败，继续发送心跳
+	//if (_heartbeat_thread)
+	//{
+	//	_heartbeat_thread->join();
+	//	_heartbeat_thread = nullptr;
+	//}
 	//当服务端回复401或403时，表示已经发送了一次消息
 	if (event->response->status_code == 401 || event->response->status_code == 403)
 	{
@@ -393,8 +394,12 @@ void SipDevice::OnCallACK(eXosip_event_t* event)
 	auto iter = _session_map.find(event->did);
 	if (iter != _session_map.end())
 	{
-		//查找到对应的session后，通知流媒体服务器开始推流
-		iter->second->Start();
+		if (iter->second->Used == false)
+		{
+			//查找到对应的session后，通知流媒体服务器开始推流
+			iter->second->Start();
+			iter->second->Used = true;
+		}
 	}
 }
 
@@ -433,6 +438,11 @@ void SipDevice::OnCallCancelled(eXosip_event_t* event)
 
 void SipDevice::OnCallInvite(eXosip_event_t* event)
 {
+	//如果已经处理了，则退出。这个可能会因为异步等原因重复收到
+	if (_session_map.find(event->did) != _session_map.end())
+	{
+		return;
+	}
 	SPDLOG_INFO("接收到INVITE");
 	osip_body_t* sdp_body = nullptr;
 	osip_message_get_body(event->request, 0, &sdp_body);
@@ -512,6 +522,23 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 		session->Playback = false;
 	}
 
+	//did不同，但是目的地址还是一样的，可能是因为重复invite造成，对于后续的invite回复busy。
+	{
+		auto iter = std::find_if(_session_map.begin(), _session_map.end(),
+			[session](const std::pair<int32_t, std::shared_ptr<Session>> s)
+			{
+				return s.second->TargetIP == session->TargetIP
+					and s.second->TargetPort == session->TargetPort
+					and s.second->Channel == session->Channel;
+			});
+
+		if (iter != _session_map.end())
+		{
+			SendInviteResponse(event, "", 483);
+			return;
+		}
+	}
+
 	SPDLOG_INFO("Session:\n {}", session->ToString());
 	{
 		std::scoped_lock<std::mutex> g(_session_mutex);
@@ -559,6 +586,8 @@ void SipDevice::SendInviteResponse(eXosip_event_t* event, const std::string& sdp
 			return;
 		}
 		eXosip_unlock(_sip_context);
+
+		SPDLOG_INFO("Invite Status: {}", status);
 	}
 	else
 	{
@@ -1160,7 +1189,7 @@ std::string SipDevice::FormatXML(const std::string& xml)
 }
 
 
-void SipDevice::OnStreamChanedCallback(const std::string& app, const std::string& stream, bool regist)
+void SipDevice::OnStreamChangedCallback(const std::string& app, const std::string& stream, bool regist)
 {
 	//只需要判断录像回放的流注销事件即可
 	if (!regist && app == "record")

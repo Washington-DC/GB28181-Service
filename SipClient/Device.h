@@ -109,7 +109,7 @@ private:
 	/// @param app 媒体流标识一级路径
 	/// @param stream 媒体流标识二级路径
 	/// @param regist 注册或注销
-	void OnStreamChanedCallback(const std::string& app, const std::string& stream, bool regist);
+	void OnStreamChangedCallback(const std::string& app, const std::string& stream, bool regist);
 
 
 	/// @brief 回复INVITE请求，如果正常(200)时，需要回复SDP内容

@@ -113,6 +113,11 @@ public:
     /// @return 是否添加成功
     bool AddDistributeStream(std::shared_ptr<DistributeItem> item);
 
+
+
+    bool StartRecord(const std::string& app, const std::string& stream,bool is_mp4 = true);
+    bool StopRecord(const std::string& app,const std::string& stream,bool is_mp4 = true);
+
 private:
     //流媒体服务器信息
     std::shared_ptr<MediaServerInfo> _server_info = nullptr;

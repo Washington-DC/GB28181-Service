@@ -23,6 +23,19 @@ void DistributeManager::Start()
 					{
 						HttpClient::GetInstance()->AddDistributeStream(s);
 					}
+					else
+					{	
+						//如果设置了录制，但是这里没有录制的话
+						if (!iter->isRecordingMP4 && s->RecordMP4 )
+						{
+							HttpClient::GetInstance()->StartRecord(s->App,s->Stream);
+						}
+
+						if (iter->isRecordingMP4 && !s->RecordMP4)
+						{
+							HttpClient::GetInstance()->StopRecord(s->App, s->Stream);
+						}
+					}
 				}
 
 				//定时

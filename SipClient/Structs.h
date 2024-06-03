@@ -50,6 +50,8 @@ struct SessionInfo {
 	std::string StartTime;  //回放开始时间,unix时间戳
 	std::string EndTime;    //回放结束时间,unix时间戳
 
+	bool Used = false;
+
 	std::shared_ptr<ChannelInfo> Channel = nullptr; //对应的通道信息
 
 	std::string ToString() {
