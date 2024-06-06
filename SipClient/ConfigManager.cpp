@@ -1,11 +1,13 @@
 ﻿#include "pch.h"
 #include "ConfigManager.h"
 
-bool ConfigManager::LoadConfig(std::string filepath) {
+bool ConfigManager::LoadConfig(std::string filepath)
+{
 	SPDLOG_INFO("配置文件解析...");
 	pugi::xml_document doc;
 	auto ret = doc.load_file(filepath.c_str(), pugi::parse_full);
-	if (ret.status != pugi::status_ok) {
+	if (ret.status != pugi::status_ok)
+	{
 		SPDLOG_ERROR("配置文件解析失败:{}@{}", ret.description(), ret.offset);
 		return false;
 	}
@@ -13,7 +15,8 @@ bool ConfigManager::LoadConfig(std::string filepath) {
 	auto root = doc.child("Config");
 	// SIP 服务器
 	auto sip_server_node = root.child("SipServer");
-	if (sip_server_node) {
+	if (sip_server_node)
+	{
 		_server_info = std::make_shared<SipServerInfo>();
 		// SIP 服务器IP
 		_server_info->IP = sip_server_node.child_value("IP");
@@ -24,14 +27,16 @@ bool ConfigManager::LoadConfig(std::string filepath) {
 		// SIP 服务器固定密码
 		_server_info->Password = sip_server_node.child_value("Password");
 	}
-	else {
+	else
+	{
 		SPDLOG_ERROR("SipServer节点错误");
 		return false;
 	}
 
 	//流媒体服务
 	auto media_server_node = root.child("MediaServer");
-	if (media_server_node) {
+	if (media_server_node)
+	{
 		_media_server_info = std::make_shared<MediaServerInfo>();
 
 		//流媒体服务 IP
@@ -41,7 +46,8 @@ bool ConfigManager::LoadConfig(std::string filepath) {
 		//流媒体服务 如果不是127.0.0.1的话，需要校验Secret字段
 		_media_server_info->Secret = media_server_node.child_value("Secret");
 	}
-	else {
+	else
+	{
 		SPDLOG_ERROR("MediaServer节点错误");
 		return false;
 	}
@@ -49,15 +55,18 @@ bool ConfigManager::LoadConfig(std::string filepath) {
 
 	//设备列表，当前软件的主要工作内容
 	auto http_server_node = root.child("HttpServer");
-	if (http_server_node) {
+	if (http_server_node)
+	{
 		nbase::StringToInt(http_server_node.child_value("Port"), &http_port);
 	}
 
 	//设备列表，当前软件的主要工作内容
 	auto devicelist_node = root.child("DeviceList");
-	if (devicelist_node) {
+	if (devicelist_node)
+	{
 		auto device_nodes = devicelist_node.children("Device");
-		for (auto&& device_node : device_nodes) {
+		for (auto&& device_node : device_nodes)
+		{
 			auto device_info = std::make_shared<DeviceInfo>();
 
 			device_info->IP = device_node.child_value("IP");
@@ -75,16 +84,19 @@ bool ConfigManager::LoadConfig(std::string filepath) {
 			nbase::StringToInt(device_node.child_value("HeartbeatInterval"), &device_info->HeartbeatInterval);
 			//设备目录，一般情况下只有一个通道，代表一个设备， 不排除某些情况下会有多台设备的情况
 			auto catalog_node = device_node.child("Catalog");
-			if (catalog_node) {
+			if (catalog_node)
+			{
 				auto channel_nodes = catalog_node.children("Channel");
-				for (auto&& node : channel_nodes) {
+				for (auto&& node : channel_nodes)
+				{
 					auto channel_info = std::make_shared<ChannelInfo>();
 					channel_info->ID = node.child_value("ID");
 					channel_info->Name = node.child_value("Name");
 					std::string text = node.child_value("URI");
 					nbase::StringTrim(text);
 					auto pos = text.find_first_of('/');
-					if (pos > 0 && pos != std::string::npos) {
+					if (pos > 0 && pos != std::string::npos)
+					{
 						channel_info->App = text.substr(0, pos);
 						channel_info->Stream = text.substr(pos + 1);
 					}
@@ -94,13 +106,15 @@ bool ConfigManager::LoadConfig(std::string filepath) {
 			}
 		}
 	}
-	else {
+	else
+	{
 		SPDLOG_ERROR("Devices节点错误");
 		return false;
 	}
 
 	auto distribute_node = root.child("Distribute");
-	if (distribute_node) {
+	if (distribute_node)
+	{
 		auto nodes = distribute_node.children("Item");
 		for (auto&& node : nodes)
 		{
@@ -110,11 +124,13 @@ bool ConfigManager::LoadConfig(std::string filepath) {
 			std::string text = node.child_value("URI");
 			nbase::StringTrim(text);
 			auto pos = text.find_first_of('/');
-			if (pos > 0 && pos != std::string::npos) {
+			if (pos > 0 && pos != std::string::npos)
+			{
 				item->App = text.substr(0, pos);
 				item->Stream = text.substr(pos + 1);
 			}
-			else {
+			else
+			{
 				continue;
 			}
 

@@ -254,7 +254,7 @@ void SipDevice::SipRecvEventThread()
 		}
 
 		//投递到线程池处理，这里会存在这样一个问题：如果此事件处理稍慢的话，可能会重复收到此事件消息，需要在处理时判断过滤一下。
-		toolkit::EventPollerPool::Instance().getExecutor()->async([this, event]()
+		//toolkit::EventPollerPool::Instance().getExecutor()->async([this, event]()
 		{
 			auto proc = _event_processor_map.find(event->type);
 			if (proc != _event_processor_map.end())
@@ -268,7 +268,7 @@ void SipDevice::SipRecvEventThread()
 
 			eXosip_event_free(event);
 		}
-		);
+		//);
 	}
 }
 
@@ -926,7 +926,7 @@ std::string SipDevice::GeneratePresetListXML(const std::string& sn)
 				<Item>
 					<PresetID>1</PresetID>
 					<PresetName>test</PresetName>
-				</Preset>
+				</Item>
 			  </PresetList>
 			</Response>
 			)"s;
@@ -1249,7 +1249,11 @@ void Session::Stop()
 // 向流媒体服务器发送暂停请求
 void Session::Pause(bool flag)
 {
-	auto ret = HttpClient::GetInstance()->SetPause("record", this->SSRC, flag);
+	if (_paused != flag)
+	{
+		auto ret = HttpClient::GetInstance()->SetPause("record", this->SSRC, flag);
+		_paused = flag;
+	}
 }
 
 // 跳转到某个位置，暂时没有这个需求

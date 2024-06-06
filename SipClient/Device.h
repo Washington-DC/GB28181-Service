@@ -31,6 +31,11 @@ public:
 	/// @brief 设置媒体流播放速度，只针对数据回放
 	/// @param speed 播放速度
 	void Speed(float speed);
+
+
+private:
+
+	bool _paused = false;
 };
 
 /// @brief  模拟一个SIP设备

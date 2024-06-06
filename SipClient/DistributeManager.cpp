@@ -24,11 +24,11 @@ void DistributeManager::Start()
 						HttpClient::GetInstance()->AddDistributeStream(s);
 					}
 					else
-					{	
+					{
 						//如果设置了录制，但是这里没有录制的话
-						if (!iter->isRecordingMP4 && s->RecordMP4 )
+						if (!iter->isRecordingMP4 && s->RecordMP4)
 						{
-							HttpClient::GetInstance()->StartRecord(s->App,s->Stream);
+							HttpClient::GetInstance()->StartRecord(s->App, s->Stream);
 						}
 
 						if (iter->isRecordingMP4 && !s->RecordMP4)
@@ -40,7 +40,7 @@ void DistributeManager::Start()
 
 				//定时
 				std::unique_lock<std::mutex> lck(_mtx);
-				_cv.wait_for(lck, std::chrono::seconds(60));
+				_cv.wait_for(lck, std::chrono::seconds(30s));
 			};
 		}
 	);
