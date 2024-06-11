@@ -11,6 +11,8 @@ static int SN_MAX = 99999999;
 //起始SN
 static int sn = 0;
 
+static int batch_size = 6;
+
 static int get_port()
 {
 	start_port++;
@@ -57,7 +59,6 @@ bool SipDevice::Init()
 		SPDLOG_ERROR("eXosip_init failed");
 		return false;
 	}
-
 
 	//部分服务器不会根据设备信息来判断厂家，而是根据UA来判断
 	eXosip_set_option(_sip_context, EXOSIP_OPT_SET_HEADER_USER_AGENT, this->Manufacturer.c_str());
@@ -226,7 +227,6 @@ void SipDevice::SipRecvEventThread()
 		{EXOSIP_CALL_MESSAGE_NEW,		CALLBACK_TEMPLATE(OnCallMessageNew)},
 		// invite后长时间未响应
 		{EXOSIP_CALL_CANCELLED,			CALLBACK_TEMPLATE(OnCallCancelled)}
-
 	};
 
 	while (_is_running)
@@ -751,6 +751,10 @@ void SipDevice::OnQueryMessage(pugi::xml_document& doc)
 			response_body = GenerateVideoParamOptXML(sn);
 		}
 	}
+	else if (cmd == "PresetQuery")
+	{
+		response_body = GeneratePresetListXML(sn);
+	}
 	// 录像文件查询
 	else if (cmd == "RecordInfo")
 	{
@@ -758,32 +762,13 @@ void SipDevice::OnQueryMessage(pugi::xml_document& doc)
 		std::string start_time = root.child("StartTime").child_value();
 		std::string end_time = root.child("EndTime").child_value();
 
-		response_body = GenerateRecordInfoXML(sn, device_id, start_time, end_time);
-	}
-	else if (cmd == "PresetQuery")
-	{
-		response_body = GeneratePresetListXML(sn);
+		return SendRecordInfo(sn, device_id, start_time, end_time);
 	}
 
 	if (!response_body.empty())
 	{
 		auto body = FormatXML(response_body);
-
-		osip_message_t* request = nullptr;
-		auto ret = eXosip_message_build_request(
-			_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-		if (ret != OSIP_SUCCESS)
-		{
-			SPDLOG_ERROR("eXosip_message_build_request failed");
-			return;
-		}
-
-		osip_message_set_content_type(request, "Application/MANSCDP+xml");
-		osip_message_set_body(request, body.c_str(), body.length());
-
-		eXosip_lock(_sip_context);
-		eXosip_message_send_request(_sip_context, request);
-		eXosip_unlock(_sip_context);
+		SendXmlResponse(body);
 	}
 }
 
@@ -938,7 +923,7 @@ std::string SipDevice::GeneratePresetListXML(const std::string& sn)
 
 
 std::string SipDevice::GenerateRecordInfoXML(const std::string& sn,
-	const std::string& channel_id, const std::string& start_time, const std::string& end_time)
+const std::string& channel_id, const std::string& start_time, const std::string& end_time)
 {
 	std::shared_ptr<ChannelInfo> channel_info = FindChannel(channel_id);
 	if (channel_info == nullptr) return std::string();
@@ -1002,6 +987,101 @@ std::string SipDevice::GenerateRecordInfoXML(const std::string& sn,
 	return response_body;
 }
 
+void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel_id, const std::string& start_time, const std::string& end_time)
+{
+	auto send_empty_response = [&]() {
+		pugi::xml_document doc;
+		auto decl = doc.prepend_child(pugi::node_declaration);
+		decl.append_attribute("version") = "1.0";
+		decl.append_attribute("encoding") = "GB2312";
+
+		auto root = doc.append_child("Response");
+		root.append_child("CmdType").set_value("RecordInfo");
+		root.append_child("SN").set_value(sn.c_str());
+		root.append_child("DeviceID").set_value(this->ID.c_str());
+		root.append_child("Name").set_value(channel_id.c_str());
+		root.append_child("SumNum").set_value(0);
+
+		SendXmlResponse(doc);
+		};
+
+	std::shared_ptr<ChannelInfo> channel_info = FindChannel(channel_id);
+	if (channel_info == nullptr)
+	{
+		send_empty_response();
+	}
+	else
+	{
+		// 向流媒体服务器发送请求
+		std::string response;
+		auto ret = HttpClient::GetInstance()->GetMp4RecordInfo(channel_info->Stream,
+															   start_time, end_time, response);
+		try
+		{
+			//parse可能会抛出异常
+			nlohmann::json json_data = nlohmann::json::parse(response);
+			auto&& fileinfo = json_data["data"]["fileInfo"];
+			auto size = fileinfo.size();
+
+			if (size == 0)
+			{
+				send_empty_response();
+			}
+			else
+			{
+				//计算需要发送次数
+				auto times = std::ceil(size * 1.0 / batch_size);
+				//文件索引
+				auto index = 0;
+				for (size_t i = 0; i < times; i++)
+				{
+					pugi::xml_document doc;
+					auto decl = doc.prepend_child(pugi::node_declaration);
+					decl.append_attribute("version") = "1.0";
+					decl.append_attribute("encoding") = "GB2312";
+
+					auto root = doc.append_child("Response");
+					root.append_child("CmdType").set_value("RecordInfo");
+					root.append_child("SN").set_value(sn.c_str());
+					root.append_child("DeviceID").set_value(this->ID.c_str());
+					root.append_child("Name").set_value(channel_id.c_str());
+					root.append_child("SumNum").set_value(std::to_string(size).c_str());
+					auto record_list = root.append_child("RecordList");
+
+					auto num = (i < times - 1) ? batch_size : (size % batch_size);
+					record_list.append_attribute("Num").set_value(std::to_string(num).c_str());
+
+					for (size_t j = 0; j < batch_size; j++)
+					{
+						index = i * batch_size + j;
+						auto&& item = fileinfo[index];
+
+						//文件路径，这里只使用文件名称即可
+						std::string file_path = std::filesystem::path(item["file_path"].get<std::string>()).filename().u8string();
+						std::string str_begin_time = toolkit::CFileTime(item["begin_time"]).UTCToLocal().FormatTZ();
+						std::string str_end_time = toolkit::CFileTime(item["stop_time"]).UTCToLocal().FormatTZ();
+
+						auto node = record_list.append_child("Item");
+						node.append_child("DeviceID").text().set(this->ID.c_str());
+						node.append_child("Name").text().set(channel_id.c_str());
+						node.append_child("FilePath").text().set(file_path.c_str());
+						node.append_child("StartTime").text().set(str_begin_time.c_str());
+						node.append_child("EndTime").text().set(str_end_time.c_str());
+						node.append_child("Address").text().set("");
+						node.append_child("Secrecy").text().set("0");
+						node.append_child("Type").text().set("time");
+					}
+					SendXmlResponse(doc);
+				}
+			}
+		}
+		catch (...)
+		{
+			send_empty_response();
+		}
+	}
+}
+
 
 std::string SipDevice::ParseSSRC(const std::string& text)
 {
@@ -1038,6 +1118,33 @@ bool SipDevice::ParseTimeStr(std::string& text, std::string& start_time, std::st
 		}
 	}
 	return false;
+}
+
+void SipDevice::SendXmlResponse(const pugi::xml_document& doc)
+{
+	std::stringstream ss;
+	doc.save(ss);
+	auto body = ss.str();
+	SendXmlResponse(body);
+}
+
+void SipDevice::SendXmlResponse(const std::string& body)
+{
+	osip_message_t* request = nullptr;
+	auto ret = eXosip_message_build_request(
+		_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
+	if (ret != OSIP_SUCCESS)
+	{
+		SPDLOG_ERROR("eXosip_message_build_request failed");
+		return;
+	}
+
+	osip_message_set_content_type(request, "Application/MANSCDP+xml");
+	osip_message_set_body(request, body.c_str(), body.length());
+
+	eXosip_lock(_sip_context);
+	eXosip_message_send_request(_sip_context, request);
+	eXosip_unlock(_sip_context);
 }
 
 
@@ -1247,7 +1354,6 @@ void Session::Stop()
 		this->Playback ? "record" : this->Channel->App,
 		this->Playback ? this->SSRC : this->Channel->Stream);
 }
-
 
 // 向流媒体服务器发送暂停请求
 void Session::Pause(bool flag)

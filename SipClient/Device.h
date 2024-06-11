@@ -186,6 +186,14 @@ private:
 	/// @return 生成xml
 	std::string GenerateRecordInfoXML(const std::string& sn, const std::string& channel_id, const std::string& start_time, const std::string& end_time);
 
+
+	/// @brief 发送录像文件信息
+	/// @param sn 消息编号
+	/// @param channel_id 通道ID 
+	/// @param start_time 查询的录像开始时间
+	/// @param end_time 查询的录像结束时间
+	void SendRecordInfo(const std::string& sn, const std::string& channel_id, const std::string& start_time, const std::string& end_time);
+
 private:
 
 	/// @brief 格式化XML内容，一些服务端对于没有被格式化的xml解析失败
@@ -204,6 +212,10 @@ private:
 	/// @param end_time 结束时间
 	/// @return 是否解析成功
 	bool ParseTimeStr(std::string& text, std::string& start_time, std::string& end_time);
+
+
+	void SendXmlResponse(const pugi::xml_document& doc);
+	void SendXmlResponse(const std::string& xml);
 
 
 	/// @brief 根据id查询对应的通道内容

@@ -104,7 +104,7 @@ bool HttpClient::GetMp4RecordInfo(std::string stream,
 			{"start_time",start_time},
 			{"end_time",end_time}
 		},
-		cpr::Timeout{ 3s }
+		cpr::Timeout{ 2s }
 	);
 	SPDLOG_WARN("--------------: {}", res.url.str());
 
