@@ -58,6 +58,7 @@ bool SipDevice::Init()
 		return false;
 	}
 
+
 	//部分服务器不会根据设备信息来判断厂家，而是根据UA来判断
 	eXosip_set_option(_sip_context, EXOSIP_OPT_SET_HEADER_USER_AGENT, this->Manufacturer.c_str());
 
@@ -580,12 +581,13 @@ void SipDevice::SendInviteResponse(eXosip_event_t* event, const std::string& sdp
 
 		eXosip_lock(_sip_context);
 		ret = eXosip_call_send_answer(_sip_context, event->tid, status, message);
+		eXosip_unlock(_sip_context);
+
 		if (ret != OSIP_SUCCESS)
 		{
 			SPDLOG_ERROR("eXosip_call_send_answer failed");
 			return;
 		}
-		eXosip_unlock(_sip_context);
 
 		SPDLOG_INFO("Invite Status: {}", status);
 	}
@@ -604,12 +606,13 @@ void SipDevice::SendInviteResponse(eXosip_event_t* event, const std::string& sdp
 		eXosip_lock(_sip_context);
 		//发送sdp信息到服务端，状态200。
 		ret = eXosip_call_send_answer(_sip_context, event->tid, 200, message);
+		eXosip_unlock(_sip_context);
+
 		if (ret != OSIP_SUCCESS)
 		{
 			SPDLOG_ERROR("eXosip_call_send_answer failed");
 			return;
 		}
-		eXosip_unlock(_sip_context);
 		SPDLOG_INFO("SDP Response: {}", sdp);
 	}
 }
@@ -655,7 +658,7 @@ void SipDevice::HeartbeatTask()
 		osip_message_set_body(request, info.c_str(), info.length());
 
 		eXosip_lock(_sip_context);
-		eXosip_message_send_request(_sip_context, request);
+		ret = eXosip_message_send_request(_sip_context, request);
 		eXosip_unlock(_sip_context);
 
 		SPDLOG_INFO("Heartbeat");

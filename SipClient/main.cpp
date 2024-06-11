@@ -35,6 +35,7 @@ int main()
 
 	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] [%t] [%s:%#] %v");
 	spdlog::set_default_logger(logger);
+	logger->set_level(spdlog::level::trace);
 
 	//加载配置文件
 	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file.string());
