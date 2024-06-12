@@ -1184,18 +1184,20 @@ void SipDevice::OnInSubscriptionNew(eXosip_event_t* event)
 
 	osip_header_t* header = nullptr;
 	auto ret = osip_message_get_header(event->request, 0, &header);
-	if (ret != NULL && header->hvalue != nullptr) {
+	if (ret != 0 && header->hvalue != nullptr) 
+	{
 		// 确定订阅的事件类型
 		SPDLOG_INFO("Subscription for event package: {}", header->hvalue);
-	}
-	// 构建并发送响应
-	osip_message_t* answer = nullptr;
-	eXosip_insubscription_build_answer(_sip_context, event->tid, 202, &answer);
-	if (answer != nullptr)
-	{
-		eXosip_lock(_sip_context);
-		eXosip_insubscription_send_answer(_sip_context, event->tid, 202, answer);
-		eXosip_unlock(_sip_context);
+
+		// 构建并发送响应
+		osip_message_t* answer = nullptr;
+		eXosip_insubscription_build_answer(_sip_context, event->tid, 202, &answer);
+		if (answer != nullptr)
+		{
+			eXosip_lock(_sip_context);
+			eXosip_insubscription_send_answer(_sip_context, event->tid, 202, answer);
+			eXosip_unlock(_sip_context);
+		}
 	}
 }
 

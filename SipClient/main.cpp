@@ -23,6 +23,7 @@ int main()
 	auto db_file = root / "record.db";
 
 	fs::create_directories(log_path);
+
 	auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	auto file_path = log_path / fmt::format("{:%Y%m%d%H%M%S}.log", fmt::localtime(std::time(nullptr)));
 	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(file_path.string(), 1024 * 1024 * 50, 12, true);
@@ -33,7 +34,7 @@ int main()
 	logger->sinks().push_back(msvc_sink);
 #endif
 
-	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] [%t] [%s:%#] %v");
+	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] [%t] [%s:%#] %v");
 	spdlog::set_default_logger(logger);
 	logger->set_level(spdlog::level::trace);
 
