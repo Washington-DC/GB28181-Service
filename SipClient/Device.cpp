@@ -248,12 +248,6 @@ void SipDevice::SipRecvEventThread()
 		if (event == nullptr)
 			continue;
 
-		auto proc = _event_processor_map.find(event->type);
-		if (proc != _event_processor_map.end())
-		{
-			_event_processor_map[event->type](event);
-		}
-
 		//投递到线程池处理，这里会存在这样一个问题：如果此事件处理稍慢的话，可能会重复收到此事件消息，需要在处理时判断过滤一下。
 		//toolkit::EventPollerPool::Instance().getExecutor()->async([this, event]()
 		{
@@ -264,7 +258,7 @@ void SipDevice::SipRecvEventThread()
 			}
 			else
 			{
-				SendResponseOK(event);
+				SendMesageResponseOK(event);
 			}
 
 			eXosip_event_free(event);
@@ -335,7 +329,7 @@ void SipDevice::OnMessageNew(eXosip_event_t* event)
 			SPDLOG_INFO("request -----> \n {}", body->body);
 			SPDLOG_INFO("------------------------------------");
 		}
-		SendResponseOK(event);
+		SendMesageResponseOK(event);
 
 		pugi::xml_document doc;
 		auto ret = doc.load_string(body->body);
@@ -411,13 +405,27 @@ void SipDevice::OnCallClosed(eXosip_event_t* event)
 	std::cout << "close: did: " << event->did << "\n";
 
 	std::scoped_lock<std::mutex> g(_session_mutex);
-	auto iter = _session_map.find(event->did);
-	if (iter != _session_map.end())
+	if (!this->CloseAllWhenBye)
 	{
-		//向流媒体服务器发送请求，停止发送RTP数据
-		iter->second->Stop();
-		// 删除此会话
-		_session_map.erase(event->did);
+		auto iter = _session_map.find(event->did);
+		if (iter != _session_map.end())
+		{
+			//向流媒体服务器发送请求，停止发送RTP数据
+			iter->second->Stop();
+			// 删除此会话
+			_session_map.erase(event->did);
+		}
+	}
+	else
+	{
+		// 停止所有的推流
+		for (auto iter = _session_map.begin(); iter != _session_map.end();)
+		{
+			//向流媒体服务器发送请求，停止发送RTP数据
+			iter->second->Stop();
+			// 删除此会话
+			iter = _session_map.erase(iter);
+		}
 	}
 }
 
@@ -618,13 +626,23 @@ void SipDevice::SendInviteResponse(eXosip_event_t* event, const std::string& sdp
 }
 
 
-void SipDevice::SendResponseOK(eXosip_event_t* event)
+void SipDevice::SendMesageResponseOK(eXosip_event_t* event)
 {
 	osip_message_t* message = event->request;
 	eXosip_message_build_answer(_sip_context, event->tid, 200, &message);
 
 	eXosip_lock(_sip_context);
 	eXosip_message_send_answer(_sip_context, event->tid, 200, message);
+	eXosip_unlock(_sip_context);
+}
+
+void SipDevice::SendCallResponseOK(eXosip_event_t* event)
+{
+	osip_message_t* message = event->request;
+	eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
+
+	eXosip_lock(_sip_context);
+	eXosip_call_send_answer(_sip_context, event->tid, 200, message);
 	eXosip_unlock(_sip_context);
 }
 
@@ -784,7 +802,7 @@ void SipDevice::OnDeviceControl(pugi::xml_document& doc)
 	std::string sn = sn_node.child_value();
 	SPDLOG_INFO("SN: {}", sn);
 
-	//SendResponseOK();
+	//SendMesageResponseOK();
 }
 
 
@@ -996,11 +1014,11 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 		decl.append_attribute("encoding") = "GB2312";
 
 		auto root = doc.append_child("Response");
-		root.append_child("CmdType").set_value("RecordInfo");
-		root.append_child("SN").set_value(sn.c_str());
-		root.append_child("DeviceID").set_value(this->ID.c_str());
-		root.append_child("Name").set_value(channel_id.c_str());
-		root.append_child("SumNum").set_value(0);
+		root.append_child("CmdType").text().set("RecordInfo");
+		root.append_child("SN").text().set(sn.c_str());
+		root.append_child("DeviceID").text().set(this->ID.c_str());
+		root.append_child("Name").text().set(channel_id.c_str());
+		root.append_child("SumNum").text().set(0);
 
 		SendXmlResponse(doc);
 		};
@@ -1041,17 +1059,17 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 					decl.append_attribute("encoding") = "GB2312";
 
 					auto root = doc.append_child("Response");
-					root.append_child("CmdType").set_value("RecordInfo");
-					root.append_child("SN").set_value(sn.c_str());
-					root.append_child("DeviceID").set_value(this->ID.c_str());
-					root.append_child("Name").set_value(channel_id.c_str());
-					root.append_child("SumNum").set_value(std::to_string(size).c_str());
+					root.append_child("CmdType").text().set("RecordInfo");
+					root.append_child("SN").text().set(sn.c_str());
+					root.append_child("DeviceID").text().set(this->ID.c_str());
+					root.append_child("Name").text().set(channel_id.c_str());
+					root.append_child("SumNum").text().set(size);
 					auto record_list = root.append_child("RecordList");
 
 					auto num = (i < times - 1) ? batch_size : (size % batch_size);
-					record_list.append_attribute("Num").set_value(std::to_string(num).c_str());
+					record_list.append_attribute("Num").set_value(num);
 
-					for (size_t j = 0; j < batch_size; j++)
+					for (size_t j = 0; j < num; j++)
 					{
 						index = i * batch_size + j;
 						auto&& item = fileinfo[index];
@@ -1193,14 +1211,14 @@ void SipDevice::OnCallMessageNew(eXosip_event_t* event)
 	auto iter = _session_map.find(event->did);
 	if (iter == _session_map.end())
 	{
-		SendResponseOK(event);
+		SendCallResponseOK(event);
 		return;
 	}
 
 	auto&& session = iter->second;
 	if (!session->Playback)//实时流不处理
 	{
-		SendResponseOK(event);
+		SendCallResponseOK(event);
 		return;
 	}
 
@@ -1209,7 +1227,7 @@ void SipDevice::OnCallMessageNew(eXosip_event_t* event)
 	if (body == nullptr)
 	{
 		SPDLOG_ERROR("osip_message_get_body 错误");
-		SendResponseOK(event);
+		SendCallResponseOK(event);
 		return;
 	}
 
@@ -1243,11 +1261,16 @@ void SipDevice::OnCallMessageNew(eXosip_event_t* event)
 			}
 		}
 	}
+	else if (strstr(body->body, "TEARDOWN"))
+	{
+		//停止播放
+		session->Stop();
+	}
 	else
 	{
 		SPDLOG_WARN("Not Supported");
 	}
-	SendResponseOK(event);
+	SendCallResponseOK(event);
 }
 
 
@@ -1264,22 +1287,7 @@ bool SipDevice::SendStreamFinishedNotify(std::shared_ptr<Session> session)
 			)"s;
 	auto info = fmt::format(text, get_sn(), this->ID);
 
-	osip_message_t* request = nullptr;
-	auto ret = eXosip_message_build_request(
-		_sip_context, &request, "MESSAGE", _proxy_uri.c_str(), _from_uri.c_str(), nullptr);
-	if (ret != OSIP_SUCCESS)
-	{
-		SPDLOG_ERROR("eXosip_message_build_request failed");
-		return false;
-	}
-
-	osip_message_set_content_type(request, "Application/MANSCDP+xml");
-	osip_message_set_body(request, info.c_str(), info.length());
-
-	eXosip_lock(_sip_context);
-	eXosip_message_send_request(_sip_context, request);
-	eXosip_unlock(_sip_context);
-
+	SendXmlResponse(info);
 	return true;
 }
 

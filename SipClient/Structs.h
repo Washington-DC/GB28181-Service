@@ -33,6 +33,7 @@ struct DeviceInfo {
 	std::string Name;   //设备名称
 	std::string Manufacturer;   //设备厂家
 	int HeartbeatInterval;      //心跳周期，单位s
+	bool CloseAllWhenBye = false; //当收到bye命令时，结束所有推流
 
 	std::vector<std::shared_ptr<ChannelInfo>> Channels; //此设备包含的所有通道
 };

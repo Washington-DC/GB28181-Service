@@ -21,7 +21,7 @@ bool ConfigManager::LoadConfig(std::string filepath)
 		// SIP 服务器IP
 		_server_info->IP = sip_server_node.child_value("IP");
 		// SIP 服务器固定端口
-		nbase::StringToInt(sip_server_node.child_value("Port"), &_server_info->Port);
+		_server_info->Port = sip_server_node.child("Port").text().as_int();
 		// SIP 服务器ID
 		_server_info->ID = sip_server_node.child_value("ID");
 		// SIP 服务器固定密码
@@ -42,7 +42,7 @@ bool ConfigManager::LoadConfig(std::string filepath)
 		//流媒体服务 IP
 		_media_server_info->IP = media_server_node.child_value("IP");
 		//流媒体服务 端口
-		nbase::StringToInt(media_server_node.child_value("Port"), &_media_server_info->Port);
+		_media_server_info->Port = media_server_node.child("Port").text().as_int();
 		//流媒体服务 如果不是127.0.0.1的话，需要校验Secret字段
 		_media_server_info->Secret = media_server_node.child_value("Secret");
 	}
@@ -70,7 +70,7 @@ bool ConfigManager::LoadConfig(std::string filepath)
 			auto device_info = std::make_shared<DeviceInfo>();
 
 			device_info->IP = device_node.child_value("IP");
-			nbase::StringToInt(device_node.child_value("Port"), &device_info->Port);
+			device_info->Port = device_node.child("Port").text().as_int(0);
 			//当前设备ID
 			device_info->ID = device_node.child_value("ID");
 			//设备名称
@@ -82,6 +82,9 @@ bool ConfigManager::LoadConfig(std::string filepath)
 			device_info->Protocol = (text.compare("TCP") == 0 ? IPPROTO_TCP : IPPROTO_UDP);
 			//心跳间隔时间
 			nbase::StringToInt(device_node.child_value("HeartbeatInterval"), &device_info->HeartbeatInterval);
+			//当收到一个bye时，结束所有推流
+			device_info->CloseAllWhenBye = device_node.child("CloseAllWhenBye").text().as_bool();
+
 			//设备目录，一般情况下只有一个通道，代表一个设备， 不排除某些情况下会有多台设备的情况
 			auto catalog_node = device_node.child("Catalog");
 			if (catalog_node)

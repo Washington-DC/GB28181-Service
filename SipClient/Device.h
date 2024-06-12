@@ -1,7 +1,7 @@
 ﻿/*****************************************************************//**
  * \file   Device.h
  * \brief  模拟一个SIP设备
- * 
+ *
  * \author yszs
  * \date   March 2024
  *********************************************************************/
@@ -121,13 +121,17 @@ private:
 	/// @param event 
 	/// @param sdp 
 	/// @param status 状态值，默认200，其他有错误:400,Not Found:404
-	void SendInviteResponse(eXosip_event_t* event, const std::string& sdp,int status = 200);
+	void SendInviteResponse(eXosip_event_t* event, const std::string& sdp, int status = 200);
 
 
 private:
 	/// @brief 返回成功消息
 	/// @param event  sip事件
-	void SendResponseOK(eXosip_event_t* event);
+	void SendMesageResponseOK(eXosip_event_t* event);
+
+	/// @brief 响应播放控制命令
+	/// @param event sip事件
+	void SendCallResponseOK(eXosip_event_t* event);
 
 	/// @brief 心跳任务
 	void HeartbeatTask();
@@ -213,10 +217,13 @@ private:
 	/// @return 是否解析成功
 	bool ParseTimeStr(std::string& text, std::string& start_time, std::string& end_time);
 
-
+	/// @brief 发送xml响应消息
+	/// @param doc 
 	void SendXmlResponse(const pugi::xml_document& doc);
-	void SendXmlResponse(const std::string& xml);
 
+	/// @brief 发送xml响应消息
+	/// @param xml 
+	void SendXmlResponse(const std::string& xml);
 
 	/// @brief 根据id查询对应的通道内容
 	/// @param id 通道ID
