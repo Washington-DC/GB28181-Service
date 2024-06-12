@@ -212,7 +212,7 @@ void SipDevice::SipRecvEventThread()
 		{EXOSIP_REGISTRATION_SUCCESS,	CALLBACK_TEMPLATE(OnRegistrationSuccess)},
 		// 注册失败
 		{EXOSIP_REGISTRATION_FAILURE,	CALLBACK_TEMPLATE(OnRegistrationFailed)},
-		// 服务端删除此设备后，发送请求会收到此回复
+		// 服务端删除此设备或服务端停止后，发送请求会收到此回复
 		{EXOSIP_MESSAGE_REQUESTFAILURE, CALLBACK_TEMPLATE(OnMessageRequestFailed)},
 		// 消息订阅( 如：移动设备位置信息订阅 )
 		{EXOSIP_IN_SUBSCRIPTION_NEW,	CALLBACK_TEMPLATE(OnInSubscriptionNew)},
@@ -272,14 +272,14 @@ void SipDevice::SipRecvEventThread()
 void SipDevice::OnRegistrationFailed(eXosip_event_t* event)
 {
 	_register_success = false;
-	_is_heartbeat_running = false;
+	//_is_heartbeat_running = false;
 	if (event->response == nullptr)
 	{
 		SPDLOG_ERROR("注册失败");
 		return;
 	}
 	SPDLOG_ERROR("注册失败: {}", event->response->status_code);
-	_is_heartbeat_running = false;
+	//_is_heartbeat_running = false;
 
 	// 中途注册失败，继续发送心跳
 	//if (_heartbeat_thread)
@@ -549,7 +549,7 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 		}
 	}
 
-	SPDLOG_INFO("Session:\n {}", session->ToString());
+	SPDLOG_INFO("Session:\n{}", session->ToString());
 	{
 		std::scoped_lock<std::mutex> g(_session_mutex);
 		_session_map.insert({ event->did, session });
@@ -650,7 +650,7 @@ void SipDevice::SendCallResponseOK(eXosip_event_t* event)
 /// @brief 心跳
 void SipDevice::HeartbeatTask()
 {
-	while (_is_running && _register_success && _is_heartbeat_running)
+	while (_is_running /*&& _register_success && _is_heartbeat_running*/)
 	{
 		//生成心跳xml
 		auto text =
@@ -983,7 +983,7 @@ const std::string& channel_id, const std::string& start_time, const std::string&
 		doc.save(ss);
 		response_body = ss.str();
 	}
-	catch (const std::exception& ex)
+	catch (...)
 	{
 		//查询不到或不存在时，就回复空内容
 		response_body = fmt::format(text, sn, this->ID, channel_id, 0, 0);
@@ -1041,8 +1041,8 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 			//计算需要发送次数
 			auto times = std::ceil(size * 1.0 / batch_size);
 			//文件索引
-			auto index = 0;
-			for (size_t i = 0; i < times; i++)
+			int index = 0;
+			for (int i = 0; i < times; i++)
 			{
 				pugi::xml_document doc;
 				auto decl = doc.prepend_child(pugi::node_declaration);
@@ -1060,7 +1060,7 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 				auto num = (i < times - 1) ? batch_size : (size % batch_size);
 				record_list.append_attribute("Num").set_value(num);
 
-				for (size_t j = 0; j < num; j++)
+				for (int j = 0; j < num; j++)
 				{
 					index = i * batch_size + j;
 					auto&& item = fileinfo[index];
@@ -1151,9 +1151,11 @@ void SipDevice::SendXmlResponse(const std::string& body)
 	osip_message_set_body(request, body.c_str(), body.length());
 
 	eXosip_lock(_sip_context);
+	// return TID (>0) instead of OSIP_SUCCESS
+	// 如果成功返回tid，而不是OSIP_SUCCESS
 	ret = eXosip_message_send_request(_sip_context, request);
 	eXosip_unlock(_sip_context);
-	if (ret != OSIP_SUCCESS)
+	if (ret < OSIP_SUCCESS)
 	{
 		SPDLOG_ERROR("eXosip_message_send_request failed");
 	}

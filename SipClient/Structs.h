@@ -57,7 +57,7 @@ struct SessionInfo {
 
 	std::string ToString() {
 		return fmt::format(
-			"DialogID:{}\nID:{}\nSSRC:{}\nDstIP:{}\nDstPort:{}\nLocalPort:{}", DialogID, Channel->ID, SSRC, TargetIP, TargetPort, LocalPort);
+			"DialogID: {}\nID: {}\nSSRC: {}\nDstIP: {}\nDstPort: {}\nLocalPort: {}", DialogID, Channel->ID, SSRC, TargetIP, TargetPort, LocalPort);
 	}
 };
 
