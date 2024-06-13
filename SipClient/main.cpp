@@ -13,6 +13,7 @@
 #include "HttpServer.h"
 #include "Utils.h"
 #include "DbManager.h"
+#include "DistributeManager.h"
 
 int main()
 {
@@ -22,6 +23,7 @@ int main()
 	auto db_file = root / "record.db";
 
 	fs::create_directories(log_path);
+
 	auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	auto file_path = log_path / fmt::format("{:%Y%m%d%H%M%S}.log", fmt::localtime(std::time(nullptr)));
 	auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(file_path.string(), 1024 * 1024 * 50, 12, true);
@@ -32,8 +34,9 @@ int main()
 	logger->sinks().push_back(msvc_sink);
 #endif
 
-	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%l] [%t] [%s:%#] %v");
+	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%f] [%^%l%$] [%t] [%s:%#] %v");
 	spdlog::set_default_logger(logger);
+	logger->set_level(spdlog::level::trace);
 
 	//加载配置文件
 	auto ret = ConfigManager::GetInstance()->LoadConfig(config_file.string());
@@ -44,8 +47,13 @@ int main()
 	auto media_server_info = ConfigManager::GetInstance()->GetMediaServerInfo();
 	auto device_infos = ConfigManager::GetInstance()->GetAllDeviceInfo();
 	DbManager::GetInstance()->Init(db_file.string());
-	//设备初始化
+
 	HttpClient::GetInstance()->Init(media_server_info);
+
+	//检查拉流分发参数
+	DistributeManager::GetInstance()->Start();
+
+	//设备初始化
 	std::vector<std::shared_ptr<SipDevice>> devices;
 	for (auto&& info : device_infos)
 	{
@@ -81,6 +89,8 @@ int main()
 		device->Logout();
 		device->StopSipClient();
 	}
+
+	DistributeManager::GetInstance()->Stop();
 
 	return 0;
 }

@@ -33,6 +33,7 @@ struct DeviceInfo {
 	std::string Name;   //设备名称
 	std::string Manufacturer;   //设备厂家
 	int HeartbeatInterval;      //心跳周期，单位s
+	bool CloseAllWhenBye = false; //当收到bye命令时，结束所有推流
 
 	std::vector<std::shared_ptr<ChannelInfo>> Channels; //此设备包含的所有通道
 };
@@ -50,10 +51,23 @@ struct SessionInfo {
 	std::string StartTime;  //回放开始时间,unix时间戳
 	std::string EndTime;    //回放结束时间,unix时间戳
 
+	bool Used = false;
+
 	std::shared_ptr<ChannelInfo> Channel = nullptr; //对应的通道信息
 
 	std::string ToString() {
 		return fmt::format(
-			"DialogID:{}\nID:{}\nSSRC:{}\nDstIP:{}\nDstPort:{}\nLocalPort:{}", DialogID, Channel->ID, SSRC, TargetIP, TargetPort, LocalPort);
+			"DialogID: {}\nID: {}\nSSRC: {}\nDstIP: {}\nDstPort: {}\nLocalPort: {}", DialogID, Channel->ID, SSRC, TargetIP, TargetPort, LocalPort);
 	}
+};
+
+/// @brief 拉流分发配置
+struct DistributeItem
+{
+	std::string Source;  //源地址
+	std::string App;
+	std::string Stream;
+	int Protocol; //针对RTSP时，使用TCP:0 or UDP:1，默认TCP:0
+	bool RecordMP4 = false;
+	int RetryTimes = -1;  //无限重试
 };

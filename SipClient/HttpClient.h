@@ -8,6 +8,39 @@
 #pragma once
 #include "Structs.h"
 
+namespace media
+{
+    struct mediaserver_stream_item
+    {
+        int64_t aliveSecond;    //存活时间
+        std::string app;        //媒体流路径
+        int64_t bytesSpeed;     //码率，字节每秒
+        int64_t createStamp;    //创建的时间戳
+        bool isRecordingHLS;    //是否正在录制hls
+        bool isRecordingMP4;    //是否正在录制mp4
+        std::string originUrl;  //源地址
+        int readerCount;        //观看者数量
+        int originType;         //源类型
+        std::string originTypeStr;  //源类型
+        std::string schema;         //媒体类型
+		std::string stream;         //媒体流路径
+		int codec_id;               //编码器id
+		std::string codec_id_name;  //编码器名称
+        int fps;                //帧率
+        int width;              //宽
+        int height;             //高
+		std::string vhost;      //虚拟主机名
+
+        //------------------------------
+        std::string resolution; //分辨率
+        std::string path;       //路径
+        std::string url;        //拉流地址
+    };
+
+    void to_json(nlohmann::json& j, const mediaserver_stream_item& p);
+    void from_json(const nlohmann::json& j, mediaserver_stream_item& p);
+}
+
 class HttpClient {
 public:
     SINGLETON_DEFINE(HttpClient);
@@ -70,6 +103,31 @@ public:
     /// @param speed 播放速度
     /// @return 调用是否成功，直接返回true，不影响
     bool SetSpeed(std::string app, std::string stream, float speed);
+
+    /// @brief 获取流列表
+    /// @return 所有流信息
+    std::vector<media::mediaserver_stream_item> GetMediaList();
+
+
+    /// @brief 添加拉流代理
+    /// @param item 拉流代理参数
+    /// @return 是否添加成功
+    bool AddDistributeStream(std::shared_ptr<DistributeItem> item);
+
+
+    /// @brief 开始录制
+    /// @param app 媒体流路径
+    /// @param stream 媒体流路径
+    /// @param is_mp4 录制MP4文件？ 否则为hls
+    /// @return 操作是否成功
+    bool StartRecord(const std::string& app, const std::string& stream,bool is_mp4 = true);
+
+    /// @brief 停止录制
+    /// @param app 媒体流路径
+    /// @param stream 媒体流路径
+    /// @param is_mp4 录制MP4文件？ 否则为hls
+    /// @return 操作是否成功
+    bool StopRecord(const std::string& app,const std::string& stream,bool is_mp4 = true);
 
 private:
     //流媒体服务器信息

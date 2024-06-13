@@ -87,6 +87,8 @@ private:
 	//接收媒体流改变的回调
 	std::vector<OnStreamChangedCallback> _vec_stream_changed_callback;
 	std::mutex _mtx;
+
+
 	crow::SimpleApp _app;
 
 	//这里创建一个blueprint，用户接收hook消息

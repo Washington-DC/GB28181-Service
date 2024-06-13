@@ -141,6 +141,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <Optimization>MaxSpeed</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,6 +154,7 @@
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="DbManager.cpp" />
     <ClCompile Include="Device.cpp" />
+    <ClCompile Include="DistributeManager.cpp" />
     <ClCompile Include="FileTime.cpp" />
     <ClCompile Include="HttpClient.cpp" />
     <ClCompile Include="HttpServer.cpp" />
@@ -171,6 +173,7 @@
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="DbManager.h" />
     <ClInclude Include="Device.h" />
+    <ClInclude Include="DistributeManager.h" />
     <ClInclude Include="FileTime.h" />
     <ClInclude Include="HttpClient.h" />
     <ClInclude Include="HttpServer.h" />

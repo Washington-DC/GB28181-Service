@@ -1,7 +1,7 @@
 ﻿/*****************************************************************//**
  * \file   Device.h
  * \brief  模拟一个SIP设备
- * 
+ *
  * \author yszs
  * \date   March 2024
  *********************************************************************/
@@ -31,6 +31,11 @@ public:
 	/// @brief 设置媒体流播放速度，只针对数据回放
 	/// @param speed 播放速度
 	void Speed(float speed);
+
+
+private:
+
+	bool _paused = false;
 };
 
 /// @brief  模拟一个SIP设备
@@ -109,20 +114,24 @@ private:
 	/// @param app 媒体流标识一级路径
 	/// @param stream 媒体流标识二级路径
 	/// @param regist 注册或注销
-	void OnStreamChanedCallback(const std::string& app, const std::string& stream, bool regist);
+	void OnStreamChangedCallback(const std::string& app, const std::string& stream, bool regist);
 
 
 	/// @brief 回复INVITE请求，如果正常(200)时，需要回复SDP内容
 	/// @param event 
 	/// @param sdp 
 	/// @param status 状态值，默认200，其他有错误:400,Not Found:404
-	void SendInviteResponse(eXosip_event_t* event, const std::string& sdp,int status = 200);
+	void SendInviteResponse(eXosip_event_t* event, const std::string& sdp, int status = 200);
 
 
 private:
 	/// @brief 返回成功消息
 	/// @param event  sip事件
-	void SendResponseOK(eXosip_event_t* event);
+	void SendMesageResponseOK(eXosip_event_t* event);
+
+	/// @brief 响应播放控制命令
+	/// @param event sip事件
+	void SendCallResponseOK(eXosip_event_t* event);
 
 	/// @brief 心跳任务
 	void HeartbeatTask();
@@ -181,6 +190,14 @@ private:
 	/// @return 生成xml
 	std::string GenerateRecordInfoXML(const std::string& sn, const std::string& channel_id, const std::string& start_time, const std::string& end_time);
 
+
+	/// @brief 发送录像文件信息
+	/// @param sn 消息编号
+	/// @param channel_id 通道ID 
+	/// @param start_time 查询的录像开始时间
+	/// @param end_time 查询的录像结束时间
+	void SendRecordInfo(const std::string& sn, const std::string& channel_id, const std::string& start_time, const std::string& end_time);
+
 private:
 
 	/// @brief 格式化XML内容，一些服务端对于没有被格式化的xml解析失败
@@ -200,6 +217,13 @@ private:
 	/// @return 是否解析成功
 	bool ParseTimeStr(std::string& text, std::string& start_time, std::string& end_time);
 
+	/// @brief 发送xml响应消息
+	/// @param doc 
+	void SendXmlResponse(const pugi::xml_document& doc);
+
+	/// @brief 发送xml响应消息
+	/// @param xml 
+	void SendXmlResponse(const std::string& xml);
 
 	/// @brief 根据id查询对应的通道内容
 	/// @param id 通道ID
