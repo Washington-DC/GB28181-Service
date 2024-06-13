@@ -154,6 +154,7 @@ bool HttpClient::SetSpeed(std::string app, std::string stream, float speed)
 	return true;
 }
 
+
 std::vector<media::mediaserver_stream_item> HttpClient::GetMediaList()
 {
 	std::vector<media::mediaserver_stream_item> items;
@@ -196,6 +197,7 @@ std::vector<media::mediaserver_stream_item> HttpClient::GetMediaList()
 	return items;
 }
 
+
 bool HttpClient::AddDistributeStream(std::shared_ptr<DistributeItem> item)
 {
 	cpr::Response res = cpr::Get(
@@ -229,6 +231,7 @@ bool HttpClient::AddDistributeStream(std::shared_ptr<DistributeItem> item)
 	return false;
 }
 
+
 bool HttpClient::StartRecord(const std::string& app, const std::string& stream, bool is_mp4)
 {
 	cpr::Response res = cpr::Get(
@@ -256,6 +259,7 @@ bool HttpClient::StartRecord(const std::string& app, const std::string& stream, 
 
 	return false;
 }
+
 
 bool HttpClient::StopRecord(const std::string& app, const std::string& stream, bool is_mp4)
 {
@@ -289,6 +293,7 @@ bool HttpClient::StopRecord(const std::string& app, const std::string& stream, b
 void media::to_json(nlohmann::json& j, const mediaserver_stream_item& p)
 {
 }
+
 
 void media::from_json(const nlohmann::json& j, mediaserver_stream_item& p)
 {

@@ -10,7 +10,9 @@ void DistributeManager::Start()
 		{
 			while (_start)
 			{
+				//配置的拉流分发项
 				auto&& items = ConfigManager::GetInstance()->GetAllDistributeItems();
+				//当前服务器的媒体流信息
 				auto&& streams = HttpClient::GetInstance()->GetMediaList();
 
 				for (auto&& s : items)
@@ -21,6 +23,7 @@ void DistributeManager::Start()
 
 					if (iter == streams.end())
 					{
+						//不存在，则添加拉流代理
 						HttpClient::GetInstance()->AddDistributeStream(s);
 					}
 					else
