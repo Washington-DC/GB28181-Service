@@ -523,6 +523,8 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 #endif
 	session->SSRC = ssrc;
 	session->Channel = channel_info;
+	session->Playback = false;
+
 	//判断是回放还是实时
 	if (strstr(sdp_body->body, "s=Playback"))
 	{
@@ -530,11 +532,16 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 		std::string text = sdp_body->body;
 		ParseTimeStr(text, session->StartTime, session->EndTime);
 
-		auto fileinfo = DbManager::GetInstance()->Query(channel_info->Stream, session->StartTime, session->EndTime);
-	}
-	else
-	{
-		session->Playback = false;
+		auto vec_fileinfo = DbManager::GetInstance()->Query(channel_info->Stream, session->StartTime, session->EndTime);
+		if (vec_fileinfo.empty())
+		{
+			SendInviteResponse(event, "", 404);
+			return;
+		}
+		else
+		{
+			session->FilePath = vec_fileinfo[0]->FilePath;
+		}
 	}
 
 	//did不同，但是目的地址还是一样的，可能是因为重复invite造成，对于后续的invite回复busy。
@@ -610,7 +617,7 @@ void SipDevice::SendInviteResponse(eXosip_event_t* event, const std::string& sdp
 		ret = eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
 		if (ret != OSIP_SUCCESS)
 		{
-			// 经常会出现重复接收到INVITE的情况？第二次就收到重复的INVITE时，这里会build失败，然后直接返回即可。
+			// 会出现重复接收到INVITE的情况？第二次就收到重复的INVITE时，这里会build失败，然后直接返回即可。
 			SPDLOG_ERROR("eXosip_call_build_answer failed");
 			return;
 		}
