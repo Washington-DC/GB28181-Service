@@ -8,17 +8,16 @@ void HttpClient::Init(std::shared_ptr<MediaServerInfo> info) {
 }
 
 
-bool HttpClient::StartSendRtp(
-	std::shared_ptr<ChannelInfo> channel_info, std::string ssrc,
-	std::string dst_ip, int dst_port, int local_port, bool use_tcp)
+bool HttpClient::StartSendRtp(const std::string& app, const std::string& stream,
+	const std::string& ssrc, const std::string& dst_ip, int dst_port, int local_port, bool use_tcp)
 {
 	cpr::Response res = cpr::Get(
 		cpr::Url{ _base_url,"/index/api/startSendRtp" },
 		cpr::Parameters{
 			{"secret",_server_info->Secret},
 			{"vhost","__defaultVhost__"},
-			{"app",channel_info->App},
-			{"stream",channel_info->Stream},
+			{"app",app},
+			{"stream",stream},
 			{"ssrc",ssrc},
 			{"dst_url",dst_ip},
 			{"dst_port",std::to_string(dst_port)},
@@ -61,8 +60,8 @@ bool HttpClient::StopSendRtp(const std::string& app, const std::string& stream) 
 
 
 bool HttpClient::StartSendPlaybackRtp(
-	std::shared_ptr<ChannelInfo> channel_info, std::string ssrc, std::string dst_ip,
-	int dst_port, int local_port, std::string& start_time, std::string& end_time, bool use_tcp)
+	std::shared_ptr<ChannelInfo> channel_info, const std::string& ssrc, const std::string& dst_ip,
+	int dst_port, int local_port, const std::string& start_time, const std::string& end_time, bool use_tcp)
 {
 	cpr::Response res = cpr::Get(
 		cpr::Url{ _base_url,"/index/api/startSendPlaybackRtp" },
@@ -92,8 +91,29 @@ bool HttpClient::StartSendPlaybackRtp(
 }
 
 
-bool HttpClient::GetMp4RecordInfo(std::string stream,
-	std::string start_time, std::string end_time, std::string& response)
+bool HttpClient::LoadMP4File(const std::string& app, const std::string& stream, const std::string& fileapth)
+{
+	cpr::Response res = cpr::Get(
+		cpr::Url{ _base_url,"/index/api/loadMP4File" },
+		cpr::Parameters{
+			{"secret",_server_info->Secret},
+			{"vhost","__defaultVhost__"},
+			{"app",app},
+			{"stream",stream},
+		},
+		cpr::Timeout{ 2s }
+	);
+	SPDLOG_WARN("--------------: {}", res.url.str());
+	if (res.status_code == 200)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+bool HttpClient::GetMp4RecordInfo(const std::string& stream,
+	const std::string& start_time, const std::string& end_time, std::string& response)
 {
 	cpr::Response res = cpr::Get(
 		cpr::Url{ _base_url,"/index/api/getMp4RecordInfo" },
@@ -117,7 +137,31 @@ bool HttpClient::GetMp4RecordInfo(std::string stream,
 }
 
 
-bool HttpClient::SetPause(std::string app, std::string stream, bool pause)
+bool HttpClient::SetRecordSpeed(const std::string& app, const std::string& stream, float speed)
+{
+	cpr::Response res = cpr::Get(
+		cpr::Url{ _base_url,"/index/api/SetRecordSpeed" },
+		cpr::Parameters{
+			{"secret",_server_info->Secret},
+			{"vhost","__defaultVhost__"},
+			{"app",app},
+			{"stream",stream},
+			{"schema","rtsp"},
+			{"speed", std::to_string(speed)}
+		},
+		cpr::Timeout{ 2s }
+	);
+	SPDLOG_WARN("--------------: {}", res.url.str());
+
+	if (res.status_code == 200)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+bool HttpClient::SetPause(const std::string& app, const std::string& stream, bool pause)
 {
 	cpr::Response res = cpr::Get(
 		cpr::Url{ _base_url,"/index/api/action" },
@@ -136,7 +180,7 @@ bool HttpClient::SetPause(std::string app, std::string stream, bool pause)
 }
 
 
-bool HttpClient::SetSpeed(std::string app, std::string stream, float speed)
+bool HttpClient::SetSpeed(const std::string& app, const std::string& stream, float speed)
 {
 	cpr::Response res = cpr::Get(
 		cpr::Url{ _base_url,"/index/api/action" },

@@ -4,6 +4,9 @@
 #include "HttpServer.h"
 #include "FileTime.h"
 #include "NetUtils.h"
+#include "DbManager.h"
+#include "Utils.h"
+
 //起始端口号
 static int start_port = 20000;
 //最大的SN
@@ -526,6 +529,8 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 		session->Playback = true;
 		std::string text = sdp_body->body;
 		ParseTimeStr(text, session->StartTime, session->EndTime);
+
+		auto fileinfo = DbManager::GetInstance()->Query(channel_info->Stream, session->StartTime, session->EndTime);
 	}
 	else
 	{
@@ -926,71 +931,6 @@ std::string SipDevice::GeneratePresetListXML(const std::string& sn)
 }
 
 
-std::string SipDevice::GenerateRecordInfoXML(const std::string& sn,
-const std::string& channel_id, const std::string& start_time, const std::string& end_time)
-{
-	std::shared_ptr<ChannelInfo> channel_info = FindChannel(channel_id);
-	if (channel_info == nullptr) return std::string();
-	// 向流媒体服务器发送请求
-	std::string response;
-	auto ret = HttpClient::GetInstance()->GetMp4RecordInfo(channel_info->Stream,
-														   start_time, end_time, response);
-	std::string response_body;
-	auto text =
-		R"( <?xml version="1.0" encoding="GB2312"?>
-			<Response>
-				<CmdType>RecordInfo</CmdType>
-				<SN>{}</SN>
-				<DeviceID>{}</DeviceID>
-				<Name>{}</Name>
-				<SumNum>{}</SumNum>
-				<RecordList Num="{}">
-				</RecordList>
-			</Response>
-		)"s;
-	try
-	{
-		pugi::xml_document doc;
-		nlohmann::json json_data = nlohmann::json::parse(response);
-		size_t record_size = json_data["data"]["fileInfo"].size();
-		response_body = fmt::format(text, sn, this->ID, channel_id, record_size, record_size);
-
-		auto doc_ret = doc.load_string(response_body.c_str());
-		if (doc_ret.status != pugi::status_ok)
-			return std::string();
-
-		auto record_list = doc.child("Response").child("RecordList");
-
-		for (const auto& file_item : json_data["data"]["fileInfo"])
-		{
-			//文件路径，这里只使用文件名称即可
-			std::string file_path = std::filesystem::path(file_item["file_path"].get<std::string>()).filename().u8string();
-			std::string str_begin_time = toolkit::CFileTime(file_item["begin_time"]).UTCToLocal().FormatTZ();
-			std::string str_end_time = toolkit::CFileTime(file_item["stop_time"]).UTCToLocal().FormatTZ();
-
-			auto node = record_list.append_child("Item");
-			node.append_child("DeviceID").text().set(this->ID.c_str());
-			node.append_child("Name").text().set(channel_id.c_str());
-			node.append_child("FilePath").text().set(file_path.c_str());
-			node.append_child("StartTime").text().set(str_begin_time.c_str());
-			node.append_child("EndTime").text().set(str_end_time.c_str());
-			node.append_child("Address").text().set("");
-			node.append_child("Secrecy").text().set("0");
-			node.append_child("Type").text().set("time");
-		}
-
-		std::stringstream ss;
-		doc.save(ss);
-		response_body = ss.str();
-	}
-	catch (...)
-	{
-		//查询不到或不存在时，就回复空内容
-		response_body = fmt::format(text, sn, this->ID, channel_id, 0, 0);
-	}
-	return response_body;
-}
-
 void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel_id, const std::string& start_time, const std::string& end_time)
 {
 	auto send_empty_response = [&]() {
@@ -1016,77 +956,59 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 		return;
 	}
 	// 向流媒体服务器发送请求
-	std::string response;
-	auto ret = HttpClient::GetInstance()->GetMp4RecordInfo(channel_info->Stream,
-														   start_time, end_time, response);
-	if (ret == false)
+	auto start = std::stoll(start_time);
+	auto end = std::stoll(end_time);
+	auto vec_files = DbManager::GetInstance()->Query(channel_info->Stream, start, end);
+	if (vec_files.empty())
 	{
 		send_empty_response();
 		return;
 	}
 
-	try
+	auto size = vec_files.size();
+
+	//计算需要发送次数
+	auto times = std::ceil(size * 1.0 / batch_size);
+	//文件索引
+	int index = 0;
+	for (int i = 0; i < times; i++)
 	{
-		//parse可能会抛出异常
-		nlohmann::json json_data = nlohmann::json::parse(response);
-		auto&& fileinfo = json_data["data"]["fileInfo"];
-		auto size = fileinfo.size();
+		pugi::xml_document doc;
+		auto decl = doc.prepend_child(pugi::node_declaration);
+		decl.append_attribute("version") = "1.0";
+		decl.append_attribute("encoding") = "GB2312";
 
-		if (size == 0)
+		auto root = doc.append_child("Response");
+		root.append_child("CmdType").text().set("RecordInfo");
+		root.append_child("SN").text().set(sn.c_str());
+		root.append_child("DeviceID").text().set(this->ID.c_str());
+		root.append_child("Name").text().set(channel_id.c_str());
+		root.append_child("SumNum").text().set(size);
+		auto record_list = root.append_child("RecordList");
+
+		auto num = (i < times - 1) ? batch_size : (size % batch_size);
+		record_list.append_attribute("Num").set_value(num);
+
+		for (int j = 0; j < num; j++)
 		{
-			send_empty_response();
+			index = i * batch_size + j;
+			auto&& item = vec_files[index];
+
+			//文件路径，这里只使用文件名称即可
+			std::string str_begin_time = TimeToISO8601(std::time_t(item->StartTime));
+			std::string str_end_time = TimeToISO8601(std::time_t(item->StartTime + item->TimeDuration));
+
+			auto node = record_list.append_child("Item");
+			node.append_child("DeviceID").text().set(this->ID.c_str());
+			node.append_child("Name").text().set(channel_id.c_str());
+			node.append_child("FilePath").text().set(item->FilePath.c_str());
+			node.append_child("StartTime").text().set(str_begin_time.c_str());
+			node.append_child("EndTime").text().set(str_end_time.c_str());
+			node.append_child("Address").text().set("");
+			node.append_child("Secrecy").text().set("0");
+			node.append_child("Type").text().set("time");
 		}
-		else
-		{
-			//计算需要发送次数
-			auto times = std::ceil(size * 1.0 / batch_size);
-			//文件索引
-			int index = 0;
-			for (int i = 0; i < times; i++)
-			{
-				pugi::xml_document doc;
-				auto decl = doc.prepend_child(pugi::node_declaration);
-				decl.append_attribute("version") = "1.0";
-				decl.append_attribute("encoding") = "GB2312";
-
-				auto root = doc.append_child("Response");
-				root.append_child("CmdType").text().set("RecordInfo");
-				root.append_child("SN").text().set(sn.c_str());
-				root.append_child("DeviceID").text().set(this->ID.c_str());
-				root.append_child("Name").text().set(channel_id.c_str());
-				root.append_child("SumNum").text().set(size);
-				auto record_list = root.append_child("RecordList");
-
-				auto num = (i < times - 1) ? batch_size : (size % batch_size);
-				record_list.append_attribute("Num").set_value(num);
-
-				for (int j = 0; j < num; j++)
-				{
-					index = i * batch_size + j;
-					auto&& item = fileinfo[index];
-
-					//文件路径，这里只使用文件名称即可
-					std::string file_path = std::filesystem::path(item["file_path"].get<std::string>()).filename().u8string();
-					std::string str_begin_time = toolkit::CFileTime(item["begin_time"]).UTCToLocal().FormatTZ();
-					std::string str_end_time = toolkit::CFileTime(item["stop_time"]).UTCToLocal().FormatTZ();
-
-					auto node = record_list.append_child("Item");
-					node.append_child("DeviceID").text().set(this->ID.c_str());
-					node.append_child("Name").text().set(channel_id.c_str());
-					node.append_child("FilePath").text().set(file_path.c_str());
-					node.append_child("StartTime").text().set(str_begin_time.c_str());
-					node.append_child("EndTime").text().set(str_end_time.c_str());
-					node.append_child("Address").text().set("");
-					node.append_child("Secrecy").text().set("0");
-					node.append_child("Type").text().set("time");
-				}
-				SendXmlResponse(doc);
-			}
-		}
-	}
-	catch (...)
-	{
-		send_empty_response();
+		SendXmlResponse(doc);
 	}
 }
 
@@ -1109,7 +1031,7 @@ std::string SipDevice::ParseSSRC(const std::string& text)
 }
 
 
-bool SipDevice::ParseTimeStr(std::string& text, std::string& start_time, std::string& end_time)
+bool SipDevice::ParseTimeStr(std::string& text, int64_t& start_time, int64_t& end_time)
 {
 	text = nbase::StringTrim(text);
 	auto tokens = nbase::StringTokenize(text.c_str(), "\n");
@@ -1117,12 +1039,10 @@ bool SipDevice::ParseTimeStr(std::string& text, std::string& start_time, std::st
 	{
 		if (strstr(token.c_str(), "t="))
 		{
-			start_time = token.substr(2, 11);
-			end_time = token.substr(12);
-
-			nbase::StringTrim(start_time);
-			nbase::StringTrim(end_time);
-			return true;
+			auto start = token.substr(2, 11);
+			auto end = token.substr(12);
+			return nbase::StringToInt64(start, &start_time)
+				&& nbase::StringToInt64(end, &end_time);
 		}
 	}
 	return false;
@@ -1184,7 +1104,7 @@ void SipDevice::OnInSubscriptionNew(eXosip_event_t* event)
 
 	osip_header_t* header = nullptr;
 	auto ret = osip_message_get_header(event->request, 0, &header);
-	if (ret != 0 && header->hvalue != nullptr) 
+	if (ret != 0 && header->hvalue != nullptr)
 	{
 		// 确定订阅的事件类型
 		SPDLOG_INFO("Subscription for event package: {}", header->hvalue);
@@ -1339,16 +1259,17 @@ void Session::Start()
 {
 	if (this->Playback)
 	{
-		// 录像回放：向流媒体服务器发送回放请求，需要指定收发数据的端口，SSRC和时间范围
-		auto ret = HttpClient::GetInstance()->StartSendPlaybackRtp(
-			this->Channel, this->SSRC, this->TargetIP, this->TargetPort, this->LocalPort,
-			this->StartTime, this->EndTime, this->UseTcp);
+		// 录像回放：先加载MP4文件，然后sendRTP
+		auto ret = HttpClient::GetInstance()->LoadMP4File("record", this->SSRC, this->FilePath);
+		ret = HttpClient::GetInstance()->StartSendRtp("record", this->SSRC, this->SSRC,
+			 this->TargetIP, this->TargetPort, this->LocalPort, this->UseTcp);
 	}
 	else
 	{
 		// 实时流：向流媒体服务器发送实时推送请求，需要指定收发数据的端口，SSRC和时间范围
 		auto ret = HttpClient::GetInstance()->StartSendRtp(
-			this->Channel, this->SSRC, this->TargetIP, this->TargetPort, this->LocalPort, this->UseTcp);
+			this->Channel->App, this->Channel->Stream, this->SSRC,
+			this->TargetIP, this->TargetPort, this->LocalPort, this->UseTcp);
 	}
 }
 

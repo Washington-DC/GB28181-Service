@@ -48,8 +48,10 @@ struct SessionInfo {
 	bool UseTcp = false;    //使用TCP协议？
 
 	bool Playback = false;  //是否为回放
-	std::string StartTime;  //回放开始时间,unix时间戳
-	std::string EndTime;    //回放结束时间,unix时间戳
+	int64_t StartTime;  //回放开始时间,unix时间戳
+	int64_t EndTime;    //回放结束时间,unix时间戳
+
+	std::string FilePath;   //MP4文件路径
 
 	bool Used = false;
 

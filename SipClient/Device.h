@@ -32,7 +32,6 @@ public:
 	/// @param speed 播放速度
 	void Speed(float speed);
 
-
 private:
 
 	bool _paused = false;
@@ -181,16 +180,6 @@ private:
 	/// @return 
 	std::string GeneratePresetListXML(const std::string& sn);
 
-
-	/// @brief 生成录像内容查询的回复xml
-	/// @param sn 消息编号
-	/// @param channel_id 通道ID 
-	/// @param start_time 查询的录像开始时间
-	/// @param end_time 查询的录像结束时间
-	/// @return 生成xml
-	std::string GenerateRecordInfoXML(const std::string& sn, const std::string& channel_id, const std::string& start_time, const std::string& end_time);
-
-
 	/// @brief 发送录像文件信息
 	/// @param sn 消息编号
 	/// @param channel_id 通道ID 
@@ -215,7 +204,7 @@ private:
 	/// @param start_time 录像开始时间
 	/// @param end_time 结束时间
 	/// @return 是否解析成功
-	bool ParseTimeStr(std::string& text, std::string& start_time, std::string& end_time);
+	bool ParseTimeStr(std::string& text, int64_t& start_time, int64_t& end_time);
 
 	/// @brief 发送xml响应消息
 	/// @param doc 

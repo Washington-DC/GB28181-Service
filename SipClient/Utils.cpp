@@ -30,7 +30,7 @@ std::string GenerateRandomString(int n)
 	return text;
 }
 
-std::string SSRC_Hex(std::string ssrc)
+std::string SSRC_Hex(const std::string& ssrc)
 {
 	return fmt::format("{:08X}", std::stol(ssrc));
 }
@@ -69,7 +69,7 @@ std::string GetCurrentModuleDirectory()
 int64_t ISO8601ToTimeT(const std::string& str)
 {
 	std::regex pattern(R"(^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}[Zz]?$)");
-	if (std::regex_match(str,  pattern)) {
+	if (std::regex_match(str, pattern)) {
 		std::tm t;
 		auto year = str.substr(0, 4);
 		t.tm_year = std::stoi(year) - 1900;
@@ -100,4 +100,9 @@ int64_t ISO8601ToTimeT(const std::string& str)
 		SPDLOG_ERROR("时间格式校验错误: {}", str);
 		return 0;
 	}
+}
+
+
+std::string TimeToISO8601(const time_t timestamp) {
+	return fmt::format("{:%Y-%m-%dT%H:%M:%S}", fmt::localtime(timestamp));
 }
