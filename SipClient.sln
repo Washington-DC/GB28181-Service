@@ -7,6 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SipClient", "SipClient\SipC
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{9F5EFC7A-7D53-408E-80C8-45D0EBC319E0}"
 	ProjectSection(SolutionItems) = preProject
+		release\windows\Debug\config.xml = release\windows\Debug\config.xml
 		Install.md = Install.md
 		SipClient\README.md = SipClient\README.md
 		README.md = README.md

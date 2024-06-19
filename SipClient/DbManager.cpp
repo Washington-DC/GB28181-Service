@@ -74,11 +74,13 @@ std::vector<std::shared_ptr<dto::ZlmMP4Item>>
 DbManager::Query(const std::string& stream_id, uint64_t start, uint64_t end) {
 	std::vector<std::shared_ptr<dto::ZlmMP4Item>> files;
 	try {
-		auto text = R"(SELECT "filepath","filename","filesize","starttime","duration" FROM "{}" WHERE "End" >= {} AND Start <= {} ORDER BY ID ASC)";
+		auto text = R"(SELECT "filepath","filename","filesize","starttime","duration" FROM "{}" WHERE "endtime" >= {} AND "starttime" <= {} ORDER BY ID ASC)";
 		auto sql = fmt::format(text, stream_id, start, end);
-		if (_db) {
+		if (_db)
+		{
 			sqlite3pp::query query(*_db.get(), sql.c_str());
-			for (auto iter = query.begin(); iter != query.end(); ++iter) {
+			for (auto iter = query.begin(); iter != query.end(); ++iter)
+			{
 				auto video = std::make_shared<dto::ZlmMP4Item>();
 				video->FilePath = ToMbcsString((*iter).get<const char*>(0));
 				video->FileName = ToMbcsString((*iter).get<const char*>(1));
@@ -93,6 +95,33 @@ DbManager::Query(const std::string& stream_id, uint64_t start, uint64_t end) {
 		ErrorL << "Sqlite Query: " << ex.what();
 	}
 	return files;
+}
+
+std::shared_ptr<dto::ZlmMP4Item> DbManager::QueryOne(const std::string& stream_id, uint64_t start, uint64_t end)
+{
+	std::shared_ptr<dto::ZlmMP4Item> file = nullptr;
+	try {
+		auto text = R"(SELECT "filepath","filename","filesize","starttime","duration" FROM "{}" WHERE "starttime" = {} AND "endtime" = {} ORDER BY ID ASC)";
+		auto sql = fmt::format(text, stream_id, start, end);
+		if (_db)
+		{
+			sqlite3pp::query query(*_db.get(), sql.c_str());
+			for (auto iter = query.begin(); iter != query.end(); ++iter)
+			{
+				file = std::make_shared<dto::ZlmMP4Item>();
+				file->FilePath = ToMbcsString((*iter).get<const char*>(0));
+				file->FileName = ToMbcsString((*iter).get<const char*>(1));
+				file->FileSize = (*iter).get<int64_t>(2);
+				file->StartTime = (*iter).get<int64_t>(3);
+				file->TimeDuration = (*iter).get<int64_t>(4);
+				return file;
+			}
+		}
+	}
+	catch (const std::exception& ex) {
+		ErrorL << "Sqlite Query: " << ex.what();
+	}
+	return file;
 }
 
 
@@ -120,7 +149,7 @@ bool DbManager::_initialization()
 				auto state = ToMbcsString((*iter).get<const char*>(0));
 				if (strstr(state.c_str(), "wal"))
 				{
-					SPDLOG_ERROR("journal_mode : wal");
+					SPDLOG_INFO("journal_mode : wal");
 				}
 				else
 				{

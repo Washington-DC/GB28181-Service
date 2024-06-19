@@ -93,20 +93,40 @@ bool HttpClient::StartSendPlaybackRtp(
 
 bool HttpClient::LoadMP4File(const std::string& app, const std::string& stream, const std::string& fileapth)
 {
-	cpr::Response res = cpr::Get(
-		cpr::Url{ _base_url,"/index/api/loadMP4File" },
-		cpr::Parameters{
-			{"secret",_server_info->Secret},
-			{"vhost","__defaultVhost__"},
-			{"app",app},
-			{"stream",stream},
-		},
-		cpr::Timeout{ 2s }
-	);
-	SPDLOG_WARN("--------------: {}", res.url.str());
-	if (res.status_code == 200)
+	try
 	{
-		return true;
+		cpr::Response res = cpr::Get(
+		cpr::Url{ _base_url,"/index/api/loadMP4File" },
+			cpr::Parameters{
+				{"secret",_server_info->Secret},
+				{"vhost","__defaultVhost__"},
+				{"app",app},
+				{"stream",stream},
+				{"file_path",fileapth}
+			},
+			cpr::Timeout{ 2s }
+		);
+		SPDLOG_WARN("--------------: {}", res.url.str());
+		if (res.status_code == 200)
+		{
+			nlohmann::json doc = nlohmann::json::parse(res.text);
+			if (!doc.empty())
+			{
+				auto code = doc.at("code").get<int>();
+				if (code == 0)
+				{
+					return true;
+				}
+				else
+				{
+					SPDLOG_ERROR(res.text);
+				}
+			}
+		}
+	}
+	catch (const std::exception& e)
+	{
+		SPDLOG_ERROR(e.what());
 	}
 	return false;
 }

@@ -522,22 +522,22 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 		std::string text = sdp_body->body;
 		ParseTimeStr(text, session->StartTime, session->EndTime);
 
-		auto vec_fileinfo = DbManager::GetInstance()->Query(channel_info->Stream, session->StartTime, session->EndTime);
-		if (vec_fileinfo.empty())
+		auto file = DbManager::GetInstance()->QueryOne(channel_info->Path(), session->StartTime, session->EndTime);
+		if (file == nullptr)
 		{
 			SendInviteResponse(event, "", 404);
 			return;
 		}
 		else
 		{
-			session->FilePath = vec_fileinfo[0]->FilePath;
+			session->FilePath = file->FilePath;
 		}
 	}
 
 	//did不同，但是目的地址还是一样的，可能是因为重复invite造成，对于后续的invite回复busy。
 	{
 		auto iter = std::find_if(_session_map.begin(), _session_map.end(),
-			[session](const std::pair<int32_t, std::shared_ptr<Session>> s)
+			[session](const std::pair<int32_t, std::shared_ptr<Session>>& s)
 			{
 				return s.second->TargetIP == session->TargetIP
 					and s.second->TargetPort == session->TargetPort
@@ -953,9 +953,9 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 		return;
 	}
 	// 向流媒体服务器发送请求
-	auto start = std::stoll(start_time);
-	auto end = std::stoll(end_time);
-	auto vec_files = DbManager::GetInstance()->Query(channel_info->Stream, start, end);
+	auto start = ISO8601ToTimeT(start_time);
+	auto end = ISO8601ToTimeT(end_time);
+	auto vec_files = DbManager::GetInstance()->Query(channel_info->Path(), start, end);
 	if (vec_files.empty())
 	{
 		send_empty_response();
@@ -965,7 +965,7 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 	auto size = vec_files.size();
 
 	//计算需要发送次数
-	auto times = std::ceil(size * 1.0 / batch_size);
+	auto times = (int)std::ceil(size * 1.0 / batch_size);
 	//文件索引
 	int index = 0;
 	for (int i = 0; i < times; i++)
@@ -1003,7 +1003,7 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 			auto node = record_list.append_child("Item");
 			node.append_child("DeviceID").text().set(this->ID.c_str());
 			node.append_child("Name").text().set(channel_id.c_str());
-			node.append_child("FilePath").text().set(item->FilePath.c_str());
+			node.append_child("FilePath").text().set(item->FileName.c_str());
 			node.append_child("StartTime").text().set(str_begin_time.c_str());
 			node.append_child("EndTime").text().set(str_end_time.c_str());
 			node.append_child("Address").text().set("");
@@ -1043,6 +1043,8 @@ bool SipDevice::ParseTimeStr(std::string& text, int64_t& start_time, int64_t& en
 		{
 			auto start = token.substr(2, 11);
 			auto end = token.substr(12);
+			nbase::StringTrim(start);
+			nbase::StringTrim(end);
 			return nbase::StringToInt64(start, &start_time)
 				&& nbase::StringToInt64(end, &end_time);
 		}
