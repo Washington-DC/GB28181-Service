@@ -24,7 +24,9 @@ bool DbManager::CreateTable(const std::string& name)
 					  "filepath" text,
 					  "filename" text,
 					  "starttime" integer,
-					  "duration" integer
+					  "endtime" integer,
+					  "duration" integer,
+					  "filesize" integer
 				)
 				)";
 
@@ -50,7 +52,7 @@ bool DbManager::AddFile(const std::string& name, const dto::ZlmMP4Item& item)
 						) 
 						VALUES 
 						(
-							?1,?2,?3,?4
+							?1,?2,?3,?4,?5,?6
 						))";
 
 	auto text = fmt::format(sql, name);

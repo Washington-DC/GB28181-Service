@@ -39,7 +39,7 @@ static int get_sn()
 
 #define CALLBACK_TEMPLATE(F) (std::bind(&SipDevice::F, this, std::placeholders::_1))
 
-SipDevice::SipDevice(const std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info)
+SipDevice::SipDevice(std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info)
 {
 	this->ID = info->ID;
 	this->IP = info->IP;
@@ -129,7 +129,6 @@ void SipDevice::StopSipClient()
 	}
 
 	_register_success = false;
-	_is_heartbeat_running = false;
 
 	if (_subscription_thread)
 	{
@@ -161,7 +160,7 @@ void SipDevice::StopSipClient()
 
 bool SipDevice::Logout()
 {
-	_is_heartbeat_running = false;
+	_is_running = false;
 
 	if (_subscription_thread)
 	{
@@ -275,21 +274,13 @@ void SipDevice::SipRecvEventThread()
 void SipDevice::OnRegistrationFailed(eXosip_event_t* event)
 {
 	_register_success = false;
-	//_is_heartbeat_running = false;
 	if (event->response == nullptr)
 	{
 		SPDLOG_ERROR("注册失败");
 		return;
 	}
 	SPDLOG_ERROR("注册失败: {}", event->response->status_code);
-	//_is_heartbeat_running = false;
 
-	// 中途注册失败，继续发送心跳
-	//if (_heartbeat_thread)
-	//{
-	//	_heartbeat_thread->join();
-	//	_heartbeat_thread = nullptr;
-	//}
 	//当服务端回复401或403时，表示已经发送了一次消息
 	if (event->response->status_code == 401 || event->response->status_code == 403)
 	{
@@ -313,7 +304,6 @@ void SipDevice::OnRegistrationSuccess(eXosip_event_t* event)
 	SPDLOG_INFO("注册成功");
 
 	_register_success = true;
-	_is_heartbeat_running = true;
 	if (_heartbeat_thread == nullptr)
 	{
 		//如果注册成功，就开始启动心跳线程
@@ -662,7 +652,7 @@ void SipDevice::SendCallResponseOK(eXosip_event_t* event)
 /// @brief 心跳
 void SipDevice::HeartbeatTask()
 {
-	while (_is_running /*&& _register_success && _is_heartbeat_running*/)
+	while (_is_running)
 	{
 		//生成心跳xml
 		auto text =
@@ -993,7 +983,12 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 		root.append_child("SumNum").text().set(size);
 		auto record_list = root.append_child("RecordList");
 
-		auto num = (i < times - 1) ? batch_size : (size % batch_size);
+		auto num = 0;
+		if (i < times - 1)
+			num = batch_size;
+		else
+			num = size - batch_size * (times - 1);
+
 		record_list.append_attribute("Num").set_value(num);
 
 		for (int j = 0; j < num; j++)

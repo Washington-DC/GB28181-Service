@@ -22,6 +22,8 @@ struct ChannelInfo {
 	std::string Name;   //通道名称
 	std::string App;    //通道对应的视频流路径
 	std::string Stream; //通道对应的视频流路径
+
+	std::string Path() { return App + "/" + Stream; }
 };
 
 /// @brief 设备信息

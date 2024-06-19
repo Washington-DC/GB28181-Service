@@ -45,7 +45,7 @@ public:
 	/// @brief 构造Device时，需要传递设备信息和服务器信息
 	/// @param info 设备信息
 	/// @param sip_server_info SIP服务器信息
-	SipDevice(const std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info);
+	SipDevice(std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info);
 
 public:
 
@@ -58,11 +58,11 @@ public:
 	/// @return 是否开始，只有端口被占用或内存不足，会返回false
 	bool StartSipClient();
 
-	/// @brief 停止sip功能
+	/// @brief 停止sip交互
 	void StopSipClient();
 
 	/// @brief 注销
-	/// @return 注销命令是否发送，一般都会返回true
+	/// @return 一般都会返回true
 	bool Logout();
 
 private:
