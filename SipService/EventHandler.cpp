@@ -25,6 +25,43 @@ int BaseEventHandler::SendResponse(const char* uname, eXosip_t* excontext, int t
 	return ret;
 }
 
+int BaseEventHandler::SendResponseAndGetAddress(const char* uname, eXosip_t* excontext, int tid, int status, std::string& address, uint16_t& port)
+{
+	osip_message_t* answer = nullptr;
+	eXosip_lock(excontext);
+	eXosip_message_build_answer(excontext, tid, status, &answer);
+
+	char addr[50]{};
+
+	osip_via_t* via = nullptr;
+	osip_message_get_via(answer, 0, &via);
+
+	if (via && via->host)
+	{
+		osip_generic_param_t* param = nullptr;
+		osip_via_param_get_byname(via, (char*)"received", &param);
+		if (param && param->gvalue)
+		{
+			strcpy(addr,param->gvalue);
+		}
+		else
+		{
+			strcpy(addr,via->host);
+		}
+		address = std::string(addr);
+
+		osip_via_param_get_byname(via, (char*)"rport", &param);
+		if (param && param->gvalue)
+		{
+			port = std::stoi(param->gvalue);
+		}
+	}
+
+	int ret = eXosip_message_send_answer(excontext, tid, status, nullptr);
+	eXosip_unlock(excontext);
+	return ret;
+}
+
 int BaseEventHandler::SendCallAck(eXosip_t* excontext, int did)
 {
 	osip_message_t* ack = nullptr;
@@ -64,14 +101,14 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		char* uri = nullptr;
 		char* response = nullptr;
 
-		osip_contact_t* contact = nullptr;
-		osip_message_get_contact(e->exosip_event->request, 0, &contact);
-		if (contact == nullptr)
-		{
-			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
-			SPDLOG_WARN("Device Regist Failed, contact = null");
-			return -1;
-		}
+		//osip_contact_t* contact = nullptr;
+		//osip_message_get_contact(e->exosip_event->request, 0, &contact);
+		//if (contact == nullptr)
+		//{
+		//	SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_BAD_REQUEST);
+		//	SPDLOG_WARN("Device Regist Failed, contact = null");
+		//	return -1;
+		//}
 		auto config = ConfigManager::GetInstance()->GetSipServerInfo();
 
 		method = e->exosip_event->request->sip_method;
@@ -97,15 +134,19 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 			calc_response);
 		SPDLOG_INFO("MD5: {}", calc_response);
 
-		std::string client_host = strdup(contact->url->host);
-		auto client_port = strdup(contact->url->port);
+		//std::string client_host = strdup(contact->url->host);
+		//auto client_port = strdup(contact->url->port);
 		auto client_device_id = username;
 
 		if (0 == memcmp(calc_response, response, HASHHEXLEN))
 		{
-			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_OK);
-			SPDLOG_INFO("Device Registration Success, Address: {}:{}    ID:{}", client_host, client_port, client_device_id);
+			std::string client_host;
+			uint16_t port;
 
+			SendResponseAndGetAddress(username, e->exosip_context, e->exosip_event->tid, SIP_OK, client_host, port);
+			SPDLOG_INFO("Device Registration Success, Address: {}:{}    ID:{}", client_host, port, client_device_id);
+
+			std::string client_port = std::to_string(port);
 			//TOOD:
 			bool find = false;
 			auto device = DeviceManager::GetInstance()->GetDevice(client_device_id);
@@ -150,7 +191,7 @@ int RegisterHandler::HandleIncomingRequest(const SipEvent::Ptr& e)
 		else
 		{
 			SendResponse(username, e->exosip_context, e->exosip_event->tid, SIP_UNAUTHORIZED);
-			SPDLOG_INFO("Device Regist Failed, Address: {}:{}    ID: {}", client_host, client_port, client_device_id);
+			SPDLOG_INFO("Device Regist Failed, ID: {}",  client_device_id);
 
 			//TODO:
 			DeviceManager::GetInstance()->RemoveDevice(client_device_id);

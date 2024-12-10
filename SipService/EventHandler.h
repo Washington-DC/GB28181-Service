@@ -12,6 +12,7 @@ public:
 
 protected:
     int SendResponse(const char* uname, struct eXosip_t* excontext, int tid, int status);
+    int SendResponseAndGetAddress(const char* uname, struct eXosip_t* excontext, int tid, int status,std::string& address,uint16_t& port);
     int SendCallAck(struct eXosip_t* excontext, int did);
     int GetStatusCodeFromResponse(osip_message_t* response);
     std::string GetMsgIDFromRequest(osip_message_t* request);
