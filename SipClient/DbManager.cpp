@@ -63,7 +63,7 @@ bool DbManager::AddFile(const std::string& name, const dto::ZlmMP4Item& item)
 	cmd.bind(3, (long long int)item.StartTime);
 	cmd.bind(4, (long long int)(item.StartTime + item.TimeDuration));
 	cmd.bind(5, (long long int)(item.TimeDuration));
-	cmd.bind(6, item.FileSize);
+	cmd.bind(6, (long long int)item.FileSize);
 
 	auto ret = cmd.execute();
 	return ret == SQLITE_OK;
@@ -84,9 +84,9 @@ DbManager::Query(const std::string& stream_id, uint64_t start, uint64_t end) {
 				auto video = std::make_shared<dto::ZlmMP4Item>();
 				video->FilePath = ToMbcsString((*iter).get<const char*>(0));
 				video->FileName = ToMbcsString((*iter).get<const char*>(1));
-				video->FileSize = (*iter).get<int64_t>(2);
-				video->StartTime = (*iter).get<int64_t>(3);
-				video->TimeDuration = (*iter).get<int64_t>(4);
+				video->FileSize = (*iter).get<long long int>(2);
+				video->StartTime = (*iter).get<long long int>(3);
+				video->TimeDuration = (*iter).get<long long int>(4);
 				files.push_back(video);
 			}
 		}
@@ -111,9 +111,9 @@ std::shared_ptr<dto::ZlmMP4Item> DbManager::QueryOne(const std::string& stream_i
 				file = std::make_shared<dto::ZlmMP4Item>();
 				file->FilePath = ToMbcsString((*iter).get<const char*>(0));
 				file->FileName = ToMbcsString((*iter).get<const char*>(1));
-				file->FileSize = (*iter).get<int64_t>(2);
-				file->StartTime = (*iter).get<int64_t>(3);
-				file->TimeDuration = (*iter).get<int64_t>(4);
+				file->FileSize = (*iter).get<long long int>(2);
+				file->StartTime = (*iter).get<long long int>(3);
+				file->TimeDuration = (*iter).get<long long int>(4);
 				return file;
 			}
 		}
