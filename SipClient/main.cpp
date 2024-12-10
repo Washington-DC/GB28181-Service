@@ -51,7 +51,13 @@ int main()
 	HttpClient::GetInstance()->Init(media_server_info);
 
 	//检查拉流分发参数
-	DistributeManager::GetInstance()->Start();
+		//检查拉流分发参数
+	auto&& items = ConfigManager::GetInstance()->GetAllDistributeItems();
+	if (!items.empty())
+	{
+		DistributeManager::GetInstance()->Start();
+	}
+
 
 	//设备初始化
 	std::vector<std::shared_ptr<SipDevice>> devices;
