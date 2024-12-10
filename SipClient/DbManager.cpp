@@ -60,9 +60,9 @@ bool DbManager::AddFile(const std::string& name, const dto::ZlmMP4Item& item)
 	sqlite3pp::command cmd(*_db, text.c_str());
 	cmd.bind(1, item.FilePath, sqlite3pp::copy);
 	cmd.bind(2, item.FileName, sqlite3pp::copy);
-	cmd.bind(3, item.StartTime);
-	cmd.bind(4, item.StartTime + item.TimeDuration);
-	cmd.bind(5, item.TimeDuration);
+	cmd.bind(3, (long long int)item.StartTime);
+	cmd.bind(4, (long long int)(item.StartTime + item.TimeDuration));
+	cmd.bind(5, (long long int)(item.TimeDuration));
 	cmd.bind(6, item.FileSize);
 
 	auto ret = cmd.execute();
