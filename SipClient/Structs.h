@@ -22,6 +22,8 @@ struct ChannelInfo {
 	std::string Name;   //通道名称
 	std::string App;    //通道对应的视频流路径
 	std::string Stream; //通道对应的视频流路径
+
+	std::string Path() { return App + "/" + Stream; }
 };
 
 /// @brief 设备信息
@@ -48,8 +50,10 @@ struct SessionInfo {
 	bool UseTcp = false;    //使用TCP协议？
 
 	bool Playback = false;  //是否为回放
-	std::string StartTime;  //回放开始时间,unix时间戳
-	std::string EndTime;    //回放结束时间,unix时间戳
+	int64_t StartTime;  //回放开始时间,unix时间戳
+	int64_t EndTime;    //回放结束时间,unix时间戳
+
+	std::string FilePath;   //MP4文件路径
 
 	bool Used = false;
 

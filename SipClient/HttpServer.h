@@ -34,10 +34,10 @@ namespace dto
 		std::string Stream; //媒体流路径
 		std::string FileName; //文件名
 		std::string FilePath; //文件绝对路径
-		std::string FileSize;  //文件大小，单位字节
+		int64_t FileSize;  //文件大小，单位字节
 		std::string Folder;  //文件所在目录路径
-		std::string StartTime;  //开始录制时间戳
-		std::string TimeDuration;  //录制时长，单位秒
+		int64_t StartTime;  //开始录制时间戳
+		int64_t TimeDuration;  //录制时长，单位秒
 		std::string URL;  //http/rtsp/rtmp点播相对url路径
 		std::string Path() { return App + "/" + Stream; }
 	};

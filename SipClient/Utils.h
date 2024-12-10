@@ -13,7 +13,7 @@ std::string GenerateRandomString(int n);
 /// @brief 将ssrc转换为16进制字符串
 /// @param ssrc 媒体流标识ID		
 /// @return 16进制表示的SSRC字符串
-std::string SSRC_Hex(std::string ssrc);
+std::string SSRC_Hex(const std::string& ssrc);
 
 /// @brief 将字符串转换为utf8编码
 /// @param input 
@@ -33,3 +33,10 @@ std::string GetCurrentModuleDirectory();
 /// @param gz 
 /// @return time_t格式的时间
 int64_t ISO8601ToTimeT(const std::string& gz);
+
+/// @brief 
+/// @param timestamp 
+/// @return 
+std::string TimeToISO8601(const time_t timestamp);
+
+

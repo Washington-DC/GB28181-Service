@@ -46,8 +46,8 @@ int main()
 	auto sip_server_info = ConfigManager::GetInstance()->GetSipServerInfo();
 	auto media_server_info = ConfigManager::GetInstance()->GetMediaServerInfo();
 	auto device_infos = ConfigManager::GetInstance()->GetAllDeviceInfo();
-	DbManager::GetInstance()->Init(db_file.string());
 
+	DbManager::GetInstance()->Init(db_file.string());
 	HttpClient::GetInstance()->Init(media_server_info);
 
 	//检查拉流分发参数
@@ -68,7 +68,7 @@ int main()
 
 		for (auto&& channel : info->Channels)
 		{
-			auto table_name = fmt::format("{}_{}",info->ID,channel->ID);
+			auto table_name = channel->Path();
 			DbManager::GetInstance()->CreateTable(table_name);
 		}
 
@@ -83,10 +83,9 @@ int main()
 	getchar();
 #else
 	static std::promise<void> s_exit;
-	signal(SIGINT, [](int signal)
-		   {
-			   SPDLOG_INFO("Catch Signal: {}", signal);
-			   s_exit.set_value(); });
+	signal(SIGINT, [](int signal) {
+		SPDLOG_INFO("Catch Signal: {}", signal);
+		s_exit.set_value();	});
 	s_exit.get_future().wait();
 #endif
 

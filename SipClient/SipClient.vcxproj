@@ -155,7 +155,6 @@
     <ClCompile Include="DbManager.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DistributeManager.cpp" />
-    <ClCompile Include="FileTime.cpp" />
     <ClCompile Include="HttpClient.cpp" />
     <ClCompile Include="HttpServer.cpp" />
     <ClCompile Include="NetUtils.cpp" />
@@ -167,21 +166,18 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Utils.cpp" />
-    <ClCompile Include="WinApi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="DbManager.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="DistributeManager.h" />
-    <ClInclude Include="FileTime.h" />
     <ClInclude Include="HttpClient.h" />
     <ClInclude Include="HttpServer.h" />
     <ClInclude Include="NetUtils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="Utils.h" />
-    <ClInclude Include="WinApi.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\base\base.vcxproj">

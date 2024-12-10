@@ -2,8 +2,10 @@
 #include "Device.h"
 #include "HttpClient.h"
 #include "HttpServer.h"
-#include "FileTime.h"
 #include "NetUtils.h"
+#include "DbManager.h"
+#include "Utils.h"
+
 //起始端口号
 static int start_port = 20000;
 //最大的SN
@@ -36,7 +38,7 @@ static int get_sn()
 
 #define CALLBACK_TEMPLATE(F) (std::bind(&SipDevice::F, this, std::placeholders::_1))
 
-SipDevice::SipDevice(const std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info)
+SipDevice::SipDevice(std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info)
 {
 	this->ID = info->ID;
 	this->IP = info->IP;
@@ -126,7 +128,6 @@ void SipDevice::StopSipClient()
 	}
 
 	_register_success = false;
-	_is_heartbeat_running = false;
 
 	if (_subscription_thread)
 	{
@@ -158,7 +159,7 @@ void SipDevice::StopSipClient()
 
 bool SipDevice::Logout()
 {
-	_is_heartbeat_running = false;
+	_is_running = false;
 
 	if (_subscription_thread)
 	{
@@ -272,21 +273,13 @@ void SipDevice::SipRecvEventThread()
 void SipDevice::OnRegistrationFailed(eXosip_event_t* event)
 {
 	_register_success = false;
-	//_is_heartbeat_running = false;
 	if (event->response == nullptr)
 	{
 		SPDLOG_ERROR("注册失败");
 		return;
 	}
 	SPDLOG_ERROR("注册失败: {}", event->response->status_code);
-	//_is_heartbeat_running = false;
 
-	// 中途注册失败，继续发送心跳
-	//if (_heartbeat_thread)
-	//{
-	//	_heartbeat_thread->join();
-	//	_heartbeat_thread = nullptr;
-	//}
 	//当服务端回复401或403时，表示已经发送了一次消息
 	if (event->response->status_code == 401 || event->response->status_code == 403)
 	{
@@ -310,7 +303,6 @@ void SipDevice::OnRegistrationSuccess(eXosip_event_t* event)
 	SPDLOG_INFO("注册成功");
 
 	_register_success = true;
-	_is_heartbeat_running = true;
 	if (_heartbeat_thread == nullptr)
 	{
 		//如果注册成功，就开始启动心跳线程
@@ -520,22 +512,31 @@ void SipDevice::OnCallInvite(eXosip_event_t* event)
 #endif
 	session->SSRC = ssrc;
 	session->Channel = channel_info;
+	session->Playback = false;
+
 	//判断是回放还是实时
 	if (strstr(sdp_body->body, "s=Playback"))
 	{
 		session->Playback = true;
 		std::string text = sdp_body->body;
 		ParseTimeStr(text, session->StartTime, session->EndTime);
-	}
-	else
-	{
-		session->Playback = false;
+
+		auto file = DbManager::GetInstance()->QueryOne(channel_info->Path(), session->StartTime, session->EndTime);
+		if (file == nullptr)
+		{
+			SendInviteResponse(event, "", 404);
+			return;
+		}
+		else
+		{
+			session->FilePath = file->FilePath;
+		}
 	}
 
 	//did不同，但是目的地址还是一样的，可能是因为重复invite造成，对于后续的invite回复busy。
 	{
 		auto iter = std::find_if(_session_map.begin(), _session_map.end(),
-			[session](const std::pair<int32_t, std::shared_ptr<Session>> s)
+			[session](const std::pair<int32_t, std::shared_ptr<Session>>& s)
 			{
 				return s.second->TargetIP == session->TargetIP
 					and s.second->TargetPort == session->TargetPort
@@ -605,7 +606,7 @@ void SipDevice::SendInviteResponse(eXosip_event_t* event, const std::string& sdp
 		ret = eXosip_call_build_answer(_sip_context, event->tid, 200, &message);
 		if (ret != OSIP_SUCCESS)
 		{
-			// 经常会出现重复接收到INVITE的情况？第二次就收到重复的INVITE时，这里会build失败，然后直接返回即可。
+			// 会出现重复接收到INVITE的情况？第二次就收到重复的INVITE时，这里会build失败，然后直接返回即可。
 			SPDLOG_ERROR("eXosip_call_build_answer failed");
 			return;
 		}
@@ -650,7 +651,7 @@ void SipDevice::SendCallResponseOK(eXosip_event_t* event)
 /// @brief 心跳
 void SipDevice::HeartbeatTask()
 {
-	while (_is_running /*&& _register_success && _is_heartbeat_running*/)
+	while (_is_running)
 	{
 		//生成心跳xml
 		auto text =
@@ -926,71 +927,6 @@ std::string SipDevice::GeneratePresetListXML(const std::string& sn)
 }
 
 
-std::string SipDevice::GenerateRecordInfoXML(const std::string& sn,
-const std::string& channel_id, const std::string& start_time, const std::string& end_time)
-{
-	std::shared_ptr<ChannelInfo> channel_info = FindChannel(channel_id);
-	if (channel_info == nullptr) return std::string();
-	// 向流媒体服务器发送请求
-	std::string response;
-	auto ret = HttpClient::GetInstance()->GetMp4RecordInfo(channel_info->Stream,
-														   start_time, end_time, response);
-	std::string response_body;
-	auto text =
-		R"( <?xml version="1.0" encoding="GB2312"?>
-			<Response>
-				<CmdType>RecordInfo</CmdType>
-				<SN>{}</SN>
-				<DeviceID>{}</DeviceID>
-				<Name>{}</Name>
-				<SumNum>{}</SumNum>
-				<RecordList Num="{}">
-				</RecordList>
-			</Response>
-		)"s;
-	try
-	{
-		pugi::xml_document doc;
-		nlohmann::json json_data = nlohmann::json::parse(response);
-		size_t record_size = json_data["data"]["fileInfo"].size();
-		response_body = fmt::format(text, sn, this->ID, channel_id, record_size, record_size);
-
-		auto doc_ret = doc.load_string(response_body.c_str());
-		if (doc_ret.status != pugi::status_ok)
-			return std::string();
-
-		auto record_list = doc.child("Response").child("RecordList");
-
-		for (const auto& file_item : json_data["data"]["fileInfo"])
-		{
-			//文件路径，这里只使用文件名称即可
-			std::string file_path = std::filesystem::path(file_item["file_path"].get<std::string>()).filename().u8string();
-			std::string str_begin_time = toolkit::CFileTime(file_item["begin_time"]).UTCToLocal().FormatTZ();
-			std::string str_end_time = toolkit::CFileTime(file_item["stop_time"]).UTCToLocal().FormatTZ();
-
-			auto node = record_list.append_child("Item");
-			node.append_child("DeviceID").text().set(this->ID.c_str());
-			node.append_child("Name").text().set(channel_id.c_str());
-			node.append_child("FilePath").text().set(file_path.c_str());
-			node.append_child("StartTime").text().set(str_begin_time.c_str());
-			node.append_child("EndTime").text().set(str_end_time.c_str());
-			node.append_child("Address").text().set("");
-			node.append_child("Secrecy").text().set("0");
-			node.append_child("Type").text().set("time");
-		}
-
-		std::stringstream ss;
-		doc.save(ss);
-		response_body = ss.str();
-	}
-	catch (...)
-	{
-		//查询不到或不存在时，就回复空内容
-		response_body = fmt::format(text, sn, this->ID, channel_id, 0, 0);
-	}
-	return response_body;
-}
-
 void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel_id, const std::string& start_time, const std::string& end_time)
 {
 	auto send_empty_response = [&]() {
@@ -1016,77 +952,64 @@ void SipDevice::SendRecordInfo(const std::string& sn, const std::string& channel
 		return;
 	}
 	// 向流媒体服务器发送请求
-	std::string response;
-	auto ret = HttpClient::GetInstance()->GetMp4RecordInfo(channel_info->Stream,
-														   start_time, end_time, response);
-	if (ret == false)
+	auto start = ISO8601ToTimeT(start_time);
+	auto end = ISO8601ToTimeT(end_time);
+	auto vec_files = DbManager::GetInstance()->Query(channel_info->Path(), start, end);
+	if (vec_files.empty())
 	{
 		send_empty_response();
 		return;
 	}
 
-	try
-	{
-		//parse可能会抛出异常
-		nlohmann::json json_data = nlohmann::json::parse(response);
-		auto&& fileinfo = json_data["data"]["fileInfo"];
-		auto size = fileinfo.size();
+	auto size = vec_files.size();
 
-		if (size == 0)
-		{
-			send_empty_response();
-		}
+	//计算需要发送次数
+	auto times = (int)std::ceil(size * 1.0 / batch_size);
+	//文件索引
+	int index = 0;
+	for (int i = 0; i < times; i++)
+	{
+		pugi::xml_document doc;
+		auto decl = doc.prepend_child(pugi::node_declaration);
+		decl.append_attribute("version") = "1.0";
+		decl.append_attribute("encoding") = "GB2312";
+
+		auto root = doc.append_child("Response");
+		root.append_child("CmdType").text().set("RecordInfo");
+		root.append_child("SN").text().set(sn.c_str());
+		root.append_child("DeviceID").text().set(this->ID.c_str());
+		root.append_child("Name").text().set(channel_id.c_str());
+		root.append_child("SumNum").text().set(size);
+		auto record_list = root.append_child("RecordList");
+
+		auto num = 0;
+		if (i < times - 1)
+			num = batch_size;
 		else
+			num = size - batch_size * (times - 1);
+
+		record_list.append_attribute("Num").set_value(num);
+
+		for (int j = 0; j < num; j++)
 		{
-			//计算需要发送次数
-			auto times = std::ceil(size * 1.0 / batch_size);
-			//文件索引
-			int index = 0;
-			for (int i = 0; i < times; i++)
-			{
-				pugi::xml_document doc;
-				auto decl = doc.prepend_child(pugi::node_declaration);
-				decl.append_attribute("version") = "1.0";
-				decl.append_attribute("encoding") = "GB2312";
+			index = i * batch_size + j;
+			auto&& item = vec_files[index];
 
-				auto root = doc.append_child("Response");
-				root.append_child("CmdType").text().set("RecordInfo");
-				root.append_child("SN").text().set(sn.c_str());
-				root.append_child("DeviceID").text().set(this->ID.c_str());
-				root.append_child("Name").text().set(channel_id.c_str());
-				root.append_child("SumNum").text().set(size);
-				auto record_list = root.append_child("RecordList");
+			//文件路径，这里只使用文件名称即可
+			std::string str_begin_time = TimeToISO8601(std::time_t(item->StartTime));
+			std::string str_end_time = TimeToISO8601(std::time_t(item->StartTime + item->TimeDuration));
 
-				auto num = (i < times - 1) ? batch_size : (size % batch_size);
-				record_list.append_attribute("Num").set_value(num);
-
-				for (int j = 0; j < num; j++)
-				{
-					index = i * batch_size + j;
-					auto&& item = fileinfo[index];
-
-					//文件路径，这里只使用文件名称即可
-					std::string file_path = std::filesystem::path(item["file_path"].get<std::string>()).filename().u8string();
-					std::string str_begin_time = toolkit::CFileTime(item["begin_time"]).UTCToLocal().FormatTZ();
-					std::string str_end_time = toolkit::CFileTime(item["stop_time"]).UTCToLocal().FormatTZ();
-
-					auto node = record_list.append_child("Item");
-					node.append_child("DeviceID").text().set(this->ID.c_str());
-					node.append_child("Name").text().set(channel_id.c_str());
-					node.append_child("FilePath").text().set(file_path.c_str());
-					node.append_child("StartTime").text().set(str_begin_time.c_str());
-					node.append_child("EndTime").text().set(str_end_time.c_str());
-					node.append_child("Address").text().set("");
-					node.append_child("Secrecy").text().set("0");
-					node.append_child("Type").text().set("time");
-				}
-				SendXmlResponse(doc);
-			}
+			auto node = record_list.append_child("Item");
+			node.append_child("DeviceID").text().set(this->ID.c_str());
+			node.append_child("Name").text().set(channel_id.c_str());
+			node.append_child("FilePath").text().set(item->FileName.c_str());
+			node.append_child("StartTime").text().set(str_begin_time.c_str());
+			node.append_child("EndTime").text().set(str_end_time.c_str());
+			node.append_child("Address").text().set("");
+			node.append_child("Secrecy").text().set("0");
+			node.append_child("Type").text().set("time");
 		}
-	}
-	catch (...)
-	{
-		send_empty_response();
+		SendXmlResponse(doc);
 	}
 }
 
@@ -1109,7 +1032,7 @@ std::string SipDevice::ParseSSRC(const std::string& text)
 }
 
 
-bool SipDevice::ParseTimeStr(std::string& text, std::string& start_time, std::string& end_time)
+bool SipDevice::ParseTimeStr(std::string& text, int64_t& start_time, int64_t& end_time)
 {
 	text = nbase::StringTrim(text);
 	auto tokens = nbase::StringTokenize(text.c_str(), "\n");
@@ -1117,12 +1040,12 @@ bool SipDevice::ParseTimeStr(std::string& text, std::string& start_time, std::st
 	{
 		if (strstr(token.c_str(), "t="))
 		{
-			start_time = token.substr(2, 11);
-			end_time = token.substr(12);
-
-			nbase::StringTrim(start_time);
-			nbase::StringTrim(end_time);
-			return true;
+			auto start = token.substr(2, 11);
+			auto end = token.substr(12);
+			nbase::StringTrim(start);
+			nbase::StringTrim(end);
+			return nbase::StringToInt64(start, &start_time)
+				&& nbase::StringToInt64(end, &end_time);
 		}
 	}
 	return false;
@@ -1184,7 +1107,7 @@ void SipDevice::OnInSubscriptionNew(eXosip_event_t* event)
 
 	osip_header_t* header = nullptr;
 	auto ret = osip_message_get_header(event->request, 0, &header);
-	if (ret != 0 && header->hvalue != nullptr) 
+	if (ret != 0 && header->hvalue != nullptr)
 	{
 		// 确定订阅的事件类型
 		SPDLOG_INFO("Subscription for event package: {}", header->hvalue);
@@ -1339,16 +1262,17 @@ void Session::Start()
 {
 	if (this->Playback)
 	{
-		// 录像回放：向流媒体服务器发送回放请求，需要指定收发数据的端口，SSRC和时间范围
-		auto ret = HttpClient::GetInstance()->StartSendPlaybackRtp(
-			this->Channel, this->SSRC, this->TargetIP, this->TargetPort, this->LocalPort,
-			this->StartTime, this->EndTime, this->UseTcp);
+		// 录像回放：先加载MP4文件，然后sendRTP
+		auto ret = HttpClient::GetInstance()->LoadMP4File("record", this->SSRC, this->FilePath);
+		ret = HttpClient::GetInstance()->StartSendRtp("record", this->SSRC, this->SSRC,
+			 this->TargetIP, this->TargetPort, this->LocalPort, this->UseTcp);
 	}
 	else
 	{
 		// 实时流：向流媒体服务器发送实时推送请求，需要指定收发数据的端口，SSRC和时间范围
 		auto ret = HttpClient::GetInstance()->StartSendRtp(
-			this->Channel, this->SSRC, this->TargetIP, this->TargetPort, this->LocalPort, this->UseTcp);
+			this->Channel->App, this->Channel->Stream, this->SSRC,
+			this->TargetIP, this->TargetPort, this->LocalPort, this->UseTcp);
 	}
 }
 

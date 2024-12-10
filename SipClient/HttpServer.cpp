@@ -88,8 +88,10 @@ HttpServer::HttpServer()
 	CROW_BP_ROUTE(_hook_blueprint, "/on_record_mp4").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmMP4Item>();
-			DbManager::GetInstance()->AddFile(info.Path(), info);
-
+			auto stream = info.Path();
+			toolkit::EventPollerPool::Instance().getExecutor()->async([stream, info]() {
+				DbManager::GetInstance()->AddFile(stream, info);
+				});
 			return crow::json::wvalue({ {"code", 0}, {"msg", "success"} });
 		}
 	);

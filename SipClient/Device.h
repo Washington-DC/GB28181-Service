@@ -32,7 +32,6 @@ public:
 	/// @param speed 播放速度
 	void Speed(float speed);
 
-
 private:
 
 	bool _paused = false;
@@ -46,7 +45,7 @@ public:
 	/// @brief 构造Device时，需要传递设备信息和服务器信息
 	/// @param info 设备信息
 	/// @param sip_server_info SIP服务器信息
-	SipDevice(const std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info);
+	SipDevice(std::shared_ptr<DeviceInfo> info, std::shared_ptr<SipServerInfo> sip_server_info);
 
 public:
 
@@ -59,11 +58,11 @@ public:
 	/// @return 是否开始，只有端口被占用或内存不足，会返回false
 	bool StartSipClient();
 
-	/// @brief 停止sip功能
+	/// @brief 停止sip交互
 	void StopSipClient();
 
 	/// @brief 注销
-	/// @return 注销命令是否发送，一般都会返回true
+	/// @return 一般都会返回true
 	bool Logout();
 
 private:
@@ -181,16 +180,6 @@ private:
 	/// @return 
 	std::string GeneratePresetListXML(const std::string& sn);
 
-
-	/// @brief 生成录像内容查询的回复xml
-	/// @param sn 消息编号
-	/// @param channel_id 通道ID 
-	/// @param start_time 查询的录像开始时间
-	/// @param end_time 查询的录像结束时间
-	/// @return 生成xml
-	std::string GenerateRecordInfoXML(const std::string& sn, const std::string& channel_id, const std::string& start_time, const std::string& end_time);
-
-
 	/// @brief 发送录像文件信息
 	/// @param sn 消息编号
 	/// @param channel_id 通道ID 
@@ -215,7 +204,7 @@ private:
 	/// @param start_time 录像开始时间
 	/// @param end_time 结束时间
 	/// @return 是否解析成功
-	bool ParseTimeStr(std::string& text, std::string& start_time, std::string& end_time);
+	bool ParseTimeStr(std::string& text, int64_t& start_time, int64_t& end_time);
 
 	/// @brief 发送xml响应消息
 	/// @param doc 

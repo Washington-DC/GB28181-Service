@@ -24,7 +24,9 @@ bool DbManager::CreateTable(const std::string& name)
 					  "filepath" text,
 					  "filename" text,
 					  "starttime" integer,
-					  "duration" integer
+					  "endtime" integer,
+					  "duration" integer,
+					  "filesize" integer
 				)
 				)";
 
@@ -44,11 +46,13 @@ bool DbManager::AddFile(const std::string& name, const dto::ZlmMP4Item& item)
 						"filepath",
 						"filename", 
 						"starttime", 
-						"duration"
+						"endtime", 
+						"duration",
+						"filesize"
 						) 
 						VALUES 
 						(
-							?1,?2,?3,?4
+							?1,?2,?3,?4,?5,?6
 						))";
 
 	auto text = fmt::format(sql, name);
@@ -56,11 +60,68 @@ bool DbManager::AddFile(const std::string& name, const dto::ZlmMP4Item& item)
 	sqlite3pp::command cmd(*_db, text.c_str());
 	cmd.bind(1, item.FilePath, sqlite3pp::copy);
 	cmd.bind(2, item.FileName, sqlite3pp::copy);
-	cmd.bind(3, item.StartTime, sqlite3pp::copy);
-	cmd.bind(4, item.TimeDuration, sqlite3pp::copy);
+	cmd.bind(3, item.StartTime);
+	cmd.bind(4, item.StartTime + item.TimeDuration);
+	cmd.bind(5, item.TimeDuration);
+	cmd.bind(6, item.FileSize);
 
 	auto ret = cmd.execute();
 	return ret == SQLITE_OK;
+}
+
+
+std::vector<std::shared_ptr<dto::ZlmMP4Item>>
+DbManager::Query(const std::string& stream_id, uint64_t start, uint64_t end) {
+	std::vector<std::shared_ptr<dto::ZlmMP4Item>> files;
+	try {
+		auto text = R"(SELECT "filepath","filename","filesize","starttime","duration" FROM "{}" WHERE "endtime" >= {} AND "starttime" <= {} ORDER BY ID ASC)";
+		auto sql = fmt::format(text, stream_id, start, end);
+		if (_db)
+		{
+			sqlite3pp::query query(*_db.get(), sql.c_str());
+			for (auto iter = query.begin(); iter != query.end(); ++iter)
+			{
+				auto video = std::make_shared<dto::ZlmMP4Item>();
+				video->FilePath = ToMbcsString((*iter).get<const char*>(0));
+				video->FileName = ToMbcsString((*iter).get<const char*>(1));
+				video->FileSize = (*iter).get<int64_t>(2);
+				video->StartTime = (*iter).get<int64_t>(3);
+				video->TimeDuration = (*iter).get<int64_t>(4);
+				files.push_back(video);
+			}
+		}
+	}
+	catch (const std::exception& ex) {
+		ErrorL << "Sqlite Query: " << ex.what();
+	}
+	return files;
+}
+
+std::shared_ptr<dto::ZlmMP4Item> DbManager::QueryOne(const std::string& stream_id, uint64_t start, uint64_t end)
+{
+	std::shared_ptr<dto::ZlmMP4Item> file = nullptr;
+	try {
+		auto text = R"(SELECT "filepath","filename","filesize","starttime","duration" FROM "{}" WHERE "starttime" = {} AND "endtime" = {} ORDER BY ID ASC)";
+		auto sql = fmt::format(text, stream_id, start, end);
+		if (_db)
+		{
+			sqlite3pp::query query(*_db.get(), sql.c_str());
+			for (auto iter = query.begin(); iter != query.end(); ++iter)
+			{
+				file = std::make_shared<dto::ZlmMP4Item>();
+				file->FilePath = ToMbcsString((*iter).get<const char*>(0));
+				file->FileName = ToMbcsString((*iter).get<const char*>(1));
+				file->FileSize = (*iter).get<int64_t>(2);
+				file->StartTime = (*iter).get<int64_t>(3);
+				file->TimeDuration = (*iter).get<int64_t>(4);
+				return file;
+			}
+		}
+	}
+	catch (const std::exception& ex) {
+		ErrorL << "Sqlite Query: " << ex.what();
+	}
+	return file;
 }
 
 
@@ -88,7 +149,7 @@ bool DbManager::_initialization()
 				auto state = ToMbcsString((*iter).get<const char*>(0));
 				if (strstr(state.c_str(), "wal"))
 				{
-					SPDLOG_ERROR("journal_mode : wal");
+					SPDLOG_INFO("journal_mode : wal");
 				}
 				else
 				{
