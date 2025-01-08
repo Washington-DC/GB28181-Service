@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Config>
 	<SipServer>
 		<!-- SIP监听端口 -->
-		<Port>5060</Port>
+		<Port>25060</Port>
 		<Password>12345678</Password>
 		<!-- SIP服务ID -->
 		<ID>34020000002000000001</ID>
 		<!-- 这个参数暂时没用 -->
-		<IP>0.0.0.0</IP>
+		<IP>192.168.116.125</IP>
 		<!-- 收流IP -->
 		<ExternIP>192.168.116.125</ExternIP>
 	</SipServer>

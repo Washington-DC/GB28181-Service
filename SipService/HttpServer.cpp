@@ -773,7 +773,17 @@ std::string HttpServer::Playback(const std::string& device_id, const std::string
 
 	//生成ssrc以及stream_id
 	auto ssrc = SSRCConfig::GetInstance()->GenerateSSRC(SSRCConfig::Mode::Playback);
-	std::string stream_id = SSRC_Hex(ssrc);
+	//std::string stream_id = SSRC_Hex(ssrc);
+
+	std::string stream_id = "";
+	if (ZlmServer::GetInstance()->SinglePortMode())
+	{
+		stream_id = SSRC_Hex(ssrc);
+	}
+	else
+	{
+		stream_id = fmt::format("{}_{}_{}_{}", device_id, channel_id, start_time, end_time);
+	}
 
 	if (!stream_id.empty())
 	{

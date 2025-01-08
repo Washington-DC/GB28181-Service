@@ -112,42 +112,47 @@ MessageRequest::~MessageRequest()
 
 int MessageRequest::SendMessage(bool needcb)
 {
-	auto config = ConfigManager::GetInstance()->GetSipServerInfo();
-	auto from_uri = fmt::format("sip:{}@{}:{}", config->ID, config->IP, config->Port);
-	auto to_uri = fmt::format("sip:{}@{}:{}", _device->GetDeviceID(), _device->GetIP(), _device->GetPort());
-
-	osip_message_t* msg = nullptr;
-	auto ret = eXosip_message_build_request(_exosip_context, &msg, "MESSAGE", to_uri.c_str(), from_uri.c_str(), nullptr);
-	if (ret != OSIP_SUCCESS)
+	if (_exosip_context)
 	{
-		return ret;
-	}
+		auto config = ConfigManager::GetInstance()->GetSipServerInfo();
+		auto from_uri = fmt::format("sip:{}@{}:{}", config->ID, config->IP, config->Port);
+		auto to_uri = fmt::format("sip:{}@{}:{}", _device->GetDeviceID(), _device->GetIP(), _device->GetPort());
 
-	auto body = make_manscdp_body();
-	body = format_xml(body);
-
-	osip_message_set_body(msg, body.c_str(), body.length());
-	osip_message_set_content_type(msg, "Application/MANSCDP+xml");
-
-	eXosip_lock(_exosip_context);
-	ret = eXosip_message_send_request(_exosip_context, msg);
-	eXosip_unlock(_exosip_context);
-	//MARK: 这里虽然成功了，但是返回值不是0
-	//if (ret != OSIP_SUCCESS)
-	//{
-	//	return ret;
-	//}
-
-	if (needcb)
-	{
-		std::string request_id = _get_request_id_from_request(msg);
-		if (request_id.length() > 0)
+		osip_message_t* msg = nullptr;
+		auto ret = eXosip_message_build_request(_exosip_context, &msg, "MESSAGE", to_uri.c_str(), from_uri.c_str(), nullptr);
+		if (ret != OSIP_SUCCESS)
 		{
-			BaseRequest::Ptr request = shared_from_this();
-			RequestPool::GetInstance()->AddRequest(request_id, request);
+			return ret;
 		}
+
+		auto body = make_manscdp_body();
+		body = format_xml(body);
+
+		osip_message_set_body(msg, body.c_str(), body.length());
+		osip_message_set_content_type(msg, "Application/MANSCDP+xml");
+
+		eXosip_lock(_exosip_context);
+		ret = eXosip_message_send_request(_exosip_context, msg);
+		eXosip_unlock(_exosip_context);
+		//MARK: 这里虽然成功了，但是返回值不是0
+		//if (ret != OSIP_SUCCESS)
+		//{
+		//	return ret;
+		//}
+
+		if (needcb)
+		{
+			std::string request_id = _get_request_id_from_request(msg);
+			if (request_id.length() > 0)
+			{
+				BaseRequest::Ptr request = shared_from_this();
+				RequestPool::GetInstance()->AddRequest(request_id, request);
+			}
+		}
+		return 0;
 	}
-	return 0;
+
+	return -1;
 }
 
 const std::string MessageRequest::GetRequestSN()
@@ -237,7 +242,32 @@ const std::string InviteRequest::make_sdp_body(const std::string& id, int port, 
 			a=* (零个或多个会话属性行)
 			Zero or more media descriptions
 	*/
-	auto text = R"(v=0
+
+	if (_play_mode == SSRCConfig::Mode::Playback)
+	{
+		std::stringstream ss;
+
+		ss << "v=0\r\n";
+		ss << "o={} 0 0 IN IP4 {}\r\n";
+		ss << "s={}\r\n";
+		ss << "u={}:0\r\n";//u字段顺序错误，会导致海康NVR回复400错误
+		ss << "c=IN IP4 {}\r\n";
+		ss << "t={} {}\r\n";
+		ss << "m=video {} RTP/AVP 96 97 98 99\r\n";
+		ss << "a=recvonly\r\n";
+		ss << "a=rtpmap:96 PS/90000\r\n";
+		ss << "a=rtpmap:97 MPEG4/90000\r\n";
+		ss << "a=rtpmap:98 H264/90000\r\n";
+		ss << "a=rtpmap:99 H265/90000\r\n";
+		ss << "y={}\r\n";
+
+		auto server = ConfigManager::GetInstance()->GetSipServerInfo();
+		return fmt::format(ss.str(), id, _device->GetStreamIP(), "Playback", id,
+			_device->GetStreamIP(), _start_time, _end_time,  port, ssrc);
+	}
+	else
+	{
+		auto text = R"(v=0
 o={} 0 0 IN IP4 {}
 s={}
 c=IN IP4 {}
@@ -250,11 +280,10 @@ a=rtpmap:98 H264/90000
 a=rtpmap:99 H265/90000
 y={}
 )";
-
-	auto server = ConfigManager::GetInstance()->GetSipServerInfo();
-	return fmt::format(text, id, _device->GetStreamIP(),
-		_play_mode == SSRCConfig::Mode::Playback ? "Playback" : "Play",
-		_device->GetStreamIP(), _start_time, _end_time, port, ssrc);
+		auto server = ConfigManager::GetInstance()->GetSipServerInfo();
+		return fmt::format(text, id, _device->GetStreamIP(), "Play",
+			_device->GetStreamIP(), _start_time, _end_time, port, ssrc);
+	}
 }
 
 
