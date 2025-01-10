@@ -576,6 +576,7 @@ HttpServer::HttpServer()
 	CROW_BP_ROUTE(_hook_blueprint, "/on_stream_changed").methods("POST"_method)([this](const crow::request& req)
 		{
 			auto info = nlohmann::json::parse(req.body).get<dto::ZlmStreamInfo>();
+			SPDLOG_INFO("on_stream_changed: {}", info.Path());
 			if (info.Regist)
 			{
 				if (info.OriginType == 3)
@@ -583,6 +584,7 @@ HttpServer::HttpServer()
 					auto stream = StreamManager::GetInstance()->GetStream(info.Stream);
 					if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 					{
+						SPDLOG_INFO("查找到请求正在等待回复...");
 						auto session = std::dynamic_pointer_cast<CallSession>(stream);
 						if(session) session->NotifyStreamReady();
 					}
