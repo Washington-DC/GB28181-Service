@@ -841,5 +841,5 @@ std::shared_ptr<Channel> HttpServer::GetChannel(const std::string& device_id, co
 
 std::future<void> HttpServer::Start(int port)
 {
-	return _app.loglevel(crow::LogLevel::Critical).port(port).multithreaded().run_async();
+	return _app.loglevel(crow::LogLevel::Critical).port(port).concurrency(std::thread::hardware_concurrency()*2).run_async();
 }

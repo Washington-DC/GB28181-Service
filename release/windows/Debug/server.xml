@@ -21,6 +21,7 @@
 		<!-- ZLM是否使用单端口模式 -->
 		<SinglePortMode>false</SinglePortMode>
 		<Secret>035c73f7-6666-8888-9999-d9eb2d1925cc</Secret>
+		<PlayWait>30</PlayWait>
 	</MediaServer>
 	<Http>
 		<!-- Http服务端口 -->

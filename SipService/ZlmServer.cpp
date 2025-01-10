@@ -17,7 +17,6 @@
 void ZlmServer::Init(std::shared_ptr<MediaServerInfo> info)
 {
 	_info = info;
-
 	_base_url = fmt::format("http://{}:{}", _info->IP, _info->Port);
 }
 
