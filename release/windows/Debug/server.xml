@@ -15,7 +15,7 @@
 		<!-- ZLM服务地址 -->
 		<IP>127.0.0.1</IP>
 		<!-- ZLM服务Http端口 -->
-		<Port>10080</Port>
+		<Port>82</Port>
 		<!-- ZLM RTP接收端口 -->
 		<RtpPort>10000</RtpPort>
 		<!-- ZLM是否使用单端口模式 -->

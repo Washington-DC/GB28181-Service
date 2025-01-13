@@ -1,4 +1,4 @@
-# SipClient
+﻿# SipClient
 
 依赖[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)实现的一个简单的 GB28181 设备端。
 

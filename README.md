@@ -1,4 +1,4 @@
-# GB28181-Service
+﻿# GB28181-Service
 [![CMake on Ubuntu](https://github.com/Washington-DC/GB28181-Service/actions/workflows/cmake-ubuntu.yml/badge.svg)](https://github.com/Washington-DC/GB28181-Service/actions/workflows/cmake-ubuntu.yml)   [![MSBuild](https://github.com/Washington-DC/GB28181-Service/actions/workflows/msbuild-windows.yml/badge.svg)](https://github.com/Washington-DC/GB28181-Service/actions/workflows/msbuild-windows.yml)
 
 
@@ -445,7 +445,7 @@
 - 范例：[http://127.0.0.1:8000/v1/preset?device_id=34020000001320000100&channel_id=34020000001320000100&preset=1&command=goto](http://127.0.0.1:8000/v1/preset?device_id=34020000001320000100&channel_id=34020000001320000100&preset=1&command=goto)
 
 - 参数：
- 
+
     |    参数    | 是否必选 |        释意        |
     | :--------: | :------: | :----------------: |
     | device_id  |    Y     |      设备编码      |
@@ -471,7 +471,7 @@
 - 范例：[http://127.0.0.1:8000/v1/preset/query?device_id=34020000001320000100&channel_id=34020000001320000100](http://127.0.0.1:8000/v1/preset/query?device_id=34020000001320000100&channel_id=34020000001320000100)
 
 - 参数：
- 
+
     |    参数    | 是否必选 |   释意   |
     | :--------: | :------: | :------: |
     | device_id  |    Y     | 设备编码 |
@@ -508,7 +508,7 @@
 - 范例：[http://127.0.0.1:8000/v1/ptz?device_id=34020000001320000100&channel_id=34020000001320000100&speed=1&command=stop](http://127.0.0.1:8000/v1/ptz?device_id=34020000001320000100&channel_id=34020000001320000100&speed=1&command=stop)
 
 - 参数：
- 
+
     |    参数    | 是否必选 |                             释意                             |
     | :--------: | :------: | :----------------------------------------------------------: |
     | device_id  |    Y     |                           设备编码                           |
@@ -541,12 +541,12 @@
 
 - 功能：录像回放
 
-- 范例：[http://127.0.0.1:8000/v1/record/query?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800](http://127.0.0.1:8000/v1/record/query?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800)
+- 范例：[http://127.0.0.1:8000/v1/record/play/start?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800](http://127.0.0.1:8000/v1/record/query?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800)
 
 - 参数：
 
-    |    参数    | 是否必选 |     释意     |
-    | :--------: | :------: | :----------: |
+    |    参数    |  是否必选  |     释意    |
+    | :--------: | :------: | :--------: |
     | device_id  |    Y     |   设备编码   |
     | channel_id |    Y     |   通道编码   |
     | start_time |    Y     | 录像开始时间 |
@@ -557,10 +557,13 @@
 
 - 功能：停止录像回放
 
-- 范例：[http://127.0.0.1:8000/v1/record/play/stop?ssrc=1200000003](http://127.0.0.1:8000/v1/record/play/stop?ssrc=1200000003)
+- 范例：[http://127.0.0.1:8000/v1/record/play/stop?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800](http://127.0.0.1:8000/v1/record/play/stop?device_id=34020000001320000100&channel_id=34020000001320000100&start_time=1679674800&end_time=1679774800)
 
 - 参数：
 
-    | 参数 | 是否必选 | 释意 |
-    | :--: | :------: | :--: |
-    | ssrc |    Y     | SSRC |
+    |    参数    |  是否必选  |     释意    |
+    | :--------: | :------: | :--------: |
+    | device_id  |    Y     |   设备编码   |
+    | channel_id |    Y     |   通道编码   |
+    | start_time |    Y     | 录像开始时间 |
+    |  end_time  |    Y     | 录像结束时间 |
