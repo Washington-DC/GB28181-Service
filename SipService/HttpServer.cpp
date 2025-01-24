@@ -501,17 +501,17 @@ HttpServer::HttpServer()
 		}
 	);
 
-	//录像回放 停止, 根据回放的SSRC查找对应视频流，并关闭
+	//录像回放 停止, 
 	CROW_BP_ROUTE(_api_blueprint, "/record/play/stop")([this](const crow::request& req)
 		{
-			CHECK_ARGS("ssrc");
-			auto ssrc = req.url_params.get("ssrc");
+			//CHECK_ARGS("stream_id");
+			CHECK_ARGS("device_id", "channel_id", "start_time", "end_time");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+			auto start_time = req.url_params.get("start_time");
+			auto end_time = req.url_params.get("end_time");
 
-			std::string stream_id = SSRC_Hex(ssrc);
-			if (stream_id.empty())
-			{
-				return _mk_response(400, "", "not play");
-			}
+			auto stream_id = fmt::format("{}_{}_{}_{}", device_id, channel_id, start_time, end_time);
 
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
 			if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
