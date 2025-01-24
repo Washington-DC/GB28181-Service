@@ -10,11 +10,13 @@ target_link_libraries(SipClient base)
 target_link_libraries(SipClient zltoolkit)
 target_link_libraries(SipClient pugixml)
 target_link_libraries(SipClient cpr)
+target_link_libraries(SipClient cpr)
 target_link_libraries(SipClient ${Boost_LIBRARIES})
 target_link_libraries(SipClient PkgConfig::sqlite3)
 target_link_libraries(SipClient PkgConfig::osip2)
 target_link_libraries(SipClient PkgConfig::exosip2)
-
+target_link_libraries(SipClient ${OPENSSL_LIBRARIES})
+target_link_libraries(SipClient ${CURL_LIBRARIES})
 
 
 

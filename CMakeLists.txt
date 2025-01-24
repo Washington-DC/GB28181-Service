@@ -63,8 +63,9 @@ pkg_search_module(sqlite3 REQUIRED sqlite3 IMPORTED_TARGET)
 find_package(Boost REQUIRED COMPONENTS thread locale system filesystem)
 find_package(pugixml  REQUIRED)
 find_package(cpr REQUIRED)
+find_package(CURL REQUIRED)
 # find_package(spdlog REQUIRED)
-
+find_package(OpenSSL REQUIRED)
 
 add_subdirectory(3rdparty)
 add_subdirectory(base)

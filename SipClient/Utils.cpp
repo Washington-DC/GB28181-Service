@@ -3,6 +3,52 @@
 #include <random>
 #include <regex>
 
+#ifndef _WIN32
+
+#include <iconv.h>
+
+const size_t BUFFER_SIZE = 1024;
+// 使用iconv进行编码转换
+bool convert_encoding(const char* from_charset, const char* to_charset, std::string& input, std::string& output) {
+    iconv_t cd = iconv_open(to_charset, from_charset);
+    if (cd == (iconv_t)-1) {
+        std::cerr << "iconv_open failed: " << strerror(errno) << std::endl;
+        return false;
+    }
+
+    char* in_buf = const_cast<char*>(input.c_str());
+    size_t in_bytes_left = input.size();
+    size_t out_bytes_left = BUFFER_SIZE;
+    char out_buf[BUFFER_SIZE];
+
+    char* pin = in_buf;
+    char* pout = out_buf;
+
+    while (in_bytes_left > 0) {
+        size_t result = iconv(cd, &pin, &in_bytes_left, &pout, &out_bytes_left);
+        if (result == (size_t)-1) {
+            if (errno == EILSEQ) {
+                // 忽略无法转换的字符
+                ++pin;
+                --in_bytes_left;
+                continue;
+            } else {
+                std::cerr << "iconv failed: " << strerror(errno) << std::endl;
+                iconv_close(cd);
+                return false;
+            }
+        }
+        output.append(out_buf, BUFFER_SIZE - out_bytes_left);
+        out_bytes_left = BUFFER_SIZE;
+        pout = out_buf;
+    }
+
+    iconv_close(cd);
+    return true;
+}
+
+#endif
+
 std::string LocalTime(time_t time)
 {
 	return fmt::format("{:%Y-%m-%d %H:%M:%S}", fmt::localtime(time));
@@ -49,6 +95,11 @@ std::string ToMbcsString(const std::string& input)
 #ifdef _WIN32
 	return nbase::win32::Utf8ToMBCS(input);
 #else
+	std::string gb2312_content;
+	std::string utf8_content = input;
+	auto ret = convert_encoding("utf8","gbk",utf8_content,gb2312_content);
+	if(ret)
+		return gb2312_content;
 	return input;
 #endif
 }
