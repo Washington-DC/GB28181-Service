@@ -2,6 +2,7 @@
 #include "SipEvent.h"
 #include "EventHandler.h"
 
+//自动生成代码，事件回调目录
 class EventHandlerManager
 {
 public:

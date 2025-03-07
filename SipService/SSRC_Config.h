@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+//SSRC信息，包括SSRC字段、数据通信端口等缓存内容
 class SSRCInfo
 {
 public:
@@ -21,7 +22,7 @@ private:
 };
 
 
-
+//SSRC配置，设置前缀，生成
 class SSRCConfig
 {
 public:

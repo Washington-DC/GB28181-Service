@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "SipRequest.h"
 
+//请求消息等待结果回调处理
 class RequestPool
 {
 public:

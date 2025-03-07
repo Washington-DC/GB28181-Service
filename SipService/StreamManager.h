@@ -48,7 +48,7 @@ public:
 		:MediaStream(app, stream_id, STREAM_TYPE::STREAM_TYPE_PUSH) {};
 };
 
-
+// 播放的session
 class CallSession :public MediaStream
 {
 public:
@@ -75,7 +75,9 @@ public:
 private:
 	SSRCInfo::Ptr _ssrc;
 	bool _is_connected = false;
+	//其实没什么用
 	int _call_id = 0;
+	//会话ID，重要，每次的媒体控制需要通过此ID来找到对应的会话
 	int _dialog_id = 0;
 	std::atomic_uint32_t _ceq_id = 0;
 

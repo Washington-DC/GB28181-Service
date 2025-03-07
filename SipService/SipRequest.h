@@ -4,6 +4,7 @@
 #include "SSRC_Config.h"
 #include "StreamManager.h"
 
+//向设备端发送请求
 class BaseRequest :public std::enable_shared_from_this<BaseRequest>
 {
 public:
@@ -40,7 +41,7 @@ private:
 	std::condition_variable _cv;
 };
 
-
+//向设备端发送Message
 class MessageRequest : public BaseRequest
 {
 public:
@@ -62,7 +63,7 @@ private:
 	std::string format_xml(const std::string& xml);
 };
 
-
+//查询设备目录
 class CatalogRequest :public MessageRequest
 {
 public:
@@ -78,7 +79,7 @@ public:
 
 };
 
-
+//查询设备信息
 class DeviceInfoRequest :public MessageRequest
 {
 public:
@@ -94,7 +95,7 @@ public:
 };
 
 
-
+//请求数据流传输
 class InviteRequest :public BaseRequest
 {
 public:
@@ -127,7 +128,7 @@ private:
 };
 
 
-
+//播放控制命令
 class CallMessageRequest: public BaseRequest
 {
 public:
@@ -152,7 +153,7 @@ private:
 
 
 
-
+//预置点查询请求
 class PresetRequest :public MessageRequest
 {
 public:
@@ -178,7 +179,7 @@ private:
 
 
 
-
+//预置位控制
 class PresetCtlRequest :public MessageRequest
 {
 public:
@@ -204,7 +205,7 @@ private:
 	int _byte7 = 0;
 };
 
-
+//云台控制
 class PtzCtlRequest :public MessageRequest
 {
 public:
@@ -241,7 +242,7 @@ private:
 };
 
 
-
+//镜头控制
 class LensCtlRequest :public MessageRequest
 {
 public:
@@ -276,7 +277,7 @@ private:
 
 
 
-
+//录像文件查询
 class RecordRequest :public MessageRequest
 {
 public:

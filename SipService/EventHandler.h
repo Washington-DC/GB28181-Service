@@ -18,6 +18,7 @@ protected:
     std::string GetMsgIDFromRequest(osip_message_t* request);
 };
 
+//注册事件处理
 class RegisterHandler:public BaseEventHandler
 {
 public:
@@ -27,39 +28,42 @@ private:
     void _response_register_401unauthorized(const SipEvent::Ptr& e);
 };
 
-
+//目录查询结果
 class CatalogHandler :public BaseEventHandler
 {
 public:
     virtual bool Handle(const SipEvent::Ptr& e,pugi::xml_document& doc);
 };
 
-
+//心跳消息处理
 class HeartbeatHandler :public BaseEventHandler
 {
 public:
     virtual bool Handle(const SipEvent::Ptr& e, pugi::xml_document& doc);
 };
 
+//设备信息处理
 class DeviceInfoHandler :public BaseEventHandler
 {
 public:
     virtual bool Handle(const SipEvent::Ptr& e, pugi::xml_document& doc);
 };
 
+//预置点查询信息
 class PresetQueryHandler :public BaseEventHandler
 {
 public:
     virtual bool Handle(const SipEvent::Ptr& e, pugi::xml_document& doc);
 };
 
+//录像文件查询信息
 class RecordQueryHandler :public BaseEventHandler
 {
 public:
     virtual bool Handle(const SipEvent::Ptr& e, pugi::xml_document& doc);
 };
 
-
+//其他消息处理
 class MessageHandler :public BaseEventHandler
 {
 public:
@@ -69,7 +73,7 @@ public:
     int HandleResponseFailure(const SipEvent::Ptr& e);
 };
 
-
+//播放事件处理
 class CallHandler :public BaseEventHandler
 {
 public:

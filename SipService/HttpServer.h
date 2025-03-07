@@ -37,7 +37,10 @@ private:
 	Channel::Ptr GetChannel(const std::string& device_id, const std::string& channel_id);
 
 	crow::SimpleApp _app;
+
+	//提供的外部接口
 	crow::Blueprint _api_blueprint;
+	//zlm的hook接口
 	crow::Blueprint _hook_blueprint;
 };
 
