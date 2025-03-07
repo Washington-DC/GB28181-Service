@@ -2,6 +2,8 @@
 #include "Structs.h"
 #include "Device.h"
 #include "SSRC_Config.h"
+#include "StreamManager.h"
+
 class BaseRequest :public std::enable_shared_from_this<BaseRequest>
 {
 public:
@@ -123,6 +125,31 @@ private:
 	int64_t _start_time = 0;
 	int64_t _end_time = 0;
 };
+
+
+
+class CallMessageRequest: public BaseRequest
+{
+public:
+public:
+	typedef std::shared_ptr<CallMessageRequest> Ptr;
+	CallMessageRequest(eXosip_t* ctx,  CallSession::Ptr session, Device::Ptr device = nullptr)
+		:BaseRequest(ctx, device, REQUEST_MESSAGE_TYPE::REQUEST_CALL_MESSAGE)
+		, _session(session)
+	{
+	};
+
+public:
+	virtual int SetSpeed(float speed = 1.0);
+	virtual int SetPause(bool flag = false);
+	virtual int SetRange(int64_t timestamp = 0);
+
+protected:
+
+private:
+	CallSession::Ptr _session = nullptr;
+};
+
 
 
 

@@ -519,3 +519,73 @@ std::vector<std::shared_ptr<RecordItem>> RecordRequest::GetRecordList()
 {
 	return _record_items;
 }
+
+int CallMessageRequest::SetSpeed(float speed)
+{
+	osip_message_t* msg = nullptr;
+	auto ret = eXosip_call_build_info(_exosip_context, _session->GetDialogID(), &msg);
+	if (ret != OSIP_SUCCESS)
+	{
+		return ret;
+	}
+
+	auto text = "PAUSE RTSP/1.0\r\nCSeq: {}\r\nScale: {}\r\n";
+	auto body = fmt::format(text, _session->GetCSeqID(), speed);
+
+	osip_message_set_body(msg, body.c_str(), body.length());
+	osip_message_set_content_type(msg, "Application/MANSCDP");
+
+	eXosip_lock(_exosip_context);
+	ret = eXosip_call_send_request(_exosip_context, _session->GetDialogID(), msg);
+	eXosip_unlock(_exosip_context);
+
+	return 0;
+}
+
+int CallMessageRequest::SetPause(bool flag)
+{
+	osip_message_t* msg = nullptr;
+	auto ret = eXosip_call_build_info(_exosip_context, _session->GetDialogID(), &msg);
+	if (ret != OSIP_SUCCESS)
+	{
+		return ret;
+	}
+	// 暂停播放
+	// 这里也有可能是MANSRTSP/1.0, 暂按照文档来实现
+	auto text = "PAUSE RTSP/1.0\r\nCSeq: {}\r\nPauseTime: now\r\n";
+	if (!flag)
+	{	
+		// 继续播放
+		text = "PLAY RTSP/1.0\r\nCSeq: {}\r\nRange: npt=now-\r\n";
+	}
+	auto body = fmt::format(text, _session->GetCSeqID());
+
+	osip_message_set_body(msg, body.c_str(), body.length());
+	osip_message_set_content_type(msg, "Application/MANSCDP");
+
+	eXosip_lock(_exosip_context);
+	ret = eXosip_call_send_request(_exosip_context, _session->GetDialogID(), msg);
+	eXosip_unlock(_exosip_context);
+	return 0;
+}
+
+int CallMessageRequest::SetRange(int64_t timestamp)
+{
+	osip_message_t* msg = nullptr;
+	auto ret = eXosip_call_build_info(_exosip_context, _session->GetDialogID(), &msg);
+	if (ret != OSIP_SUCCESS)
+	{
+		return ret;
+	}
+
+	auto text = "PLAY RTSP/1.0\r\nCSeq: {}\r\nRange: npt={}-\r\n";
+	auto body = fmt::format(text, _session->GetCSeqID(), timestamp);
+
+	osip_message_set_body(msg, body.c_str(), body.length());
+	osip_message_set_content_type(msg, "Application/MANSCDP");
+
+	eXosip_lock(_exosip_context);
+	ret = eXosip_call_send_request(_exosip_context, _session->GetDialogID(), msg);
+	eXosip_unlock(_exosip_context);
+	return 0;
+}

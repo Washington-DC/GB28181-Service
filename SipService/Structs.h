@@ -75,6 +75,8 @@ enum REQUEST_MESSAGE_TYPE
 	REQUEST_CALL_DOWNLOAD,          // 下载
 	REQUEST_CALL_BYE,               // 挂断
 
+	REQUEST_CALL_MESSAGE,            //播放控制
+
 	REQUEST_TYPE_MAX
 };
 

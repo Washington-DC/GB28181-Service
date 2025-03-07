@@ -536,6 +536,72 @@ HttpServer::HttpServer()
 		}
 	);
 
+	//录像回放 控制： 倍速设置、跳转位置
+	CROW_BP_ROUTE(_api_blueprint, "/record/play/control")([this](const crow::request& req)
+		{
+			//CHECK_ARGS("stream_id");
+			CHECK_ARGS("device_id", "channel_id", "start_time", "end_time");
+			auto device_id = req.url_params.get("device_id");
+			auto channel_id = req.url_params.get("channel_id");
+			auto start_time = req.url_params.get("start_time");
+			auto end_time = req.url_params.get("end_time");
+
+			auto stream_id = fmt::format("{}_{}_{}_{}", device_id, channel_id, start_time, end_time);
+
+			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
+			if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
+			{
+				auto session = std::dynamic_pointer_cast<CallSession>(stream);
+				if (!session->IsConnected())
+				{
+					return _mk_response(400, "", "not play");
+				}
+				else
+				{
+					//是否暂停播放
+					if (req.url_params.get("pause"))
+					{
+						auto pause = (req.url_params.get("pause") == "true");
+						auto request = std::make_shared<CallMessageRequest>(device->exosip_context, session);
+						request->SetPause(pause);
+					}
+					else
+					{
+						//速度调整和拖放位置可以同时存在
+						if (req.url_params.get("speed"))
+						{
+							//支持的scale取值范围
+							std::set<float> supported_speeds = { 0.25, 0.5, 1.0, 2.0, 4.0 };
+							auto speed = std::stof(req.url_params.get("speed"));
+							if (supported_speeds.count(speed))
+							{
+								auto request = std::make_shared<CallMessageRequest>(device->exosip_context, session);
+								request->SetSpeed(speed);
+							}
+							else
+							{
+								return _mk_response(101, "", fmt::format("not supported params: speed = {}", speed));
+							}
+						}
+
+						if (req.url_params.get("range"))
+						{
+							auto range = std::stoll(req.url_params.get("range"));
+							auto request = std::make_shared<CallMessageRequest>(device->exosip_context, session);
+							request->SetRange(range);
+						}
+					}
+
+					return _mk_response(0, "", "ok");
+				}
+			}
+			else
+			{
+				return _mk_response(400, "", "not play");
+			}
+		}
+	);
+
 
 
 	//-------------------------------------------------------------------------------------------------------
@@ -586,7 +652,7 @@ HttpServer::HttpServer()
 					{
 						SPDLOG_INFO("查找到请求正在等待回复...");
 						auto session = std::dynamic_pointer_cast<CallSession>(stream);
-						if(session) session->NotifyStreamReady();
+						if (session) session->NotifyStreamReady();
 					}
 				}
 			}
@@ -616,7 +682,7 @@ HttpServer::HttpServer()
 				if (session)
 				{
 					eXosip_call_terminate(session->exosip_context,
-					session->GetCallID(), session->GetDialogID());
+						session->GetCallID(), session->GetDialogID());
 					session->SetConnected(false);
 				}
 			}
@@ -841,5 +907,5 @@ std::shared_ptr<Channel> HttpServer::GetChannel(const std::string& device_id, co
 
 std::future<void> HttpServer::Start(int port)
 {
-	return _app.loglevel(crow::LogLevel::Critical).port(port).concurrency(std::thread::hardware_concurrency()*2).run_async();
+	return _app.loglevel(crow::LogLevel::Critical).port(port).concurrency(std::thread::hardware_concurrency() * 2).run_async();
 }

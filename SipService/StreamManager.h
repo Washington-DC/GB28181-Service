@@ -62,6 +62,7 @@ public:
 	int GetCallID();
 	void SetCallID(int id);
 	int GetDialogID();
+	int GetCSeqID();
 	void SetDialogID(int id);
 	SSRCInfo::Ptr GetSSRCInfo();
 	void SetSSRCInfo(SSRCInfo::Ptr ssrc);
@@ -76,6 +77,7 @@ private:
 	bool _is_connected = false;
 	int _call_id = 0;
 	int _dialog_id = 0;
+	std::atomic_uint32_t _ceq_id = 0;
 
 	std::mutex _mutex;
 	std::condition_variable _cv;

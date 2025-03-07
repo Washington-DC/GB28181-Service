@@ -45,6 +45,10 @@ int CallSession::GetDialogID()
 {
 	return _dialog_id;
 }
+int CallSession::GetCSeqID()
+{
+	return _ceq_id++;
+}
 void CallSession::SetDialogID(int id)
 {
 	_dialog_id = id;
