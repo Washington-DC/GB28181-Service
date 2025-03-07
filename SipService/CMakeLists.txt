@@ -15,6 +15,8 @@ target_link_libraries(SipService ${Boost_LIBRARIES})
 target_link_libraries(SipService PkgConfig::sqlite3)
 target_link_libraries(SipService PkgConfig::osip2)
 target_link_libraries(SipService PkgConfig::exosip2)
+target_link_libraries(SipService ${OPENSSL_LIBRARIES})
+target_link_libraries(SipService ${CURL_LIBRARIES})
 
 
 

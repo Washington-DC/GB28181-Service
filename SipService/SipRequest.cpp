@@ -187,7 +187,7 @@ std::string MessageRequest::format_xml(const std::string& xml)
 //-------------------------------------------------------------------------------------------------
 const std::string CatalogRequest::make_manscdp_body()
 {
-	auto text = R"(<?xml version="1.0"?>
+	auto text = R"(<?xml version="1.0" encoding="utf-8"?>
 								<Query>
 								<CmdType>Catalog</CmdType>
 								<SN>{}</SN>
@@ -203,7 +203,7 @@ const std::string CatalogRequest::make_manscdp_body()
 //-------------------------------------------------------------------------------------------------
 const std::string DeviceInfoRequest::make_manscdp_body()
 {
-	auto text = R"(<?xml version="1.0"?>
+	auto text = R"(<?xml version="1.0" encoding="utf-8"?>
 								<Query>
 								<CmdType>DeviceInfo</CmdType>
 								<SN>{}</SN>
@@ -371,7 +371,7 @@ int InviteRequest::SendCall(bool needcb)
 
 const std::string PresetRequest::make_manscdp_body()
 {
-	auto text = R"(<?xml version="1.0"?>
+	auto text = R"(<?xml version="1.0" encoding="utf-8"?>
 					<Query>
 						<CmdType>PresetQuery</CmdType>
 						<SN>{}</SN>
@@ -398,7 +398,7 @@ const std::vector<std::pair<std::string, std::string>> PresetRequest::GetPresetL
 //-------------------------------------------------------------------------------------------------
 const std::string PresetCtlRequest::make_manscdp_body()
 {
-	auto text = R"(<?xml version="1.0"?>
+	auto text = R"(<?xml version="1.0" encoding="utf-8"?>
 					<Control>
 						<CmdType>DeviceControl</CmdType>
 						<SN>{}</SN>
@@ -420,7 +420,7 @@ const std::string PresetCtlRequest::make_manscdp_body()
 
 const std::string PtzCtlRequest::make_manscdp_body()
 {
-	auto text = R"(<?xml version="1.0"?>
+	auto text = R"(<?xml version="1.0" encoding="utf-8"?>
 					<Control>
 						<CmdType>DeviceControl</CmdType>
 						<SN>{}</SN>
@@ -458,7 +458,7 @@ int PtzCtlRequest::HandleResponse(int statcode)
 
 const std::string LensCtlRequest::make_manscdp_body()
 {
-	auto text = R"(<?xml version="1.0"?>
+	auto text = R"(<?xml version="1.0" encoding="utf-8"?>
 					<Control>
 						<CmdType>DeviceControl</CmdType>
 						<SN>{}</SN>
@@ -488,7 +488,7 @@ int LensCtlRequest::HandleResponse(int statcode)
 
 const std::string RecordRequest::make_manscdp_body()
 {
-	auto text = R"(<?xml version="1.0"?>
+	auto text = R"(<?xml version="1.0" encoding="utf-8"?>
 					<Query>
 						<CmdType>RecordInfo</CmdType>
 						<SN>{}</SN>
