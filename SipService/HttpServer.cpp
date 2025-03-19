@@ -546,8 +546,13 @@ HttpServer::HttpServer()
 			auto start_time = req.url_params.get("start_time");
 			auto end_time = req.url_params.get("end_time");
 
-			auto stream_id = fmt::format("{}_{}_{}_{}", device_id, channel_id, start_time, end_time);
+			auto device = DeviceManager::GetInstance()->GetDevice(device_id);
+			if (device == nullptr)
+			{
+				return _mk_response(1, "", "device not found");
+			}
 
+			auto stream_id = fmt::format("{}_{}_{}_{}", device_id, channel_id, start_time, end_time);
 			auto stream = StreamManager::GetInstance()->GetStream(stream_id);
 			if (stream && stream->GetType() == STREAM_TYPE::STREAM_TYPE_GB)
 			{
