@@ -203,12 +203,13 @@ bool HttpClient::SetPause(const std::string& app, const std::string& stream, boo
 bool HttpClient::SetSpeed(const std::string& app, const std::string& stream, float speed)
 {
 	cpr::Response res = cpr::Get(
-		cpr::Url{ _base_url,"/index/api/action" },
+		cpr::Url{ _base_url,"/index/api/setRecordSpeed" },
 		cpr::Parameters{
 			{"secret",_server_info->Secret},
 			{"vhost","__defaultVhost__"},
 			{"app",app},
 			{"stream",stream},
+			{"schema","rtsp"},
 			{"speed", std::to_string(speed)}
 		},
 		cpr::Timeout{ 3s }

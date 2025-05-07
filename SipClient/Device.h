@@ -201,6 +201,10 @@ private:
 	/// @return  解析到的ssrc
 	std::string ParseSSRC(const std::string& text);
 
+
+
+	std::string ParseDownloadSpeed(const std::string& text);
+
 	/// @brief 根据SDP解析要查询的开始时间和结束时间，t字段也属于扩展内容
 	/// @param text SDP
 	/// @param start_time 录像开始时间
