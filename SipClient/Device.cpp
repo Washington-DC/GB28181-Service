@@ -1022,7 +1022,7 @@ void SipDevice::OnCallMessageNew(eXosip_event_t *event) {
     }
 
     auto &&session = iter->second;
-    if (session->PlayMode != EnumPlayMode::Realtime) //实时流不处理
+    if (session->PlayMode == EnumPlayMode::Realtime) //实时流不处理
     {
         SendCallResponseOK(event);
         return;
