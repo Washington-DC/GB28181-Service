@@ -68,7 +68,7 @@ int main()
 
 		for (auto&& channel : info->Channels)
 		{
-			auto table_name = channel->Path();
+			auto table_name = channel->DbName();
 			DbManager::GetInstance()->CreateTable(table_name);
 		}
 

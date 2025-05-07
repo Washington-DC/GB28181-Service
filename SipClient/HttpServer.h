@@ -40,6 +40,7 @@ namespace dto
 		int64_t TimeDuration;  //录制时长，单位秒
 		std::string URL;  //http/rtsp/rtmp点播相对url路径
 		std::string Path() { return App + "/" + Stream; }
+		std::string DbName() { return App + "_" + Stream; }
 	};
 
 	/// @brief 将json信息反序列化到实际对象

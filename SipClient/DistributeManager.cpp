@@ -10,9 +10,9 @@ void DistributeManager::Start()
 		{
 			while (_start)
 			{
-				//ÅäÖÃµÄÀ­Á÷·Ö·¢Ïî
+				//é…ç½®çš„æ‹‰æµåˆ†å‘é¡¹
 				auto&& items = ConfigManager::GetInstance()->GetAllDistributeItems();
-				//µ±Ç°·þÎñÆ÷µÄÃ½ÌåÁ÷ÐÅÏ¢
+				//å½“å‰æœåŠ¡å™¨çš„åª’ä½“æµä¿¡æ¯
 				auto&& streams = HttpClient::GetInstance()->GetMediaList();
 
 				for (auto&& s : items)
@@ -23,12 +23,12 @@ void DistributeManager::Start()
 
 					if (iter == streams.end())
 					{
-						//²»´æÔÚ£¬ÔòÌí¼ÓÀ­Á÷´úÀí
+						//ä¸å­˜åœ¨ï¼Œåˆ™æ·»åŠ æ‹‰æµä»£ç†
 						HttpClient::GetInstance()->AddDistributeStream(s);
 					}
 					else
 					{
-						//Èç¹ûÉèÖÃÁËÂ¼ÖÆ£¬µ«ÊÇÕâÀïÃ»ÓÐÂ¼ÖÆµÄ»°
+						//å¦‚æžœè®¾ç½®äº†å½•åˆ¶ï¼Œä½†æ˜¯è¿™é‡Œæ²¡æœ‰å½•åˆ¶çš„è¯
 						if (!iter->isRecordingMP4 && s->RecordMP4)
 						{
 							HttpClient::GetInstance()->StartRecord(s->App, s->Stream);
@@ -41,7 +41,7 @@ void DistributeManager::Start()
 					}
 				}
 
-				//¶¨Ê±
+				//å®šæ—¶
 				std::unique_lock<std::mutex> lck(_mtx);
 				_cv.wait_for(lck, std::chrono::seconds(30s));
 			};

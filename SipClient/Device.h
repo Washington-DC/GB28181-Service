@@ -17,6 +17,8 @@ public:
 	/// @brief 开始播放。接收到ACK消息后，让流媒体服务器向指定地址发送视频数据。
 	void Start();
 
+	void SetupStream();
+
 	/// @brief 停止播放，通过app和stream来区分是哪个流。
 	void Stop();
 
