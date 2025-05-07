@@ -343,7 +343,7 @@ void SipDevice::OnCallACK(eXosip_event_t *event) {
     if (iter->second->Used == false) {
       //查找到对应的session后，通知流媒体服务器开始推流
       if (iter->second->Playback) {
-        iter->second->SetupStream();
+        iter->second->LoadMP4File();
       } else {
         iter->second->Start();
         iter->second->Used = true;
@@ -1104,11 +1104,14 @@ std::string SipDevice::FormatXML(const std::string &xml) {
 void SipDevice::OnStreamChangedCallback(const std::string &app,
                                         const std::string &stream,
                                         bool regist) {
+
+  std::cout << "----------------------->>>   " << _session_map.size()
+            << std::endl;
   //只需要判断录像回放的流注销事件即可
   if (!regist && app == "record") {
     std::scoped_lock<std::mutex> g(_session_mutex);
     for (auto &&[id, session] : _session_map) {
-      if (session->SSRC == stream) {
+      if (session->PlaybackStream() == stream) {
         SendStreamFinishedNotify(session);
 
         //从map中删除此session，流注销已自动释放
@@ -1121,10 +1124,10 @@ void SipDevice::OnStreamChangedCallback(const std::string &app,
   if (regist && app == "record") {
     std::scoped_lock<std::mutex> g(_session_mutex);
     for (auto &&[id, session] : _session_map) {
-      if (session->SSRC == stream) {
+		//因为可能会转换为多个不同的协议，所以这里只需要判断一个协议的流注册上来就可以
+      if (session->PlaybackStream() == stream && !session->Used) {
         session->Start();
         session->Used = true;
-
         break;
       }
     }
@@ -1140,8 +1143,8 @@ void Session::Start() {
   if (this->Playback) {
     // 录像回放：先加载MP4文件，然后sendRTP
     auto ret = HttpClient::GetInstance()->StartSendRtp(
-        "record", this->SSRC, this->SSRC, this->TargetIP, this->TargetPort,
-        this->LocalPort, this->UseTcp);
+        "record", this->PlaybackStream(), this->SSRC, this->TargetIP,
+        this->TargetPort, this->LocalPort, this->UseTcp);
   } else {
     // 实时流：向流媒体服务器发送实时推送请求，需要指定收发数据的端口，SSRC和时间范围
     auto ret = HttpClient::GetInstance()->StartSendRtp(
@@ -1150,11 +1153,11 @@ void Session::Start() {
   }
 }
 
-void Session::SetupStream() {
+void Session::LoadMP4File() {
   if (this->Playback) {
     // 录像回放：先加载MP4文件，然后sendRTP
-    auto ret = HttpClient::GetInstance()->LoadMP4File("record", this->SSRC,
-                                                      this->FilePath);
+    auto ret = HttpClient::GetInstance()->LoadMP4File(
+        "record", this->PlaybackStream(), this->FilePath);
   }
 }
 
@@ -1162,7 +1165,7 @@ void Session::SetupStream() {
 void Session::Stop() {
   HttpClient::GetInstance()->StopSendRtp(
       this->Playback ? "record" : this->Channel->App,
-      this->Playback ? this->SSRC : this->Channel->Stream);
+      this->Playback ? this->PlaybackStream() : this->Channel->Stream);
 }
 
 // 向流媒体服务器发送暂停请求
