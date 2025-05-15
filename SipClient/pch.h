@@ -66,11 +66,11 @@ namespace fs = std::filesystem;
 #ifdef _DEBUG
 #pragma comment(lib, "pugixmld.lib")
 #pragma comment(lib, "libcurl-d_imp.lib")
-#pragma comment(lib,"cpr-d.lib")
+#pragma comment(lib, "cpr-d.lib")
 #else
 #pragma comment(lib, "pugixml.lib")
 #pragma comment(lib, "libcurl_imp.lib")
-#pragma comment(lib,"cpr.lib")
+#pragma comment(lib, "cpr.lib")
 #endif
 
 #endif 

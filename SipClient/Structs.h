@@ -1,10 +1,11 @@
 ﻿#pragma once
 #include "pch.h"
+#include <Util/util.h>
 #include <vector>
 
 enum class EnumPlayMode { Realtime, Playback, Download };
 
-const std::vector<std::string> g_PlayMode = {"Play","Playback","Download"};
+const std::vector<std::string> g_PlayMode = { "Play", "Playback", "Download" };
 
 /// @brief SIP服务器信息
 struct SipServerInfo {
@@ -29,7 +30,12 @@ struct ChannelInfo {
     std::string Stream; //通道对应的视频流路径
 
     std::string Path() { return App + "/" + Stream; }
-    std::string DbName() { return App + "_" + Stream; }
+
+    std::string DbName() {
+        auto ss = Stream;
+        toolkit::replace(ss, "/", "_");
+        return App + "_" + ss;
+    }
 };
 
 /// @brief 设备信息
@@ -86,4 +92,10 @@ struct DistributeItem {
     int Protocol; //针对RTSP时，使用TCP:0 or UDP:1，默认TCP:0
     bool RecordMP4 = false;
     int RetryTimes = -1; //无限重试
+
+    std::string DbName() {
+        auto ss = Stream;
+        toolkit::replace(ss, "/", "_");
+        return App + "_" + ss;
+    }
 };
