@@ -8,12 +8,11 @@ triggers:
       prefix:
         - ''
 stages:
-  - name: stage-e925b84b
-    displayName: 未命名
+  - name: build
+    displayName: build
     strategy: naturally
     trigger: auto
-    executor:
-      - yszs
+    executor: []
     steps:
       - step: build@gcc
         name: build_gcc
