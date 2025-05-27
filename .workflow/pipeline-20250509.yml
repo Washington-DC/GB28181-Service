@@ -19,16 +19,15 @@ stages:
         displayName: GCC 构建
         gccVersion: '9.4'
         commands:
-          - sudo apt-get update && sudo apt-get install -y build-essential git wget pkg-config
-          - sudo apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev
-          - sudo git submodule update --init
-          - sudo apt-get install -y libboost-all-dev
-          - sudo mkdir opensource
-          - cd opensource && sudo git clone https://github.com/libcpr/cpr.git && cd cpr && sudo mkdir build && cd build && sudo cmake .. -DCPR_USE_SYSTEM_CURL=ON && sudo make && sudo make install 
-          - cd opensource && sudo wget https://ftp.gnu.org/gnu/osip/libosip2-5.3.1.tar.gz && sudo tar -zxvf libosip2-5.3.1.tar.gz && cd libosip2-5.3.1 && sudo ./configure && sudo make && sudo make install 
-          - cd opensource && sudo wget http://download.savannah.nongnu.org/releases/exosip/libexosip2-5.3.0.tar.gz && sudo tar -zxvf libexosip2-5.3.0.tar.gz && cd libexosip2-5.3.0 && sudo ./configure && sudo make CFLAGS="-DENABLE_MAIN_SOCKET=1" && sudo make install 
-          - sudo cp libexosip2.pc /usr/local/lib/pkgconfig/libexosip2.pc
-
+          - apt-get update && apt-get install -y build-essential git wget pkg-config
+          - apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev
+          - git submodule update --init
+          - apt-get install -y libboost-all-dev
+          - mkdir opensource
+          - cd opensource && git clone https://github.com/libcpr/cpr.git && cd cpr && mkdir build && cd build && cmake .. -DCPR_USE_SYSTEM_CURL=ON && make && make install
+          - cd opensource && wget https://ftp.gnu.org/gnu/osip/libosip2-5.3.1.tar.gz && tar -zxvf libosip2-5.3.1.tar.gz && cd libosip2-5.3.1 && ./configure && make && make install
+          - cd opensource && wget http://download.savannah.nongnu.org/releases/exosip/libexosip2-5.3.0.tar.gz && tar -zxvf libexosip2-5.3.0.tar.gz && cd libexosip2-5.3.0 && ./configure && make CFLAGS="-DENABLE_MAIN_SOCKET=1" && make install
+          - cp libexosip2.pc /usr/local/lib/pkgconfig/libexosip2.pc
           - '# 新建build目录，切换到build目录'
           - 'mkdir build && cd build '
           - '# 生成Unix平台的makefiles文件并执行构建'
