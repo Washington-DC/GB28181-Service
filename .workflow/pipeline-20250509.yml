@@ -17,7 +17,7 @@ stages:
       - step: build@gcc
         name: build_gcc
         displayName: GCC 构建
-        gccVersion: '9.4'
+        gccVersion: '10.3'
         commands:
           - apt-get update && apt-get install -y build-essential git wget pkg-config
           - apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev
