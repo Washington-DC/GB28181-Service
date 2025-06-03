@@ -1,3 +1,36 @@
 [submodule "3rdparty/ZLToolKit"]
 	path = 3rdparty/ZLToolKit
 	url = https://gitee.com/xia-chu/ZLToolKit.git
+[submodule "submodule/ZLToolKit"]
+	path = submodule/ZLToolKit
+	url = https://github.com/ZLMediaKit/ZLToolKit.git
+[submodule "submodule/exosip"]
+	path = submodule/exosip
+	url = https://git.savannah.nongnu.org/git/exosip.git
+[submodule "submodule/osip"]
+	path = submodule/osip
+	url = https://git.savannah.gnu.org/git/osip.git
+[submodule "submodule/cpr"]
+	path = submodule/cpr
+	url = https://github.com/libcpr/cpr.git
+[submodule "submodule/spdlog"]
+	path = submodule/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "submodule/json"]
+	path = submodule/json
+	url = https://github.com/nlohmann/json.git
+[submodule "submodule/pugixml"]
+	path = submodule/pugixml
+	url = https://github.com/zeux/pugixml.git
+[submodule "submodule/sqlite3pp"]
+	path = submodule/sqlite3pp
+	url = https://github.com/iwongu/sqlite3pp.git
+[submodule "submodule/curl"]
+	path = submodule/curl
+	url = https://github.com/curl/curl.git
+[submodule "submodule/c-ares"]
+	path = submodule/c-ares
+	url = https://github.com/c-ares/c-ares.git
+[submodule "submodule/magic_enum"]
+	path = submodule/magic_enum
+	url = https://github.com/Neargye/magic_enum.git
