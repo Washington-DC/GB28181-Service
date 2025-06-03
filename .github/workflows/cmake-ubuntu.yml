@@ -24,30 +24,10 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y build-essential git wget pkg-config
 
     - name: 安装开发库
-      run: sudo apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev
+      run: sudo apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev  libboost-all-dev
 
     - name: 更新submodule
       run: git submodule update --init
-
-    - name: 创建临时文件夹
-      run:  sudo mkdir opensource
-
-    - name: 编译依赖 cpr
-      run: cd opensource && sudo git clone https://github.com/libcpr/cpr.git && cd cpr && sudo mkdir build && cd build && sudo cmake .. -DCPR_USE_SYSTEM_CURL=ON && sudo make && sudo make install 
-
-    - name: 编译依赖 boost
-      run: sudo apt-get install -y libboost-all-dev
-      # 从源码安装台耗时间了，直接apt安装吧
-      #run: cd opensource && sudo wget https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.gz && sudo tar -zxvf boost_1_84_0.tar.gz && cd boost_1_84_0 && sudo ./bootstrap.sh && sudo ./b2 install 
-
-    - name: 编译依赖 osip
-      run: cd opensource && sudo wget https://ftp.gnu.org/gnu/osip/libosip2-5.3.1.tar.gz && sudo tar -zxvf libosip2-5.3.1.tar.gz && cd libosip2-5.3.1 && sudo ./configure && sudo make && sudo make install 
-
-    - name: 编译依赖 eXosip
-      run: cd opensource && sudo wget http://download.savannah.nongnu.org/releases/exosip/libexosip2-5.3.0.tar.gz && sudo tar -zxvf libexosip2-5.3.0.tar.gz && cd libexosip2-5.3.0 && sudo ./configure && sudo make CFLAGS="-DENABLE_MAIN_SOCKET=1" && sudo make install 
-
-    - name: 拷贝pc文件
-      run: sudo cp libexosip2.pc /usr/local/lib/pkgconfig/libexosip2.pc
 
     - name: 编译程序
       run: sudo mkdir build && cd build && sudo cmake .. -DCMAKE_BUILD_TYPE=Release && sudo make
@@ -56,9 +36,4 @@ jobs:
       shell: bash
       run: |
         echo "------------------------------- End -------------------------------"
-
-    # - name: Build
-    #   # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-    #   run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
-
 
