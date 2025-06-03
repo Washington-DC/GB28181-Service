@@ -73,31 +73,16 @@ if(USE_SOLUTION_FOLDERS AND (NOT GROUP_BY_EXPLORER))
     set_file_group(${ToolKit_ROOT}/src ${ToolKit_SRC_LIST})
 endif()
 
-
-
 add_subdirectory("pugixml")
-
 
 set(SPDLOG_BUILD_TESTING VALUE OFF CACHE BOOL "Build spdlog tests" FORCE)
 add_subdirectory("spdlog")
 
 add_subdirectory("json")
 
-# add_subdirectory("curl")
-
 set(CPR_USE_SYSTEM_CURL VALUE ON CACHE BOOL  "If enabled we will use the curl lib already installed on this system." FORCE)
 add_subdirectory("cpr")
 
-
-# add_subdirectory("osip")
-
-# add_subdirectory("exosip")
-
-
-# add_subdirectory("sqlite3pp")
-
-
 add_subdirectory("magic_enum")
-add_subdirectory("c-ares")
 
 
