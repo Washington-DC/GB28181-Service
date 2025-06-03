@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5.0)
 project(SipService VERSION 1.0.0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++17 -Wl,-rpath=./:./lib")
 
-set(OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/release/linux/${CMAKE_BUILD_TYPE})
+set(OUTPUT_DIR ${CMAKE_SOURCE_DIR}/release/linux/${CMAKE_BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIR})
 
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -42,32 +42,137 @@ elseif(WIN32)
     "/EHsc")
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/ZLToolKit/src)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/crow)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/json)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/magic_enum)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/sqlite/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/depends/spdlog/include)
+include_directories(${CMAKE_SOURCE_DIR}/submodule/ZLToolKit/src)
+include_directories(${CMAKE_SOURCE_DIR}/submodule/crow)
+include_directories(${CMAKE_SOURCE_DIR}/submodule/json/single_include)
+include_directories(${CMAKE_SOURCE_DIR}/submodule/magic_enum/include)
+include_directories(${CMAKE_SOURCE_DIR}/submodule/sqlite3pp/headeronly_src)
+include_directories(${CMAKE_SOURCE_DIR}/submodule/spdlog/include)
+include_directories(${CMAKE_SOURCE_DIR}/submodule/pugixml/src)
+include_directories(${CMAKE_SOURCE_DIR}/submodule/cpr/include)
+
+include_directories(${CMAKE_SOURCE_DIR}/submodule/osip/include)
+include_directories(${CMAKE_SOURCE_DIR}/submodule/exosip/include)
+
+find_program(MAKE_EXE NAMES gmake nmake make)
+
+message(STATUS "===========CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
+message(STATUS "===========CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
+
+include(ExternalProject)
+# 定义子模块的构建目录和安装前缀
+set(OSIP_BUILD_DIR "${CMAKE_BINARY_DIR}/osip_build")
+set(OSIP_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/osip_install")
+
+set(EXOSIP_BUILD_DIR "${CMAKE_BINARY_DIR}/exosip_build")
+set(EXOSIP_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/exosip_install")
+
+# 使用 ExternalProject_Add 构建和安装 osip
+ExternalProject_Add(osip_project
+    SOURCE_DIR "${CMAKE_SOURCE_DIR}/submodule/osip" # 指定子模块的源码目录
+    PREFIX ${OSIP_BUILD_DIR} # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
+    # 安装阶段的目标
+    INSTALL_DIR ${OSIP_INSTALL_PREFIX} # 指定安装路径
+
+    # 构建步骤（假设需要 autogen 和 configure）
+    CONFIGURE_COMMAND
+        cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR>
+      
+         # 确保配置指向正确的安装路径
+    BUILD_COMMAND      cd <SOURCE_DIR> &&  make
+    INSTALL_COMMAND    cd <SOURCE_DIR> &&  make install DESTDIR=<INSTALL_DIR>
+)
+
+
+# include(ExternalProject)
+# # 使用 ExternalProject_Add 构建和安装 exosip
+# ExternalProject_Add(exosip_project
+#     SOURCE_DIR "${CMAKE_SOURCE_DIR}/submodule/exosip" # 指定子模块的源码目录
+#     PREFIX ${EXOSIP_BUILD_DIR} # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
+#     # PREFIX ${CMAKE_BINARY_DIR}/exosip_ep # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
+#     # 安装阶段的目标
+#     INSTALL_DIR ${EXOSIP_INSTALL_PREFIX} # 指定安装路径
+
+#     # 构建步骤（假设需要 autogen 和 configure）
+#     CONFIGURE_COMMAND
+#         cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> # 确保配置指向正确的安装路径
+        
+#     BUILD_COMMAND     cd <SOURCE_DIR> && make CFLAGS="-DENABLE_MAIN_SOCKET=1"
+#     INSTALL_COMMAND   cd <SOURCE_DIR> && make install DESTDIR=<INSTALL_DIR>
+# )
+
+
+
+message(STATUS "===========OSIP_BUILD_DIR:${OSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+message(STATUS "===========OSIP_BUILD_DIR:${OSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+message(STATUS "===========OSIP_BUILD_DIR:${EXOSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+message(STATUS "===========OSIP_BUILD_DIR:${EXOSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+# 查找 ExternalProject 安装的 exosip
+find_library(OSIP2_LIB NAMES osip2
+            PATHS ${OSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+            NO_DEFAULT_PATH)
+find_path(OSIP2_INCLUDE_DIR osip.h
+          PATHS ${OSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
+          NO_DEFAULT_PATH)
+
+# 查找 ExternalProject 安装的 exosip
+find_library(EXOSIP2_LIB NAMES eXosip2
+            PATHS ${EXOSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+            NO_DEFAULT_PATH)
+find_path(EXOSIP2_INCLUDE_DIR eXosip.h
+          PATHS ${EXOSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/eXosip2
+          NO_DEFAULT_PATH)
+
+
+
+message(STATUS "===========OSIP2_LIB:${OSIP2_LIB}")
+message(STATUS "===========OSIP2_INCLUDE_DIR:${OSIP2_INCLUDE_DIR}")
+
+message(STATUS "===========EXOSIP2_LIB:${EXOSIP2_LIB}")
+message(STATUS "===========EXOSIP2_INCLUDE_DIR:${EXOSIP2_INCLUDE_DIR}")
+
+if(OSIP2_LIB AND OSIP2_INCLUDE_DIR)
+    set(OSIP2_FOUND TRUE)
+    set(OSIP2_LIBRARIES ${OSIP2_LIB})
+    set(OSIP2_INCLUDE_DIRS ${OSIP2_INCLUDE_DIR})
+else()
+    # message(FATAL_ERROR "Could not find osip2 libraries or headers installed by ExternalProject")
+endif()
+
+
+if(EXOSIP2_LIB AND EXOSIP2_INCLUDE_DIR)
+    set(EXOSIP2_FOUND TRUE)
+    set(EXOSIP2_LIBRARIES ${EXOSIP2_LIB})
+
+    get_filename_component(EXOSIP2_INCLUDE_DIR_PARENT ${EXOSIP2_INCLUDE_DIR} DIRECTORY)
+    message(STATUS "===========EXOSIP2_INCLUDE_DIR_PARENT:${EXOSIP2_INCLUDE_DIR_PARENT}")
+    set(EXOSIP2_INCLUDE_DIRS ${EXOSIP2_INCLUDE_DIR_PARENT})
+else()
+    # message(FATAL_ERROR "Could not find exosip2 libraries or headers installed by ExternalProject")
+endif()
 
 
 find_package(PkgConfig REQUIRED)
-pkg_search_module(osip2 REQUIRED libosip2 IMPORTED_TARGET)
-pkg_search_module(exosip2 REQUIRED libexosip2 IMPORTED_TARGET)
+# pkg_search_module(osip2 REQUIRED libosip2 IMPORTED_TARGET)
+# pkg_search_module(exosip2 REQUIRED libexosip2 IMPORTED_TARGET)
 pkg_search_module(sqlite3 REQUIRED sqlite3 IMPORTED_TARGET)
 
 
 # find_package(glog  REQUIRED)
 # find_package(fmt  REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread locale system filesystem)
-find_package(pugixml  REQUIRED)
-find_package(cpr REQUIRED)
+# find_package(pugixml  REQUIRED)
+# find_package(cpr REQUIRED)
 find_package(CURL REQUIRED)
 # find_package(spdlog REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-add_subdirectory(3rdparty)
-add_subdirectory(base)
-add_subdirectory(SipService)
-add_subdirectory(SipClient)
+
+add_subdirectory(submodule)
+
+# add_subdirectory(3rdparty)
+# add_subdirectory(base)
+# add_subdirectory(SipService)
+# add_subdirectory(SipClient)

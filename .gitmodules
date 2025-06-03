@@ -1,6 +1,3 @@
-[submodule "3rdparty/ZLToolKit"]
-	path = 3rdparty/ZLToolKit
-	url = https://gitee.com/xia-chu/ZLToolKit.git
 [submodule "submodule/ZLToolKit"]
 	path = submodule/ZLToolKit
 	url = https://github.com/ZLMediaKit/ZLToolKit.git

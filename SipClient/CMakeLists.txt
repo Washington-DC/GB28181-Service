@@ -12,10 +12,13 @@ target_link_libraries(SipClient pugixml)
 target_link_libraries(SipClient cpr)
 target_link_libraries(SipClient ${Boost_LIBRARIES})
 target_link_libraries(SipClient PkgConfig::sqlite3)
-target_link_libraries(SipClient PkgConfig::osip2)
-target_link_libraries(SipClient PkgConfig::exosip2)
+# target_link_libraries(SipClient PkgConfig::osip2)
+# target_link_libraries(SipClient PkgConfig::exosip2)
 target_link_libraries(SipClient ${OPENSSL_LIBRARIES})
 target_link_libraries(SipClient ${CURL_LIBRARIES})
+
+target_link_directories(SipClient PRIVATE  ${OSIP2_LIBRARIES})
+target_link_directories(SipClient PRIVATE  ${EXOSIP2_LIBRARIES})
 
 
 
