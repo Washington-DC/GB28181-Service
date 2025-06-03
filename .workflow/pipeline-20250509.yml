@@ -23,15 +23,7 @@ stages:
           - apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev
           - git submodule update --init
           - apt-get install -y libboost-all-dev
-          - mkdir opensource
-          - cd opensource && git clone https://github.com/libcpr/cpr.git && cd cpr && mkdir build && cd build && cmake .. -DCPR_USE_SYSTEM_CURL=ON && make && make install
-          - cd opensource && wget https://ftp.gnu.org/gnu/osip/libosip2-5.3.1.tar.gz && tar -zxvf libosip2-5.3.1.tar.gz && cd libosip2-5.3.1 && ./configure && make && make install
-          - cd opensource && wget http://download.savannah.nongnu.org/releases/exosip/libexosip2-5.3.0.tar.gz && tar -zxvf libexosip2-5.3.0.tar.gz && cd libexosip2-5.3.0 && ./configure && make CFLAGS="-DENABLE_MAIN_SOCKET=1" && make install
-          - cp libexosip2.pc /usr/local/lib/pkgconfig/libexosip2.pc
-          - '# 新建build目录，切换到build目录'
-          - 'mkdir build && cd build '
-          - '# 生成Unix平台的makefiles文件并执行构建'
-          - cmake -G 'Unix Makefiles' ../ && make -j
+          - mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -G 'Unix Makefiles' .. && make -j
         artifacts:
           - name: BUILD_ARTIFACT
             path:

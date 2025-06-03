@@ -17,8 +17,14 @@ target_link_libraries(SipClient PkgConfig::sqlite3)
 target_link_libraries(SipClient ${OPENSSL_LIBRARIES})
 target_link_libraries(SipClient ${CURL_LIBRARIES})
 
-target_link_directories(SipClient PRIVATE  ${OSIP2_LIBRARIES})
-target_link_directories(SipClient PRIVATE  ${EXOSIP2_LIBRARIES})
+message(STATUS "===========OSIP2_INCLUDE_DIR:${OSIP2_LIBRARIES}")
+target_include_directories(SipClient PRIVATE ${OSIP2_INCLUDE_DIRS})
+message(STATUS "===========EXOSIP2_INCLUDE_DIR:${EXOSIP2_LIBRARIES}")
+target_include_directories(SipClient PRIVATE ${EXOSIP2_INCLUDE_DIRS})
+
+target_link_libraries(SipClient   ${OSIP2_LIBRARIES})
+target_link_libraries(SipClient   ${OSIP_PARSER2_LIBRARIES})
+target_link_libraries(SipClient   ${EXOSIP2_LIBRARIES})
 
 
 
