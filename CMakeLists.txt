@@ -58,7 +58,6 @@ include_directories(${CMAKE_SOURCE_DIR}/submodule/exosip/include)
 
 find_program(MAKE_EXE NAMES gmake nmake make)
 
-message(STATUS "===========CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}")
 message(STATUS "===========CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 
 include(ExternalProject)
@@ -103,6 +102,12 @@ ExternalProject_Add(exosip_project
     INSTALL_COMMAND   cd <SOURCE_DIR> && make install
 )
 
+message(STATUS "===========OSIP_BUILD_DIR: ${OSIP_BUILD_DIR}")
+message(STATUS "===========OSIP_INSTALL_PREFIX: ${OSIP_INSTALL_PREFIX}")
+message(STATUS "===========EXOSIP_BUILD_DIR: ${EXOSIP_BUILD_DIR}")      
+message(STATUS "===========EXOSIP_INSTALL_PREFIX: ${EXOSIP_INSTALL_PREFIX}")
+
+
 # 查找 ExternalProject 安装的 exosip
 find_library(OSIP2_LIB NAMES osip2
             PATHS ${OSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
@@ -121,6 +126,9 @@ find_library(EXOSIP2_LIB NAMES eXosip2
 find_path(EXOSIP2_HEADER_DIR eXosip.h
           PATHS ${EXOSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/eXosip2
           NO_DEFAULT_PATH)
+
+
+message(STATUS "===========find result: ${OSIP2_LIB},${OSIP2_HEADER_DIR},${EXOSIP2_LIB},${EXOSIP2_HEADER_DIR}")
 
 
 if(OSIP2_LIB AND OSIP2_HEADER_DIR)
