@@ -29,6 +29,9 @@ jobs:
     - name: 更新submodule
       run: git submodule update --init
 
+    - name: 预编译依赖库
+      run: sudo ./pre_build.sh
+
     - name: 编译程序
       run: sudo mkdir build && cd build && sudo cmake .. -DCMAKE_BUILD_TYPE=Release && sudo make
 
