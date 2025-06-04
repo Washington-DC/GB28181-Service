@@ -20,9 +20,7 @@ stages:
         gccVersion: '10.3'
         commands:
           - echo  $WORKSPACE
-          - echo $PWD
-          - set dir = $PWD
-          - echo ${dir}
+          - export WORKSPACE = $PWD
           - apt-get update && apt-get install -y pkg-config
           - apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev libboost-all-dev
           - git submodule update --init
