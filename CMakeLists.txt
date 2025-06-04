@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.5.0)
 project(SipService VERSION 1.0.0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++17 -Wl,-rpath=./:./lib")
 
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 set(OUTPUT_DIR ${CMAKE_SOURCE_DIR}/release/linux/${CMAKE_BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIR})
 
@@ -111,7 +116,7 @@ ExternalProject_Add(exosip_project
 )
 
 # /tye/source/sip-service
-#  ./configure --prefix=/tye/source/sip-service/build/exosip_install CFLAGS="-I/tye/source/sip-service/build/osip_install/include"  LDFLAGS="-L/tye/source/sip-service/build/osip_install/lib"
+#  ./configure --prefix=/tye/source/sip-service/build/exosip_install CFLAGS="-I/tye/source/sip-service/build/osip_install/include  -DENABLE_MAIN_SOCKET=1"  LDFLAGS="-L/tye/source/sip-service/build/osip_install/lib"
 
 message(STATUS "===========OSIP_BUILD_DIR: ${OSIP_BUILD_DIR}")
 message(STATUS "===========OSIP_INSTALL_PREFIX: ${OSIP_INSTALL_PREFIX}")

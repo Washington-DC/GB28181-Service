@@ -24,9 +24,6 @@
 [submodule "submodule/sqlite3pp"]
 	path = submodule/sqlite3pp
 	url = https://gitee.com/arm-depend/sqlite3pp.git
-[submodule "submodule/curl"]
-	path = submodule/curl
-	url = https://gitee.com/arm-depend/curl.git
 [submodule "submodule/magic_enum"]
 	path = submodule/magic_enum
 	url = https://gitee.com/arm-depend/magic_enum.git
