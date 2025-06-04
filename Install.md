@@ -14,8 +14,9 @@ sudo apt-get update && sudo apt-get install -y build-essential libssl-dev libcur
 git clone https://github.com/Washington-DC/GB28181-Service.git
 cd GB28181-Service
 
-
+# 编译osip和eXosip
 ./pre_build.sh
+
 # 更新submodule
 git submodule update --init --recursive
 
