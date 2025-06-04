@@ -2,7 +2,7 @@
 
 export WORKSPACE=$(cd "$(dirname "$0")" && pwd)
 
-mkdir build
+mkdir -p build
 
 echo "WORKSPACE: $WORKSPACE"
 

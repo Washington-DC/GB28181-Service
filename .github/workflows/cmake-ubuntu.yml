@@ -33,7 +33,7 @@ jobs:
       run: sudo ./pre_build.sh
 
     - name: 编译程序
-      run: sudo mkdir build && cd build && sudo cmake .. -DCMAKE_BUILD_TYPE=Release && sudo make
+      run: sudo mkdir -p build && cd build && sudo cmake .. -DCMAKE_BUILD_TYPE=Release && sudo make
 
     - name: 结束
       shell: bash
