@@ -139,7 +139,7 @@ if(OSIP2_LIB AND OSIP2_HEADER_DIR)
     message(STATUS "===========OSIP2_INCLUDE_DIR:${OSIP2_INCLUDE_DIR}")
     set(OSIP2_INCLUDE_DIRS ${OSIP2_INCLUDE_DIR})
 else()
-    message(FATAL_ERROR "Could not find osip2 libraries or headers installed by ExternalProject")
+    message(STATUS "Could not find osip2 libraries or headers installed by ExternalProject")
 endif()
 
 
@@ -151,7 +151,7 @@ if(EXOSIP2_LIB AND EXOSIP2_HEADER_DIR)
     message(STATUS "===========EXOSIP2_INCLUDE_DIR:${EXOSIP2_INCLUDE_DIR}")
     set(EXOSIP2_INCLUDE_DIRS ${EXOSIP2_INCLUDE_DIR})
 else()
-    message(FATAL_ERROR "Could not find exosip2 libraries or headers installed by ExternalProject")
+    message(STATUS "Could not find exosip2 libraries or headers installed by ExternalProject")
 endif()
 
 
