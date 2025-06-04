@@ -22,7 +22,7 @@ stages:
           - apt-get update && apt-get install -y build-essential git wget pkg-config
           - apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev libboost-all-dev
           - git submodule update --init
-          - mkdir build && cd build && cmake . -DCMAKE_BUILD_TYPE=Release. && make make -j$(nproc)
+          - mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make make -j$(nproc)
         artifacts:
           - name: BUILD_ARTIFACT
             path:
