@@ -103,7 +103,7 @@ ExternalProject_Add(exosip_project
 
     # 构建步骤（假设需要 autogen 和 configure）
     CONFIGURE_COMMAND
-        cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> --with-osip=${OSIP_INSTALL_PREFIX} # 确保配置指向正确的安装路径
+        cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> --includedir=${OSIP_INSTALL_PREFIX}/include -- # 确保配置指向正确的安装路径
         
     BUILD_COMMAND     cd <SOURCE_DIR> && make CFLAGS="-DENABLE_MAIN_SOCKET=1"
     INSTALL_COMMAND   cd <SOURCE_DIR> && make install
