@@ -22,9 +22,6 @@
 [submodule "submodule/sqlite3pp"]
 	path = submodule/sqlite3pp
 	url = https://github.com/iwongu/sqlite3pp.git
-[submodule "submodule/curl"]
-	path = submodule/curl
-	url = https://github.com/curl/curl.git
 [submodule "submodule/magic_enum"]
 	path = submodule/magic_enum
 	url = https://github.com/Neargye/magic_enum.git
