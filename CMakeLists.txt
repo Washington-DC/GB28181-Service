@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(OUTPUT_DIR ${CMAKE_SOURCE_DIR}/release/linux/${CMAKE_BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIR})
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+endif()
+
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 # Debug 配置
 message(STATUS "CMAKE_BUILD_TYPE Debug")
@@ -64,84 +68,28 @@ message(STATUS "===========CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 
 include(ExternalProject)
 # 定义子模块的构建目录和安装前缀
-set(OSIP_BUILD_DIR "${CMAKE_BINARY_DIR}/osip_build")
 set(OSIP_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/osip_install")
-
-set(EXOSIP_BUILD_DIR "${CMAKE_BINARY_DIR}/exosip_build")
 set(EXOSIP_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/exosip_install")
-
-# # 使用 ExternalProject_Add 构建和安装 osip
-# ExternalProject_Add(osip_project
-#     SOURCE_DIR "${CMAKE_SOURCE_DIR}/submodule/osip" # 指定子模块的源码目录
-#     PREFIX ${OSIP_BUILD_DIR} # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
-#     # 安装阶段的目标
-#     INSTALL_DIR ${OSIP_INSTALL_PREFIX} # 指定安装路径
-
-#     # 构建步骤（假设需要 autogen 和 configure）
-#     CONFIGURE_COMMAND
-#         cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR>
-      
-#          # 确保配置指向正确的安装路径
-#     BUILD_COMMAND      cd <SOURCE_DIR> &&  make -j$(nproc)
-#     INSTALL_COMMAND    cd <SOURCE_DIR> &&  make install
-# )
-
-
-# # 等待 osip_project 构建完成
-# ExternalProject_Add_Step(osip_project wait_for_osip
-#     DEPENDEES download
-#     DEPENDERS configure
-#     DEPENDS ${osip_project}
-# )
-
-
-# # 使用 ExternalProject_Add 构建和安装 exosip
-# ExternalProject_Add(exosip_project
-#     SOURCE_DIR "${CMAKE_SOURCE_DIR}/submodule/exosip" # 指定子模块的源码目录
-#     PREFIX ${EXOSIP_BUILD_DIR} # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
-#     # PREFIX ${CMAKE_BINARY_DIR}/exosip_ep # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
-#     # 安装阶段的目标
-#     INSTALL_DIR ${EXOSIP_INSTALL_PREFIX} # 指定安装路径
-
-#     # 构建步骤（假设需要 autogen 和 configure）
-#     CONFIGURE_COMMAND
-#         cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> CFLAGS="-I${OSIP_INSTALL_PREFIX}/include -DENABLE_MAIN_SOCKET=1" LDFLAGS="-L${OSIP_INSTALL_PREFIX}/lib" # 添加 osip 头文件路径
-        
-#     BUILD_COMMAND     cd <SOURCE_DIR> && make -j$(nproc)
-#     INSTALL_COMMAND   cd <SOURCE_DIR> && make install
-#     DEPENDS ${osip_project}
-# )
-
-# # /tye/source/sip-service
-# #  ./configure --prefix=/tye/source/sip-service/build/exosip_install CFLAGS="-I/tye/source/sip-service/build/osip_install/include  -DENABLE_MAIN_SOCKET=1"  LDFLAGS="-L/tye/source/sip-service/build/osip_install/lib"
-
-# message(STATUS "===========OSIP_BUILD_DIR: ${OSIP_BUILD_DIR}")
-# message(STATUS "===========OSIP_INSTALL_PREFIX: ${OSIP_INSTALL_PREFIX}")
-# message(STATUS "===========EXOSIP_BUILD_DIR: ${EXOSIP_BUILD_DIR}")      
-# message(STATUS "===========EXOSIP_INSTALL_PREFIX: ${EXOSIP_INSTALL_PREFIX}")
 
 
 # 查找 ExternalProject 安装的 exosip
 find_library(OSIP2_LIB NAMES osip2
-            PATHS ${OSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
-            NO_DEFAULT_PATH)
+            PATHS ${OSIP_INSTALL_PREFIX}/lib
+           NO_DEFAULT_PATH )
 find_library(OSIP_PARSER2_LIB NAMES osipparser2
-            PATHS ${OSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+            PATHS ${OSIP_INSTALL_PREFIX}/lib
             NO_DEFAULT_PATH)
 find_path(OSIP2_HEADER_DIR osip.h
-          PATHS ${OSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/osip2
+          PATHS ${OSIP_INSTALL_PREFIX}/include/osip2
           NO_DEFAULT_PATH)
 
 # 查找 ExternalProject 安装的 exosip
 find_library(EXOSIP2_LIB NAMES eXosip2
-            PATHS ${EXOSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
-            NO_DEFAULT_PATH)
+            PATHS ${EXOSIP_INSTALL_PREFIX}/lib
+)
 find_path(EXOSIP2_HEADER_DIR eXosip.h
-          PATHS ${EXOSIP_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}/eXosip2
-          NO_DEFAULT_PATH)
-
-
-message(STATUS "===========find result: ${OSIP2_LIB},${OSIP2_HEADER_DIR},${EXOSIP2_LIB},${EXOSIP2_HEADER_DIR}")
+          PATHS ${EXOSIP_INSTALL_PREFIX}/include/eXosip2
+         NO_DEFAULT_PATH )
 
 
 if(OSIP2_LIB AND OSIP2_HEADER_DIR)
@@ -149,7 +97,6 @@ if(OSIP2_LIB AND OSIP2_HEADER_DIR)
     set(OSIP2_LIBRARIES ${OSIP2_LIB})
     set(OSIP_PARSER2_LIBRARIES ${OSIP_PARSER2_LIB})
     get_filename_component(OSIP2_INCLUDE_DIR ${OSIP2_HEADER_DIR} DIRECTORY)
-    message(STATUS "===========OSIP2_INCLUDE_DIR:${OSIP2_INCLUDE_DIR}")
     set(OSIP2_INCLUDE_DIRS ${OSIP2_INCLUDE_DIR})
 else()
     message(STATUS "Could not find osip2 libraries or headers installed by ExternalProject")
@@ -161,7 +108,6 @@ if(EXOSIP2_LIB AND EXOSIP2_HEADER_DIR)
     set(EXOSIP2_LIBRARIES ${EXOSIP2_LIB})
 
     get_filename_component(EXOSIP2_INCLUDE_DIR ${EXOSIP2_HEADER_DIR} DIRECTORY)
-    message(STATUS "===========EXOSIP2_INCLUDE_DIR:${EXOSIP2_INCLUDE_DIR}")
     set(EXOSIP2_INCLUDE_DIRS ${EXOSIP2_INCLUDE_DIR})
 else()
     message(STATUS "Could not find exosip2 libraries or headers installed by ExternalProject")
