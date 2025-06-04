@@ -85,7 +85,14 @@ ExternalProject_Add(osip_project
 )
 
 
-include(ExternalProject)
+# 等待 osip_project 构建完成
+ExternalProject_Add_Step(osip_project wait_for_osip
+    DEPENDEES download
+    DEPENDERS configure
+    DEPENDS ${osip_project}
+)
+
+
 # 使用 ExternalProject_Add 构建和安装 exosip
 ExternalProject_Add(exosip_project
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/submodule/exosip" # 指定子模块的源码目录
@@ -96,10 +103,11 @@ ExternalProject_Add(exosip_project
 
     # 构建步骤（假设需要 autogen 和 configure）
     CONFIGURE_COMMAND
-        cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> # 确保配置指向正确的安装路径
+        cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> --with-osip=${OSIP_INSTALL_PREFIX} # 确保配置指向正确的安装路径
         
     BUILD_COMMAND     cd <SOURCE_DIR> && make CFLAGS="-DENABLE_MAIN_SOCKET=1"
     INSTALL_COMMAND   cd <SOURCE_DIR> && make install
+    DEPENDS ${osip_project}
 )
 
 message(STATUS "===========OSIP_BUILD_DIR: ${OSIP_BUILD_DIR}")
