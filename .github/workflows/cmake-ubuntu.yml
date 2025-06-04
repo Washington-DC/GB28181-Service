@@ -24,7 +24,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y build-essential git wget pkg-config
 
     - name: 安装开发库
-      run: sudo apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev  libboost-all-dev
+      run: sudo apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev libboost-all-dev
 
     - name: 更新submodule
       run: git submodule update --init

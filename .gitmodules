@@ -13,12 +13,14 @@
 [submodule "submodule/spdlog"]
 	path = submodule/spdlog
 	url = https://github.com/gabime/spdlog.git
+	branch = v1.x
 [submodule "submodule/json"]
 	path = submodule/json
 	url = https://github.com/nlohmann/json.git
 [submodule "submodule/pugixml"]
 	path = submodule/pugixml
 	url = https://github.com/zeux/pugixml.git
+	branch = master
 [submodule "submodule/sqlite3pp"]
 	path = submodule/sqlite3pp
 	url = https://github.com/iwongu/sqlite3pp.git
