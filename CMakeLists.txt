@@ -80,7 +80,7 @@ ExternalProject_Add(osip_project
         cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR>
       
          # 确保配置指向正确的安装路径
-    BUILD_COMMAND      cd <SOURCE_DIR> &&  make
+    BUILD_COMMAND      cd <SOURCE_DIR> &&  make -j$(nproc)
     INSTALL_COMMAND    cd <SOURCE_DIR> &&  make install
 )
 
@@ -103,12 +103,15 @@ ExternalProject_Add(exosip_project
 
     # 构建步骤（假设需要 autogen 和 configure）
     CONFIGURE_COMMAND
-        cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> --includedir=${OSIP_INSTALL_PREFIX}/include  --libdir=${OSIP_INSTALL_PREFIX}/lib# 确保配置指向正确的安装路径
+        cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> CFLAGS="-I${OSIP_INSTALL_PREFIX}/include -DENABLE_MAIN_SOCKET=1" LDFLAGS="-L${OSIP_INSTALL_PREFIX}/lib" # 添加 osip 头文件路径
         
-    BUILD_COMMAND     cd <SOURCE_DIR> && make CFLAGS="-DENABLE_MAIN_SOCKET=1"
+    BUILD_COMMAND     cd <SOURCE_DIR> && make -j$(nproc)
     INSTALL_COMMAND   cd <SOURCE_DIR> && make install
     DEPENDS ${osip_project}
 )
+
+# /tye/source/sip-service
+#  ./configure --prefix=/tye/source/sip-service/build/exosip_install CFLAGS="-I/tye/source/sip-service/build/osip_install/include"  LDFLAGS="-L/tye/source/sip-service/build/osip_install/lib"
 
 message(STATUS "===========OSIP_BUILD_DIR: ${OSIP_BUILD_DIR}")
 message(STATUS "===========OSIP_INSTALL_PREFIX: ${OSIP_INSTALL_PREFIX}")
