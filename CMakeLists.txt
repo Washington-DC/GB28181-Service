@@ -2,10 +2,7 @@ cmake_minimum_required(VERSION 3.5.0)
 project(SipService VERSION 1.0.0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -std=c++17 -Wl,-rpath=./:./lib")
 
-set(CMAKE_C_STANDARD 17)
-set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(OUTPUT_DIR ${CMAKE_SOURCE_DIR}/release/linux/${CMAKE_BUILD_TYPE})
 set(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIR})
@@ -73,55 +70,55 @@ set(OSIP_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/osip_install")
 set(EXOSIP_BUILD_DIR "${CMAKE_BINARY_DIR}/exosip_build")
 set(EXOSIP_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/exosip_install")
 
-# 使用 ExternalProject_Add 构建和安装 osip
-ExternalProject_Add(osip_project
-    SOURCE_DIR "${CMAKE_SOURCE_DIR}/submodule/osip" # 指定子模块的源码目录
-    PREFIX ${OSIP_BUILD_DIR} # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
-    # 安装阶段的目标
-    INSTALL_DIR ${OSIP_INSTALL_PREFIX} # 指定安装路径
+# # 使用 ExternalProject_Add 构建和安装 osip
+# ExternalProject_Add(osip_project
+#     SOURCE_DIR "${CMAKE_SOURCE_DIR}/submodule/osip" # 指定子模块的源码目录
+#     PREFIX ${OSIP_BUILD_DIR} # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
+#     # 安装阶段的目标
+#     INSTALL_DIR ${OSIP_INSTALL_PREFIX} # 指定安装路径
 
-    # 构建步骤（假设需要 autogen 和 configure）
-    CONFIGURE_COMMAND
-        cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR>
+#     # 构建步骤（假设需要 autogen 和 configure）
+#     CONFIGURE_COMMAND
+#         cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR>
       
-         # 确保配置指向正确的安装路径
-    BUILD_COMMAND      cd <SOURCE_DIR> &&  make -j$(nproc)
-    INSTALL_COMMAND    cd <SOURCE_DIR> &&  make install
-)
+#          # 确保配置指向正确的安装路径
+#     BUILD_COMMAND      cd <SOURCE_DIR> &&  make -j$(nproc)
+#     INSTALL_COMMAND    cd <SOURCE_DIR> &&  make install
+# )
 
 
-# 等待 osip_project 构建完成
-ExternalProject_Add_Step(osip_project wait_for_osip
-    DEPENDEES download
-    DEPENDERS configure
-    DEPENDS ${osip_project}
-)
+# # 等待 osip_project 构建完成
+# ExternalProject_Add_Step(osip_project wait_for_osip
+#     DEPENDEES download
+#     DEPENDERS configure
+#     DEPENDS ${osip_project}
+# )
 
 
-# 使用 ExternalProject_Add 构建和安装 exosip
-ExternalProject_Add(exosip_project
-    SOURCE_DIR "${CMAKE_SOURCE_DIR}/submodule/exosip" # 指定子模块的源码目录
-    PREFIX ${EXOSIP_BUILD_DIR} # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
-    # PREFIX ${CMAKE_BINARY_DIR}/exosip_ep # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
-    # 安装阶段的目标
-    INSTALL_DIR ${EXOSIP_INSTALL_PREFIX} # 指定安装路径
+# # 使用 ExternalProject_Add 构建和安装 exosip
+# ExternalProject_Add(exosip_project
+#     SOURCE_DIR "${CMAKE_SOURCE_DIR}/submodule/exosip" # 指定子模块的源码目录
+#     PREFIX ${EXOSIP_BUILD_DIR} # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
+#     # PREFIX ${CMAKE_BINARY_DIR}/exosip_ep # 外部项目的前缀目录（包含 src/ 和 build/ 子目录）
+#     # 安装阶段的目标
+#     INSTALL_DIR ${EXOSIP_INSTALL_PREFIX} # 指定安装路径
 
-    # 构建步骤（假设需要 autogen 和 configure）
-    CONFIGURE_COMMAND
-        cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> CFLAGS="-I${OSIP_INSTALL_PREFIX}/include -DENABLE_MAIN_SOCKET=1" LDFLAGS="-L${OSIP_INSTALL_PREFIX}/lib" # 添加 osip 头文件路径
+#     # 构建步骤（假设需要 autogen 和 configure）
+#     CONFIGURE_COMMAND
+#         cd <SOURCE_DIR> &&  ./autogen.sh && ./configure --prefix=<INSTALL_DIR> CFLAGS="-I${OSIP_INSTALL_PREFIX}/include -DENABLE_MAIN_SOCKET=1" LDFLAGS="-L${OSIP_INSTALL_PREFIX}/lib" # 添加 osip 头文件路径
         
-    BUILD_COMMAND     cd <SOURCE_DIR> && make -j$(nproc)
-    INSTALL_COMMAND   cd <SOURCE_DIR> && make install
-    DEPENDS ${osip_project}
-)
+#     BUILD_COMMAND     cd <SOURCE_DIR> && make -j$(nproc)
+#     INSTALL_COMMAND   cd <SOURCE_DIR> && make install
+#     DEPENDS ${osip_project}
+# )
 
-# /tye/source/sip-service
-#  ./configure --prefix=/tye/source/sip-service/build/exosip_install CFLAGS="-I/tye/source/sip-service/build/osip_install/include  -DENABLE_MAIN_SOCKET=1"  LDFLAGS="-L/tye/source/sip-service/build/osip_install/lib"
+# # /tye/source/sip-service
+# #  ./configure --prefix=/tye/source/sip-service/build/exosip_install CFLAGS="-I/tye/source/sip-service/build/osip_install/include  -DENABLE_MAIN_SOCKET=1"  LDFLAGS="-L/tye/source/sip-service/build/osip_install/lib"
 
-message(STATUS "===========OSIP_BUILD_DIR: ${OSIP_BUILD_DIR}")
-message(STATUS "===========OSIP_INSTALL_PREFIX: ${OSIP_INSTALL_PREFIX}")
-message(STATUS "===========EXOSIP_BUILD_DIR: ${EXOSIP_BUILD_DIR}")      
-message(STATUS "===========EXOSIP_INSTALL_PREFIX: ${EXOSIP_INSTALL_PREFIX}")
+# message(STATUS "===========OSIP_BUILD_DIR: ${OSIP_BUILD_DIR}")
+# message(STATUS "===========OSIP_INSTALL_PREFIX: ${OSIP_INSTALL_PREFIX}")
+# message(STATUS "===========EXOSIP_BUILD_DIR: ${EXOSIP_BUILD_DIR}")      
+# message(STATUS "===========EXOSIP_INSTALL_PREFIX: ${EXOSIP_INSTALL_PREFIX}")
 
 
 # 查找 ExternalProject 安装的 exosip
