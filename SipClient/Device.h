@@ -1,11 +1,4 @@
-﻿/*****************************************************************//**
- * \file   Device.h
- * \brief  模拟一个SIP设备
- *
- * \author yszs
- * \date   March 2024
- *********************************************************************/
-#pragma once
+﻿#pragma once
 #include "Structs.h"
 
 using event_proc = std::function<void(eXosip_event_t*)>;
@@ -278,4 +271,8 @@ private:
 	//订阅消息回复线程
 	std::shared_ptr<std::thread> _subscription_thread = nullptr;
 };
+
+
+
+
 

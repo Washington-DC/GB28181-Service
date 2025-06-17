@@ -1,4 +1,8 @@
 ﻿#pragma once
+
+#ifndef __STRUCTS_H__
+#define __STRUCTS_H__
+
 #include "pch.h"
 #include <Util/util.h>
 #include <vector>
@@ -99,3 +103,6 @@ struct DistributeItem {
         return App + "_" + ss;
     }
 };
+
+
+#endif

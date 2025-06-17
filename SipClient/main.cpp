@@ -1,12 +1,4 @@
-﻿/*****************************************************************/ /**
-                                                                     * \file   main.cpp
-                                                                     * \brief
-                                                                     *
-                                                                     * \author yszs
-                                                                     * \date   March 2024
-                                                                     *********************************************************************/
-
-#include "ConfigManager.h"
+﻿#include "ConfigManager.h"
 #include "DbManager.h"
 #include "Device.h"
 #include "DistributeManager.h"
