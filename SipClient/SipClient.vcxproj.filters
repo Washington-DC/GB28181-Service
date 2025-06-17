@@ -15,34 +15,34 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigManager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="HttpClient.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="NetUtils.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DbManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Utils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DistributeManager.cpp">
+    <ClCompile Include="ConfigManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DbManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Device.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="DistributeManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="HttpServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NetUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,31 +50,31 @@
     <ClInclude Include="pch.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigManager.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Structs.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="HttpClient.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="NetUtils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DbManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DistributeManager.h">
+    <ClInclude Include="ConfigManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DbManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Device.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DistributeManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="HttpServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NetUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -80,11 +80,11 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\..\..\..\depends\openssl\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\..\win-depends\openssl\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\..\..\..\depends\openssl\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\..\win-depends\openssl\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

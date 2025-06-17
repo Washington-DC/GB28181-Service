@@ -71,14 +71,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\depends\sqlite\include;..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\crow;..\depends\boost-1.75\include;..\depends\cpr\include;..\depends\spdlog\include;..\depends\curl\include;..;..\depends;..\depends\json;..\depends\pugixml;..\depends\ZLTookit\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\sqlite\lib;..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\openssl\debug;..\depends\ZLTookit\lib\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\win-depends\sqlite\include;..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\win-depends\crow;..\win-depends\boost-1.75\include;..\win-depends\cpr\include;..\win-depends\spdlog\include;..\win-depends\curl\include;..;..\win-depends\;..\win-depends\json;..\win-depends\pugixml;..\win-depends\ZLTookit\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\win-depends\sqlite\lib;..\win-depends\boost-1.75\lib;..\win-depends\curl\lib;..\win-depends\cpr\lib;..\win-depends\pugixml;..\win-depends\openssl\debug;..\win-depends\ZLTookit\lib\debug;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)release\windows\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\depends\sqlite\include;..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\crow;..\depends\boost-1.75\include;..\depends\cpr\include;..\depends\spdlog\include;..\depends\curl\include;..;..\depends\magic_enum;..\depends\json;..\depends\pugixml;..\depends\ZLTookit\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\ZLTookit\lib\release;..\depends\sqlite\lib;..\depends\boost-1.75\lib;..\depends\curl\lib;..\depends\cpr\lib;..\depends\pugixml;..\depends\openssl\release;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\win-depends\sqlite\include;..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\win-depends\crow;..\win-depends\boost-1.75\include;..\win-depends\cpr\include;..\win-depends\spdlog\include;..\win-depends\curl\include;..;..\win-depends\;..\win-depends\json;..\win-depends\pugixml;..\win-depends\ZLTookit\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\win-depends\ZLTookit\lib\release;..\win-depends\sqlite\lib;..\win-depends\boost-1.75\lib;..\win-depends\curl\lib;..\win-depends\cpr\lib;..\win-depends\pugixml;..\win-depends\openssl\release;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)release\windows\$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -117,10 +117,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;ENABLE_MAIN_SOCKET;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -137,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ENABLE_MAIN_SOCKET;_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -150,35 +150,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="ConfigManager.cpp" />
-    <ClCompile Include="DbManager.cpp" />
-    <ClCompile Include="Device.cpp" />
-    <ClCompile Include="DistributeManager.cpp" />
-    <ClCompile Include="HttpClient.cpp" />
-    <ClCompile Include="HttpServer.cpp" />
-    <ClCompile Include="NetUtils.cpp" />
-    <ClCompile Include="pch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Utils.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ConfigManager.h" />
-    <ClInclude Include="DbManager.h" />
-    <ClInclude Include="Device.h" />
-    <ClInclude Include="DistributeManager.h" />
-    <ClInclude Include="HttpClient.h" />
-    <ClInclude Include="HttpServer.h" />
-    <ClInclude Include="NetUtils.h" />
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="Structs.h" />
-    <ClInclude Include="Utils.h" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\base\base.vcxproj">
       <Project>{8d9a6595-717a-41c8-b468-0011a72be3d1}</Project>
@@ -195,6 +166,30 @@
     <ProjectReference Include="..\libexosip2-5.3.0\osip\platform\vsnet\osipparser2.vcxproj">
       <Project>{44f46b7e-0e51-4304-9735-330dfbab41e5}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="DbManager.cpp" />
+    <ClCompile Include="Device.cpp" />
+    <ClCompile Include="DistributeManager.cpp" />
+    <ClCompile Include="HttpClient.cpp" />
+    <ClCompile Include="HttpServer.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="NetUtils.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="DbManager.h" />
+    <ClInclude Include="Device.h" />
+    <ClInclude Include="DistributeManager.h" />
+    <ClInclude Include="HttpClient.h" />
+    <ClInclude Include="HttpServer.h" />
+    <ClInclude Include="NetUtils.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Structs.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

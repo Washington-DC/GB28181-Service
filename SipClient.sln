@@ -18,8 +18,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "base", "base\base.vcxproj",
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SipService", "SipService\SipService.vcxproj", "{82CF9D1A-A13A-4EDA-A85E-1D49BE718048}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj", "{C3F99313-7B3C-4F4D-86A7-69A57B867D35}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "eXosip", "libexosip2-5.3.0\exosip\platform\vsnet\eXosip.vcxproj", "{4EA67539-9EE9-4065-BD39-87E517FD8262}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcares", "libexosip2-5.3.0\exosip\platform\vsnet\libcares.vcxproj", "{6BCE0E64-5A72-4243-B385-88E62C8E398A}"
@@ -62,14 +60,6 @@ Global
 		{82CF9D1A-A13A-4EDA-A85E-1D49BE718048}.Release|x64.Build.0 = Release|x64
 		{82CF9D1A-A13A-4EDA-A85E-1D49BE718048}.Release|x86.ActiveCfg = Release|Win32
 		{82CF9D1A-A13A-4EDA-A85E-1D49BE718048}.Release|x86.Build.0 = Release|Win32
-		{C3F99313-7B3C-4F4D-86A7-69A57B867D35}.Debug|x64.ActiveCfg = Debug|x64
-		{C3F99313-7B3C-4F4D-86A7-69A57B867D35}.Debug|x64.Build.0 = Debug|x64
-		{C3F99313-7B3C-4F4D-86A7-69A57B867D35}.Debug|x86.ActiveCfg = Debug|Win32
-		{C3F99313-7B3C-4F4D-86A7-69A57B867D35}.Debug|x86.Build.0 = Debug|Win32
-		{C3F99313-7B3C-4F4D-86A7-69A57B867D35}.Release|x64.ActiveCfg = Release|x64
-		{C3F99313-7B3C-4F4D-86A7-69A57B867D35}.Release|x64.Build.0 = Release|x64
-		{C3F99313-7B3C-4F4D-86A7-69A57B867D35}.Release|x86.ActiveCfg = Release|Win32
-		{C3F99313-7B3C-4F4D-86A7-69A57B867D35}.Release|x86.Build.0 = Release|Win32
 		{4EA67539-9EE9-4065-BD39-87E517FD8262}.Debug|x64.ActiveCfg = Debug|x64
 		{4EA67539-9EE9-4065-BD39-87E517FD8262}.Debug|x64.Build.0 = Debug|x64
 		{4EA67539-9EE9-4065-BD39-87E517FD8262}.Debug|x86.ActiveCfg = Debug|Win32

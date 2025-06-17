@@ -72,15 +72,15 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\sqlite\include;..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\spdlog\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\cpr\lib;..\depends\sqlite\lib;..\depends\curl\lib;..\depends\ZLTookit\lib\debug;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\openssl\debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\win-depends\sqlite\include;..\win-depends\cpr\include;..;..\win-depends\crow;..\win-depends\curl\include;..\win-depends\ZLTookit\include;..\win-depends\json;..\win-depends\boost-1.75\include;..\win-depends\magic_enum;..\win-depends\pugixml;..\win-depends\spdlog\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\win-depends\cpr\lib;..\win-depends\sqlite\lib;..\win-depends\curl\lib;..\win-depends\ZLTookit\lib\debug;..\win-depends\boost-1.75\lib;..\win-depends\pugixml;..\win-depends\openssl\debug;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)release\windows\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>$(SolutionDir)tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
-    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\depends\sqlite\include;..\depends\cpr\include;..;..\depends\crow;..\depends\curl\include;..\depends\ZLTookit\include;..\depends\json;..\depends\boost-1.75\include;..\depends\magic_enum;..\depends\pugixml;..\depends\spdlog\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\depends\cpr\lib;..\depends\sqlite\lib;..\depends\curl\lib;..\depends\ZLTookit\lib\release;..\depends\boost-1.75\lib;..\depends\pugixml;..\depends\openssl\release;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\libexosip2-5.3.0\osip\include;..\libexosip2-5.3.0\exosip\include;..\win-depends\sqlite\include;..\win-depends\cpr\include;..;..\win-depends\crow;..\win-depends\curl\include;..\win-depends\ZLTookit\include;..\win-depends\json;..\win-depends\boost-1.75\include;..\win-depends\magic_enum;..\win-depends\pugixml;..\win-depends\spdlog\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\win-depends\cpr\lib;..\win-depends\sqlite\lib;..\win-depends\curl\lib;..\win-depends\ZLTookit\lib\release;..\win-depends\boost-1.75\lib;..\win-depends\pugixml;..\win-depends\openssl\release;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)release\windows\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
