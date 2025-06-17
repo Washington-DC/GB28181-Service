@@ -15,6 +15,7 @@ git clone https://github.com/Washington-DC/GB28181-Service.git
 cd GB28181-Service
 
 
+./pre_build.sh
 # 更新submodule
 git submodule update --init --recursive
 

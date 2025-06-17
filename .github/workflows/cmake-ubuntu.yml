@@ -26,8 +26,8 @@ jobs:
     - name: 安装开发库
       run: sudo apt-get install -y libssl-dev libcurl4-openssl-dev libc-ares-dev tcl tcl-dev libpugixml-dev sqlite3 libsqlite3-dev libboost-all-dev
 
-    - name: 替换submodule地址
-      run: sudo mv .gitmodules .gitmodules-gitee && sudo mv .gitmodules-github .gitmodules
+    - name: 修改gitmodule
+      run: rm -f .gitmodules && mv .gitmodules-github .gitmodules
 
     - name: 更新submodule
       run: git submodule update --init
