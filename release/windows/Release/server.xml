@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Config>
+	<SipServer>
+		<!-- SIP监听端口 -->
+		<Port>25060</Port>
+		<Password>12345678</Password>
+		<!-- SIP服务ID -->
+		<ID>34020000002000000001</ID>
+		<!-- 这个参数暂时没用 -->
+		<IP>192.168.116.125</IP>
+		<!-- 收流IP -->
+		<ExternIP>192.168.116.125</ExternIP>
+	</SipServer>
+	<MediaServer>
+		<!-- ZLM服务地址 -->
+		<IP>127.0.0.1</IP>
+		<!-- ZLM服务Http端口 -->
+		<Port>82</Port>
+		<!-- ZLM RTP接收端口 -->
+		<RtpPort>10000</RtpPort>
+		<!-- ZLM是否使用单端口模式 -->
+		<SinglePortMode>false</SinglePortMode>
+		<Secret>035c73f7-6666-8888-9999-d9eb2d1925cc</Secret>
+		<PlayWait>30</PlayWait>
+	</MediaServer>
+	<Http>
+		<!-- Http服务端口 -->
+		<Port>8000</Port>
+	</Http>
+</Config>
